@@ -2,9 +2,15 @@
 'use strict';
 if(!document.getElementById('hptHiddenFix')){const s=document.createElement('style');s.id='hptHiddenFix';s.textContent='[hidden]{display:none!important}';document.head.appendChild(s);}
 const $=id=>document.getElementById(id);
+const bind=(id,event,handler)=>{const el=$(id);if(el)el.addEventListener(event,handler);else console.warn(`Optional HPT element #${id} was not found; skipped ${event} handler.`);return el};
+const safeText=(id,value)=>{const e=$(id);if(e)e.textContent=String(value??'');return e};
+const safeValue=(id,value)=>{const e=$(id);if(e)e.value=value;return e};
+const safeImage=(id,src,alt)=>{const e=$(id);if(e){if(src)e.src=src;if(alt!==undefined)e.alt=alt;}return e};
+function gateMessageElement(){let e=$('schoolGateMsg');if(e)return e;const input=$('schoolAccessCode'),card=input?.closest('.gateCard');if(!card)return null;e=document.createElement('div');e.id='schoolGateMsg';e.className='gateMessage';e.setAttribute('role','status');e.setAttribute('aria-live','polite');const button=$('enterSchoolBtn');if(button)card.insertBefore(e,button);else card.appendChild(e);if(input)input.setAttribute('aria-describedby','schoolGateMsg');return e}
+function setGateMessage(text,bad=false){const e=gateMessageElement();if(e){e.textContent=String(text??'');e.className='gateMessage'+(bad?' bad':'')}return e}
 const C=window.RAJU_HPT_CONFIG;
 let clips=[], order=[], pos=0, responses=[], scores=[], running=false, finishing=false, timer=null, responseLocked=false;
-let candidate={name:'',phone:''}, sound=true, accessCode='1234';
+let candidate={name:'',phone:''}, sound=true, activeSchool=null, schoolAccessCode='';
 const video=$('video');
 let audioCtx=null;
 let roadAudio=null;
@@ -158,9 +164,32 @@ function timeline(){const t=$('track');if(!t)return;const d=Math.max(1,Math.min(
 function resetClip(){responses=[];responseLocked=false;finishing=false;timeline();update()}
 function staticHazards(code){return (C.staticHazards?.[String(code).padStart(2,'0')]||[]).map((h,i)=>({...h,hazard_no:i+1}))}
 async function supabase(){if(window._sb)return window._sb;try{if(!window.supabase?.createClient)return null;window._sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey);return window._sb}catch{return null}}
-async function loadClips(){clips=C.staticClips.map(x=>({...x,hazards:staticHazards(x.clip_code)}));const sb=await supabase();if(sb){const {data:vs}=await sb.from('hpt_videos').select('id,clip_code,title,video_path,duration_seconds,active').eq('active',true);if(vs?.length){const {data:hs}=await sb.from('hpt_hazards').select('video_id,hazard_no,timestamp_seconds,label');const by={};(hs||[]).forEach(h=>(by[h.video_id]??=[]).push({t:Number(h.timestamp_seconds),label:h.label||`Hazard ${h.hazard_no}`,hazard_no:h.hazard_no}));const remote=vs.map(v=>({...v,file:v.video_path.startsWith('http')?v.video_path:(v.video_path.startsWith('./')?v.video_path:C.videoBase+v.video_path.replace(/^videos\//,'')),hazards:(by[v.id]||[])})).filter(v=>v.hazards.length>=1);const merged=[...clips];remote.forEach(v=>{const i=merged.findIndex(x=>String(x.clip_code).padStart(2,'0')===String(v.clip_code).padStart(2,'0'));if(i>=0)merged[i]=v;else merged.push(v)});clips=merged;}}
-return clips.filter(c=>c.active&&c.video_path&&c.hazards?.length>=1)}
-async function saveAttempt(){const sb=await supabase();if(!sb)return {ok:false,error:'Supabase is not available.'};const total=scores.reduce((a,b)=>a+b,0);const payload={candidate_name:candidate.name,phone:candidate.phone,started_at:new Date(Date.now()-C.examClipCount*C.clipLimitSeconds*1000).toISOString(),completed_at:new Date().toISOString(),total_score:total,passed:total>=C.passMark,clip_order:order.map(c=>c.clip_code),responses:scores.flatMap((_,i)=>(order[i]._responses||[]).map(r=>({video_id:order[i].id||null,clip_code:order[i].clip_code||null,response_no:r.response_no,click_time_seconds:r.t,hazard_no:r.hazard_no||null,awarded_marks:r.points})))};
+async function loadClips(){
+  // Bundled clips must have a playable `file` path even if Supabase has no video rows.
+  clips=(C.staticClips||[]).map(x=>({...x,
+    file:(/^https?:\/\//i.test(x.video_path||''))?x.video_path:
+      ((x.video_path||'').startsWith('./')?x.video_path:C.videoBase+String(x.video_path||'').replace(/^\.?\/?videos\//,'')),
+    hazards:staticHazards(x.clip_code)
+  }));
+  const sb=await supabase();
+  if(sb){
+    try{
+      const {data:vs,error:videoError}=await sb.from('hpt_videos').select('id,clip_code,title,video_path,duration_seconds,active').eq('active',true);
+      if(!videoError&&vs?.length){
+        const {data:hs,error:hazardError}=await sb.from('hpt_hazards').select('video_id,hazard_no,timestamp_seconds,label');
+        if(!hazardError){
+          const by={};(hs||[]).forEach(h=>(by[h.video_id]??=[]).push({t:Number(h.timestamp_seconds),label:h.label||`Hazard ${h.hazard_no}`,hazard_no:h.hazard_no}));
+          const remote=vs.map(v=>({...v,file:/^https?:\/\//i.test(v.video_path||'')?v.video_path:((v.video_path||'').startsWith('./')?v.video_path:C.videoBase+String(v.video_path||'').replace(/^\.?\/?videos\//,'')),hazards:(by[v.id]||[])})).filter(v=>v.active&&v.video_path&&v.hazards.length>=1);
+          const merged=[...clips];
+          remote.forEach(v=>{const i=merged.findIndex(x=>String(x.clip_code).padStart(2,'0')===String(v.clip_code).padStart(2,'0'));if(i>=0)merged[i]=v;else merged.push(v)});
+          clips=merged;
+        }
+      }
+    }catch(e){console.warn('Could not load Supabase video metadata; using bundled clips and hazard timings.',e)}
+  }
+  return clips.filter(c=>c.active&&c.video_path&&c.file&&c.hazards?.length>=1);
+}
+async function saveAttempt(){const sb=await supabase();if(!sb)return {ok:false,error:'Supabase is not available.'};const total=scores.reduce((a,b)=>a+b,0);const payload={candidate_name:candidate.name,phone:candidate.phone,started_at:new Date(Date.now()-C.examClipCount*C.clipLimitSeconds*1000).toISOString(),completed_at:new Date().toISOString(),total_score:total,passed:total>=C.passMark,clip_order:order.map(c=>c.clip_code),responses:scores.flatMap((_,i)=>(order[i]._responses||[]).map(r=>({video_id:order[i].id||null,clip_code:order[i].clip_code||null,response_no:r.response_no,click_time_seconds:r.t,hazard_no:r.hazard_no||null,awarded_marks:r.points}))),p_school_id:activeSchool?.id||null,p_school_access_code:schoolAccessCode||null};
 for(let attempt=1;attempt<=2;attempt++){
   const {data,error}=await sb.rpc('hpt_record_attempt',payload);
   if(!error&&data)return {ok:true,id:data};
@@ -177,10 +206,110 @@ async function finishExam(){
   const reportClips=order.map((c,i)=>({clip_code:c.clip_code,title:c.title,file:c.file||c.video_path,hazards:(c.hazards||[]).map(h=>({hazard_no:h.hazard_no,t:Number(h.t),label:h.label||`Hazard ${h.hazard_no}`})),responses:(c._responses||[]).map(r=>({response_no:r.response_no,t:Number(r.t),hazard_no:r.hazard_no||null,points:Number(r.points||0),frameData:r.frameData||null})),score:Number(scores[i]||0)}));
   const saved=await saveAttempt();
   show('examScreen',false);show('resultScreen',true);if(total>=C.passMark){setTimeout(()=>playOneShot('audio/test-pass-sound.mp3',1.0),120)}$('candidateResult').textContent=`${candidate.name} • ${candidate.phone}`;$('finalScore').textContent=`${total} / 100`;$('passText').textContent=total>=C.passMark?'PASS — EXAMINATION STANDARD MET':'NOT PASSED — BELOW PASS MARK';$('passText').className='status '+(total>=C.passMark?'pass':'fail');$('resultSaveStatus').textContent=saved.ok?'Result recorded successfully.':'Result could not be recorded automatically. Please inform the school admin.';$('resultSaveStatus').className='save-status '+(saved.ok?'ok':'error');$('printCertBtn').hidden=total<C.passMark;const rows=scores.map((s,i)=>`<div class="scoreRow"><span>Clip ${String(i+1).padStart(2,'0')}</span><b>${s} / 10</b></div>`).join('');$('resultDetails').innerHTML=`<div class="scoreGrid">${rows}</div><div class="resultSummary"><div><span>PASS MARK</span><b>${C.passMark}</b></div><div><span>YOUR SCORE</span><b>${total}</b></div><div><span>STATUS</span><b>${total>=C.passMark?'PASS':'NOT PASSED'}</b></div></div>`;
-  window._lastExam={total,total_score:total,passed:total>=C.passMark,saved, candidate_name:candidate.name,phone:candidate.phone,completed_at:completedAt,started_at:new Date(Date.now()-C.examClipCount*C.clipLimitSeconds*1000).toISOString(),clips:reportClips};
+  window._lastExam={total,total_score:total,passed:total>=C.passMark,saved,candidate_name:candidate.name,phone:candidate.phone,completed_at:completedAt,started_at:new Date(Date.now()-C.examClipCount*C.clipLimitSeconds*1000).toISOString(),school:schoolBrand(),clips:reportClips};
   if(total>=C.passMark)setupCandidateCertificate();
 }
-async function begin(){buttonFeedback();ensureAudio();const n=$('name').value.trim(),p=$('phone').value.trim(),code=$('accessCode').value.trim(),msg=$('accessCodeMsg');if(msg){msg.hidden=true;msg.textContent=''}if(!n||!p||!code){toast('Enter candidate name, phone number and access code',true);return}const sb=await supabase();if(!sb){toast('Access code verification is unavailable. Please try again.',true);return}let verified=false;try{const {data,error}=await sb.rpc('verify_hpt_access_code',{p_code:code});if(error)throw error;verified=data===true}catch(e){console.error('HPT access-code verification failed',e);if(msg){msg.textContent='ACCESS CODE VERIFICATION UNAVAILABLE';msg.hidden=false}toast('Access code verification is unavailable.',true);return}if(!verified){if(msg){msg.textContent='ACCESS CODE DENIED';msg.hidden=false}toast('ACCESS CODE DENIED',true);$('accessCode').focus();return}accessCode=code;clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};$('candName').textContent=n;$('candPhone').textContent=p;
+function schoolBrand(s=activeSchool){
+  if(!s)return null;
+  return {id:s.id,school_name:s.school_name||'Driving School',contact_number:s.contact_number||'',location:s.location||'',logo_url:s.logo_url||'',brand_color:s.brand_color||'#ffc400',dark_color:s.dark_color||'#0b1b29'};
+}
+function applySchoolBranding(s,persist=true){
+  activeSchool=s||null;schoolAccessCode=s?.access_code||'';
+  const b=schoolBrand(s);
+  window.HPTCurrentSchool=b;document.body.classList.toggle('school-selected',!!b);
+  const name=b?.school_name||'HAZARD PERCEPTION PORTAL';
+  const logo=b?.logo_url||(b?.school_name?.toLowerCase().includes('raju')?'raju-logo.png':'school-placeholder.svg');
+  // Some older local copies do not include every branding node. Missing optional nodes
+  // must never interrupt successful access verification or prevent the test home screen.
+  safeText('headerSchoolName',name.toUpperCase());
+  safeImage('headerSchoolLogo',logo,name+' logo');
+  safeImage('resultSchoolLogo',logo,name+' logo');
+  safeText('loaderSchoolName',name.toUpperCase());
+  safeImage('loaderSchoolLogo',logo,name+' logo');
+  document.title=b?`${name} | Hazard Perception Test`:'Driving School Hazard Perception Test | Access Portal';
+  const brandColor=b?.brand_color||'#ffc400',darkColor=b?.dark_color||'#0b1b29';
+  document.documentElement.style.setProperty('--yellow',brandColor);
+  document.documentElement.style.setProperty('--panel',darkColor);document.documentElement.style.setProperty('--school-dark',darkColor);
+  if(persist&&s){try{sessionStorage.setItem('hpt_school_session',JSON.stringify({...s,access_code:schoolAccessCode}))}catch{}}
+  const change=$('changeSchoolBtn');if(change)change.hidden=!b;
+  const tools=$('homeTools');if(tools)tools.hidden=!b;
+}
+function resetSchoolBranding(){
+  activeSchool=null;schoolAccessCode='';window.HPTCurrentSchool=null;
+  try{sessionStorage.removeItem('hpt_school_session')}catch{}
+  applySchoolBranding(null,false);
+  safeText('headerSchoolName','HAZARD PERCEPTION PORTAL');
+  safeImage('headerSchoolLogo','school-placeholder.svg','Hazard Perception Test Portal');
+  safeImage('resultSchoolLogo','school-placeholder.svg','Hazard Perception Test Portal');
+  safeText('loaderSchoolName','HAZARD PERCEPTION PORTAL');
+  safeImage('loaderSchoolLogo','school-placeholder.svg','Hazard Perception Test Portal');
+  const tools=$('homeTools');if(tools)tools.hidden=true;
+}
+async function enterSchool(){
+  const codeInput=$('schoolAccessCode'),button=$('enterSchoolBtn');
+  const msg=gateMessageElement();
+  if(!codeInput||!button){console.error('School access form is incomplete: missing code input or continue button.');setGateMessage('ACCESS FORM NOT READY. Refresh the page and try again.',true);return}
+  const code=String(codeInput.value||'').trim();
+  setGateMessage('');
+  if(!code){setGateMessage('ENTER YOUR SCHOOL ACCESS CODE',true);codeInput.focus();return}
+  button.disabled=true;
+  const buttonLabel=button.querySelector('span');
+  if(buttonLabel)buttonLabel.textContent='VERIFYING ACCESS…';
+  try{
+    const sb=await supabase();
+    if(!sb)throw new Error('The portal cannot connect to the access service. Check the Supabase URL, publishable key, and internet connection.');
+    const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:code});
+    if(error)throw error;
+    // PostgreSQL json/jsonb RPCs normally return one object; accept a one-row array too.
+    const payload=Array.isArray(data)?data[0]:data;
+    const schoolData=payload?.school&&typeof payload.school==='object'?payload.school:payload;
+    if(!schoolData||!schoolData.id){setGateMessage('ACCESS CODE NOT RECOGNISED OR SCHOOL DISABLED. CHECK WITH YOUR DRIVING SCHOOL.',true);return}
+    const school={...schoolData,access_code:code};
+    applySchoolBranding(school,true);
+    codeInput.value='';
+    setGateMessage('');
+    show('schoolGate',false);show('startScreen',true);show('examScreen',false);show('resultScreen',false);
+    safeText('candName','Candidate');safeText('candPhone','');
+    $('name')?.focus();
+  }catch(e){
+    console.error('School access verification failed:',e?.stack||e);
+    const detail=String(e?.message||'').trim();
+    const message=/PGRST202|schema cache|could not find the function|function .* does not exist/i.test(detail)
+      ?'ACCESS SERVICE NOT INSTALLED. Run 09-fix-school-access-verification.sql in the connected Supabase project.'
+      :(detail?`ACCESS VERIFICATION FAILED: ${detail.slice(0,180)}`:'ACCESS VERIFICATION UNAVAILABLE. PLEASE TRY AGAIN.');
+    setGateMessage(message,true);
+  }finally{
+    button.disabled=false;
+    if(buttonLabel)buttonLabel.textContent='CONTINUE TO TEST';
+  }
+}
+async function bootSchoolSession(){
+  // Read the saved code before clearing the current in-memory branding.
+  let saved=null;try{saved=JSON.parse(sessionStorage.getItem('hpt_school_session')||'null')}catch{}
+  resetSchoolBranding();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);
+  if(!saved?.access_code||!saved?.id)return;
+  try{
+    const sb=await supabase();if(!sb)return;
+    const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:saved.access_code});
+    const payload=Array.isArray(data)?data[0]:data;
+    const schoolData=payload?.school&&typeof payload.school==='object'?payload.school:payload;
+    if(!error&&schoolData?.id&&String(schoolData.id)===String(saved.id)){
+      applySchoolBranding({...schoolData,access_code:saved.access_code},true);
+      show('schoolGate',false);show('startScreen',true);
+    }else{try{sessionStorage.removeItem('hpt_school_session')}catch{}}
+  }catch(e){console.warn('Could not restore the school session',e)}
+}
+function changeSchool(){
+  // Return safely to the access-code gate and discard only the incomplete in-memory exam.
+  clearTimeout(timer);running=false;finishing=false;responseLocked=false;pos=0;order=[];scores=[];responses=[];
+  try{if(video){video.pause();video.removeAttribute('src');video.load()}}catch(e){console.warn('Could not reset the video element while changing school.',e)}
+  stopRoadAudio();resetSchoolBranding();
+  safeValue('schoolAccessCode','');safeValue('name','');safeValue('phone','');setGateMessage('');
+  show('examScreen',false);show('resultScreen',false);show('startScreen',false);show('schoolGate',true);
+  document.body.classList.remove('home-active','exam-active','result-active');
+  try{const input=$('schoolAccessCode');input?.focus()}catch{}
+}
+async function begin(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};$('candName').textContent=n;$('candPhone').textContent=p;
 try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen?.();}catch(e){console.warn('Fullscreen request unavailable',e)}
 updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
 async function printCertificate(examOverride=null,candidateOverride=null){
@@ -191,24 +320,24 @@ async function printCertificate(examOverride=null,candidateOverride=null){
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});const W=297,H=210;
   doc.setFillColor(250,251,253);doc.rect(0,0,W,H,'F');
   doc.setDrawColor(212,162,32);doc.setLineWidth(1.1);doc.rect(8,8,W-16,H-16,'S');doc.setDrawColor(33,53,72);doc.setLineWidth(.35);doc.rect(13,13,W-26,H-26,'S');
-  let logo=null;try{logo=await imageData('raju-logo.png')}catch{}if(logo){const lw=43,lh=33.2;doc.addImage(logo,'PNG',(W-lw)/2,17,lw,lh);}
-  doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('RAJU MOTOR DRIVING SCHOOL • CHALAKUDY',W/2,57,{align:'center'});
+  const school=exam.school||schoolBrand();const logoPath=school?.logo_url||(school?.school_name?.toLowerCase().includes('raju')?'raju-logo.png':'school-placeholder.svg');let logo=null;try{logo=await imageData(logoPath)}catch{}if(logo){const lw=43,lh=33.2;doc.addImage(logo,'PNG',(W-lw)/2,17,lw,lh);}
+  const schoolName=String(school?.school_name||'Driving School').toUpperCase();doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(schoolName,W/2,57,{align:'center',maxWidth:230});
   doc.setTextColor(184,132,12);doc.setFontSize(25);doc.text('CERTIFICATE OF HAZARD PERCEPTION',W/2,73,{align:'center'});
   doc.setDrawColor(212,162,32);doc.setLineWidth(.7);doc.line(82,79,215,79);
   doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is awarded to',W/2,94,{align:'center'});
   doc.setTextColor(25,38,51);doc.setFont('helvetica','bold');doc.setFontSize(27);doc.text(String(person?.name||exam.candidate_name||'Candidate'),W/2,112,{align:'center'});
   doc.setDrawColor(180,188,195);doc.setLineWidth(.35);doc.line(70,118,227,118);
-  doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the Raju Motor Driving School Hazard Perception Test',W/2,131,{align:'center'});
+  doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the '+(school?.school_name||'Driving School')+' Hazard Perception Test',W/2,131,{align:'center',maxWidth:230});
   doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`SCORE: ${Number(exam.total||exam.total_score||0)} / 100`,W/2,149,{align:'center'});
   doc.setTextColor(35,126,78);doc.setFontSize(16);doc.text('PASS',W/2,160,{align:'center'});
   const d=new Date(exam.completed_at||Date.now());
   doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Date: ${d.toLocaleDateString('en-IN')}`,45,181);
   const certNo=exam.id?`HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(exam.id).slice(0,8).toUpperCase()}`:`HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
   doc.text(`Certificate No: ${certNo}`,W-45,181,{align:'right'});
-  doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text('RAJU MOTOR DRIVING SCHOOL • CHALAKUDY • SINCE 1969',W/2,191,{align:'center'});
-  doc.save(`Raju-HPT-Certificate-${String(person?.name||exam.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`)
+  doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text([school?.school_name,school?.location,school?.contact_number].filter(Boolean).join(' • ').slice(0,120),W/2,191,{align:'center',maxWidth:250});
+  doc.save(`${String(school?.school_name||'Driving-School').replace(/[^a-z0-9]+/gi,'-')}-HPT-Certificate-${String(person?.name||exam.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`)
 }
-async function imageData(url){return await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;const x=c.getContext('2d');x.drawImage(img,0,0);resolve(c.toDataURL('image/png'))};img.onerror=reject;img.src=url+'?v='+Date.now()})}
+async function imageData(url){return await new Promise((resolve,reject)=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;const x=c.getContext('2d');x.drawImage(img,0,0);resolve(c.toDataURL('image/png'))}catch(e){reject(e)}};img.onerror=reject;img.src=url+(url.includes('?')?'&':'?')+'v='+Date.now()})}
 async function lookupAttempts(){
   const phoneInput=$('attemptPhone');const msg=$('attemptMsg');const list=$('attemptList');
   const phone=(phoneInput?.value||'').trim();
@@ -218,7 +347,7 @@ async function lookupAttempts(){
   const sb=await supabase();
   if(!sb){list.innerHTML='';if(msg){msg.textContent='Results service is unavailable. Please try again.';msg.className='attemptMsg bad'}return}
   try{
-    const {data,error}=await sb.rpc('hpt_get_candidate_attempts',{p_phone:phone});
+    const {data,error}=activeSchool?.id?await sb.rpc('hpt_get_candidate_attempts_by_school',{p_phone:phone,p_school_id:activeSchool.id}):await sb.rpc('hpt_get_candidate_attempts',{p_phone:phone});
     if(error)throw error;
     const rows=data||[];
     if(!rows.length){list.innerHTML='<div class="attemptEmpty">No HPT attempts found for this mobile number.</div>';if(msg){msg.textContent='';msg.className='attemptMsg'}return}
@@ -264,13 +393,35 @@ async function buildHistoricalExam(r){
     return {clip_code:code,title:base.title||`Hazard Perception Clip ${code}`,file:base.file||base.video_path||`videos/${Number(code)}.webm`,hazards:hs,responses:rs,score:0};
   });
   clipsOut.forEach(c=>{c.score=c.responses.reduce((sum,x)=>sum+Number(x.points||0),0)});
-  return {id:r.id,total:Number(r.total_score||0),total_score:Number(r.total_score||0),passed:!!r.passed,candidate_name:r.candidate_name,phone:r.phone,started_at:r.started_at,completed_at:r.completed_at,clips:clipsOut};
+  return {id:r.id,total:Number(r.total_score||0),total_score:Number(r.total_score||0),passed:!!r.passed,candidate_name:r.candidate_name,phone:r.phone,started_at:r.started_at,completed_at:r.completed_at,school:schoolBrand(),clips:clipsOut};
 }
 function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('attemptList').innerHTML='<div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div>';setTimeout(()=>$('attemptPhone')?.focus(),80)}
 function closeAttempts(){show('attemptsModal',false)}
 function setupCandidateCertificate(){$('printCertBtn').onclick=printCertificate}
-$('startBtn').onclick=begin;$('resultClose').onclick=()=>{show('resultScreen',false);show('startScreen',true);};$('newBtn').onclick=()=>{show('resultScreen',false);show('startScreen',true);};$('printCertBtn').onclick=()=>printCertificate();$('downloadReportBtn').onclick=async()=>{const b=$('downloadReportBtn');if(!window._lastExam||!window.RajuHPTReport){toast('Report generator is not available. Please refresh the page.',true);return}b.disabled=true;b.textContent='GENERATING…';try{await window.RajuHPTReport.generate(window._lastExam);toast('Complete HPT report downloaded.')}catch(e){console.error(e);toast('Could not generate the HPT report.',true)}finally{b.disabled=false;b.textContent='DOWNLOAD REPORT'}};const viewAttemptsBtn=$('viewAttemptsBtn');if(viewAttemptsBtn)viewAttemptsBtn.onclick=openAttempts;$('attemptSearchBtn').onclick=lookupAttempts;$('attemptCloseBtn').onclick=closeAttempts;$('attemptPhone').onkeydown=e=>{if(e.key==='Enter')lookupAttempts()};$('attemptsModal').onclick=e=>{if(e.target===$('attemptsModal'))closeAttempts()};$('skipBtn').onclick=finishClip;$('soundBtn').onclick=()=>{setSoundState(!sound);};$('fullBtn').onclick=toggleFullscreen;$('helpBtn').onclick=()=>toast('Tap when a developing hazard becomes apparent. You can make up to 5 responses per clip.');$('exitBtn').onclick=()=>{if(confirm('Exit the examination? This attempt will be incomplete.')){clearTimeout(timer);video.pause();running=false;stopRoadAudio();show('examScreen',false);show('startScreen',true);}};$('playNow').onclick=()=>video.play().then(()=>{$('playOverlay').hidden=true;running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000)}).catch(()=>toast('Video could not start',true));
-video.addEventListener('timeupdate',()=>{update();timeline()});video.addEventListener('ended',finishClip);
+bind('enterSchoolBtn','click',enterSchool);
+bind('schoolAccessCode','keydown',e=>{if(e.key==='Enter')enterSchool()});
+bind('changeSchoolBtn','click',changeSchool);
+bind('startBtn','click',begin);
+bind('resultClose','click',()=>{show('resultScreen',false);show('startScreen',true)});
+bind('newBtn','click',()=>{show('resultScreen',false);show('startScreen',true)});
+bind('printCertBtn','click',()=>printCertificate());
+bind('downloadReportBtn','click',async()=>{
+  const b=$('downloadReportBtn');
+  if(!window._lastExam||!window.RajuHPTReport){toast('Report generator is not available. Please refresh the page.',true);return}
+  b.disabled=true;b.textContent='GENERATING…';
+  try{await window.RajuHPTReport.generate(window._lastExam);toast('Complete HPT report downloaded.')}
+  catch(e){console.error(e);toast('Could not generate the HPT report.',true)}
+  finally{b.disabled=false;b.textContent='DOWNLOAD REPORT'}
+});
+const viewAttemptsBtn=$('homeAttemptsBtn')||$('viewAttemptsBtn');if(viewAttemptsBtn)viewAttemptsBtn.addEventListener('click',openAttempts);
+bind('attemptSearchBtn','click',lookupAttempts);bind('attemptCloseBtn','click',closeAttempts);
+bind('attemptPhone','keydown',e=>{if(e.key==='Enter')lookupAttempts()});
+bind('attemptsModal','click',e=>{if(e.target===$('attemptsModal'))closeAttempts()});
+bind('skipBtn','click',finishClip);bind('soundBtn','click',()=>setSoundState(!sound));bind('fullBtn','click',toggleFullscreen);
+bind('helpBtn','click',()=>toast('Tap when a developing hazard becomes apparent. You can make up to 5 responses per clip.'));
+bind('exitBtn','click',()=>{if(confirm('Exit the examination? This attempt will be incomplete.')){clearTimeout(timer);video.pause();running=false;stopRoadAudio();show('examScreen',false);show('startScreen',true)}});
+bind('playNow','click',()=>video.play().then(()=>{const o=$('playOverlay');if(o)o.hidden=true;running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000)}).catch(()=>toast('Video could not start',true)));
+if(video){video.addEventListener('timeupdate',()=>{update();timeline()});video.addEventListener('ended',finishClip)}
 function captureResponseFrame(){
   try{
     if(!video.videoWidth||!video.videoHeight)return null;
@@ -315,8 +466,8 @@ function isStandalone(){return window.matchMedia?.('(display-mode: standalone)')
 function showInstallHelp(){const m=$('installHelpModal');if(!m)return;$('installHelpText').innerHTML='On Android Chrome, use <b>Install app</b> when offered. On iPhone, open the browser share menu and choose <b>Add to Home Screen</b>.';show('installHelpModal',true)}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;show('installAppCard',!isStandalone())});
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;show('installAppCard',false)});
-$('installAppBtn').onclick=async()=>{if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch{}deferredInstallPrompt=null;return}showInstallHelp()};
-$('installHelpClose').onclick=()=>show('installHelpModal',false);$('installHelpOk').onclick=()=>show('installHelpModal',false);
+bind('installAppBtn','click',async()=>{if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch{}deferredInstallPrompt=null;return}showInstallHelp()});
+bind('installHelpClose','click',()=>show('installHelpModal',false));bind('installHelpOk','click',()=>show('installHelpModal',false));
 if(!isStandalone())show('installAppCard',true);
-setupConsoleFeedback();setupHomeMedia();$('startScreen').querySelector('input')?.focus();show('startScreen',true);show('examScreen',false);show('resultScreen',false);startLoadingScreen();
+setupConsoleFeedback();setupHomeMedia();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);startLoadingScreen();bootSchoolSession();
 })();

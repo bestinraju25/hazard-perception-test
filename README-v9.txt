@@ -17,7 +17,7 @@ DEPLOYING THE SECURE VIDEO PUBLISHER
    HPT_GITHUB_REPO = bestinraju25/rajudrivingschool
    HPT_GITHUB_BRANCH = main
 3. Set githubPublishEndpoint in hpt-config.js to:
-   https://laobedcdrwgaxlbnswze.supabase.co/functions/v1/hpt-publish-video
+   https://nceufqdvuuztdfyesbxx.supabase.co/functions/v1/hpt-publish-video
 4. Run supabase-hpt-v9-migration.sql.
 5. Publish this hazard-perception-test folder to GitHub Pages.
 
@@ -25,3 +25,6 @@ IMPORTANT
 The Edge Function deliberately accepts only paths under hazard-perception-test/videos/.
 The GitHub token is never put in client-side JavaScript.
 Existing Defensive Driving Seminar tables/RPCs are not changed by this migration.
+
+
+MULTI-SCHOOL PROJECT NOTE: For the multi-school version, use README-MULTISCHOOL-START-HERE.txt and run only 01-install-multischool-hpt-nceufqdvuuztdfyesbxx.sql first. Historical SQL files are retained for reference; do not rerun them unless explicitly instructed.

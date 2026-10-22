@@ -1185,3 +1185,41 @@ body.home-active .examCard{background:linear-gradient(145deg,rgba(8,21,30,.78),r
 @media(max-width:700px){
   body.home-active .stage{background-position:58% center;background-image:linear-gradient(90deg,rgba(2,8,12,.62),rgba(2,8,12,.38)),url('home-background.jpg')}
 }
+
+
+/* Multi-school portal gate and school branding layer */
+body.school-gate-active .topbar{background:rgba(3,9,14,.36)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom-color:#ffffff18}
+body.school-gate-active .stage{background:linear-gradient(115deg,rgba(2,8,13,.84),rgba(3,13,20,.62)),url('home-background.jpg') center/cover no-repeat}
+.schoolGate{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;overflow:auto;padding:clamp(18px,4vh,44px) clamp(18px,5vw,76px);color:#f5f8fb}
+.schoolGate[hidden]{display:none!important}
+.gateGlow{position:absolute;pointer-events:none;inset:0;background:radial-gradient(circle at 18% 45%,color-mix(in srgb,var(--yellow) 11%,transparent),transparent 39%),linear-gradient(115deg,transparent 47%,rgba(255,255,255,.035) 47.1%,transparent 47.4%)}
+.gateBrand{position:absolute;top:18px;left:clamp(18px,4vw,60px);display:flex;align-items:center;gap:13px;z-index:1;font-size:9px;letter-spacing:2px;font-weight:900;color:#b5c4cd}
+.gateBrand img{width:48px;height:42px;object-fit:contain}
+.gateContent{position:relative;z-index:1;width:min(1220px,100%);margin:20px auto 0;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.75fr);align-items:center;gap:clamp(30px,7vw,100px)}
+.gateCopy{max-width:650px}.gateEyebrow{display:flex;align-items:center;gap:10px;font-size:10px;letter-spacing:2.8px;font-weight:1000;color:var(--yellow)}.gateEyebrow span{width:25px;height:2px;background:var(--yellow);box-shadow:0 0 15px var(--yellow)}
+.gateCopy h1{font-size:clamp(43px,6.2vw,80px);line-height:.97;letter-spacing:-2.7px;margin:22px 0 18px;font-weight:1000}.gateCopy h1 em{font-style:normal;color:var(--yellow)}
+.gateCopy p{max-width:550px;color:#bdc9d1;font-size:clamp(14px,1.3vw,18px);line-height:1.7;margin:0}
+.gateFeatures{display:grid;gap:13px;margin-top:clamp(24px,5vh,52px)}.gateFeatures div{display:flex;align-items:center;gap:13px;color:#e4ebef;font-size:12px;font-weight:800}.gateFeatures b{display:grid;place-items:center;width:32px;height:32px;border:1px solid #ffffff24;border-radius:10px;color:var(--yellow);background:#07141ebf;font-size:10px;letter-spacing:.8px}
+.gateCard{position:relative;width:100%;max-width:450px;justify-self:end;padding:clamp(22px,3vw,34px);border:1px solid #ffffff25;border-radius:22px;background:linear-gradient(145deg,rgba(10,25,36,.92),rgba(3,12,20,.94));box-shadow:0 30px 90px #0007,inset 0 1px #ffffff0a;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.gateCard:before{content:"";position:absolute;top:0;left:24px;right:24px;height:2px;background:linear-gradient(90deg,transparent,var(--yellow),transparent)}
+.gateCardTop{display:flex;align-items:center;gap:13px;margin-bottom:25px}.gateIcon{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:color-mix(in srgb,var(--yellow) 14%,#08131d);border:1px solid color-mix(in srgb,var(--yellow) 38%,transparent);color:var(--yellow);font-size:27px}.gateKicker{color:#96aab6;font-size:9px;letter-spacing:2px;font-weight:1000}.gateCard h2{margin:7px 0 0;font-size:clamp(22px,2.3vw,30px);letter-spacing:-.6px}.gateCard label{display:block;font-size:11px;font-weight:900;color:#cfdae0;margin-bottom:8px}.gateCard input{height:54px;width:100%;border:1px solid #375263;background:#041019;border-radius:12px;padding:0 15px;color:#fff;font-size:15px;font-weight:800;letter-spacing:1.2px;outline:none}.gateCard input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px color-mix(in srgb,var(--yellow) 15%,transparent)}
+.gateMessage{min-height:23px;padding-top:7px;color:#ff9aa6;font-size:11px;font-weight:900;letter-spacing:.5px}.gateMessage.ok{color:#8af2af}.gateButton{display:flex;align-items:center;justify-content:space-between;width:100%;height:54px;padding:0 17px;border:0;border-radius:12px;background:var(--yellow);color:#071018;font-size:12px;letter-spacing:1px;font-weight:1000;box-shadow:0 13px 30px color-mix(in srgb,var(--yellow) 16%,transparent);transition:transform .16s,filter .16s}.gateButton:hover{filter:brightness(1.07);transform:translateY(-1px)}.gateButton b{font-size:22px}.gateSecure{margin-top:17px;text-align:center;color:#8095a2;font-size:8px;letter-spacing:1.5px;font-weight:1000}.gateSecure span{color:#75e7a0;margin-right:5px}.gateFooter{position:absolute;left:clamp(18px,4vw,60px);right:clamp(18px,4vw,60px);bottom:12px;display:flex;justify-content:space-between;gap:12px;z-index:1;color:#728793;font-size:8px;letter-spacing:1.7px;font-weight:900}.gateFooter a{color:#c3d0d8;text-decoration:none}.gateFooter a:hover{color:var(--yellow)}
+body.school-gate-active .homeTools{display:none!important}body.home-active .school{max-width:45vw}
+@media(max-width:850px){.gateContent{grid-template-columns:1fr;gap:22px;max-width:500px;margin:65px auto 30px}.schoolGate{justify-content:flex-start;padding-top:0}.gateCopy{text-align:center}.gateEyebrow{justify-content:center}.gateCopy h1{font-size:clamp(34px,8vw,52px);margin:12px 0}.gateCopy p{font-size:13px}.gateFeatures{display:none}.gateCard{justify-self:stretch;max-width:none;padding:22px}.gateCardTop{margin-bottom:17px}.gateBrand{top:12px}.gateBrand img{width:36px;height:34px}.gateBrand span{font-size:7px;letter-spacing:1.4px}.gateFooter{bottom:8px;font-size:7px}.gateCard input{height:49px}.gateButton{height:50px}}
+@media(max-width:480px){.gateContent{margin-top:55px;gap:16px}.gateCopy h1{font-size:35px;letter-spacing:-1.5px}.gateCopy p{font-size:12px;line-height:1.45}.gateCard{padding:17px;border-radius:17px}.gateIcon{width:41px;height:41px}.gateCard h2{font-size:22px}.gateKicker{font-size:8px}.gateSecure{font-size:7px}.gateFooter span{max-width:60%;line-height:1.5}}
+
+body.home-active .stage{background-image:linear-gradient(90deg,color-mix(in srgb,var(--school-dark,#0b1b29) 78%,transparent) 0%,color-mix(in srgb,var(--school-dark,#0b1b29) 40%,transparent) 46%,color-mix(in srgb,var(--school-dark,#0b1b29) 60%,transparent) 100%),url('home-background.jpg')!important}
+
+@media(max-width:800px){#changeSchoolBtn{width:37px;min-width:37px;justify-content:center;padding:0 6px}#changeSchoolBtn span:not(.toolIcon){display:none!important}}
+/* Apply the chosen school's accent consistently across the existing exam UI. */
+html{accent-color:var(--yellow)}
+body.home-active .topbar .testname,body.home-active .timer,body.home-active .eyebrow{color:var(--yellow)!important}
+body.home-active .primary,body.home-active .startExamBtn,body.home-active .installAppBtn{background:var(--yellow)!important;border-color:var(--yellow)!important;color:var(--school-dark,#071019)!important}
+body.home-active .examCard:before{background:linear-gradient(90deg,transparent,var(--yellow),transparent)!important}
+body.home-active .homeStats b,body.home-active .homeStat b,body.home-active .stats b{color:var(--yellow)!important}
+
+body.school-selected .topbar .testname,body.school-selected .timer,body.school-selected .eyebrow{color:var(--yellow)!important}
+body.school-selected .primary,body.school-selected .startExamBtn,body.school-selected .installAppBtn{background:var(--yellow)!important;border-color:var(--yellow)!important;color:var(--school-dark,#071019)!important}
+body.school-selected .result .finalScore{color:var(--yellow)!important}
+body.school-selected .examCard:before{background:linear-gradient(90deg,transparent,var(--yellow),transparent)!important}
+body.school-selected .homeStats b,body.school-selected .stats b{color:var(--yellow)!important}

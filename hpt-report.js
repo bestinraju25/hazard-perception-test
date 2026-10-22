@@ -9,7 +9,7 @@
   }
   function safeName(s){return String(s||'Candidate').replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'')||'Candidate'}
   function imageData(url){return new Promise(function(resolve,reject){
-    var img=new Image(); img.onload=function(){try{
+    var img=new Image(); img.crossOrigin='anonymous'; img.onload=function(){try{
       var c=document.createElement('canvas'),w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
       if(!w||!h)throw new Error('image has no size'); c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0);resolve(c.toDataURL('image/jpeg',.82));
     }catch(e){reject(e)}}; img.onerror=function(){reject(new Error('image unavailable'))}; img.src=url+(url.indexOf('?')>=0?'&':'?')+'report='+Date.now();
@@ -37,11 +37,12 @@
   }
   function txt(doc,s,x,y,size,bold,color,align){doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor.apply(doc,color||[45,58,68]);doc.text(String(s==null?'':s),x,y,{align:align||'left'});}
   function box(doc,x,y,w,h,fill,stroke){doc.setFillColor.apply(doc,fill);doc.rect(x,y,w,h,'F');if(stroke){doc.setDrawColor.apply(doc,stroke);doc.rect(x,y,w,h,'S')}}
-  function header(doc,W,page,total){doc.setFillColor(5,10,15);doc.rect(0,0,W,16,'F');txt(doc,'RAJU DRIVING SCHOOL',11,7.5,10.5,true,[255,196,0]);txt(doc,'HAZARD PERCEPTION TEST • COMPLETE ANALYSIS REPORT',11,12.5,6.5,false,[190,202,210]);txt(doc,'Page '+page+' / '+total,W-11,9.5,6.5,false,[130,145,155],'right');}
-  function footer(doc,W,H){doc.setDrawColor(55,70,80);doc.line(10,H-8,W-10,H-8);txt(doc,'Raju Motor Driving School • Chalakudy • Hazard Perception Test',10,H-4,6,false,[110,122,132]);txt(doc,'Generated electronically',W-10,H-4,6,false,[110,122,132],'right');}
+  function hexRgb(hex,fallback){var m=/^#?([0-9a-f]{6})$/i.exec(String(hex||''));if(!m)return fallback||[255,196,0];var n=parseInt(m[1],16);return[(n>>16)&255,(n>>8)&255,n&255]}
+  function header(doc,W,page,total,school){var dark=hexRgb(school&&school.dark_color,[5,10,15]),brand=hexRgb(school&&school.brand_color,[255,196,0]);doc.setFillColor.apply(doc,dark);doc.rect(0,0,W,16,'F');txt(doc,String(school&&school.school_name||'DRIVING SCHOOL').toUpperCase(),11,7.5,10.5,true,brand);txt(doc,'HAZARD PERCEPTION TEST • COMPLETE ANALYSIS REPORT',11,12.5,6.5,false,[190,202,210]);txt(doc,'Page '+page+' / '+total,W-11,9.5,6.5,false,[130,145,155],'right');}
+  function footer(doc,W,H,school){doc.setDrawColor(55,70,80);doc.line(10,H-8,W-10,H-8);var meta=[school&&school.school_name,school&&school.location,school&&school.contact_number,'Hazard Perception Test'].filter(Boolean).join(' • ');txt(doc,meta,10,H-4,6,false,[110,122,132]);txt(doc,'Generated electronically',W-10,H-4,6,false,[110,122,132],'right');}
   async function generate(exam){
     if(!exam||!window.jspdf||!window.jspdf.jsPDF)throw new Error('PDF generator is not available.');
-    var jsPDF=window.jspdf.jsPDF,clips=exam.clips||[],name=exam.candidate_name||'Candidate',phone=exam.phone||'—',total=Number(exam.total_score||exam.total||0),passed=!!exam.passed||total>=60,d=new Date(exam.completed_at||Date.now());
+    var jsPDF=window.jspdf.jsPDF,clips=exam.clips||[],name=exam.candidate_name||'Candidate',phone=exam.phone||'—',total=Number(exam.total_score||exam.total||0),passed=!!exam.passed||total>=60,d=new Date(exam.completed_at||Date.now()),school=exam.school||window.HPTCurrentSchool||{};
     var rows=[];
     clips.forEach(function(c){
       var hs=(c.hazards||[]).slice().sort(function(a,b){return Number(a.hazard_no)-Number(b.hazard_no)}),rs=c.responses||[];
@@ -93,7 +94,7 @@
 
     for(var page=0;page<totalPages;page++){
       if(page)doc.addPage();
-      header(doc,W,page+1,totalPages);
+      header(doc,W,page+1,totalPages,school);
       var from=page*cardsPerPage,to=Math.min(rows.length,from+cardsPerPage);
       var startY;
 
@@ -135,9 +136,9 @@
 
       txt(doc,'Each clip is scored out of 10. One official hazard = up to 10 marks; two official hazards = up to 5 marks each.',
           12,H-14,4.9,false,[100,112,122]);
-      footer(doc,W,H);
+      footer(doc,W,H,school);
     }
-    doc.save('Raju-HPT-Analysis-'+safeName(name)+'-'+d.toISOString().slice(0,10)+'.pdf');
+    doc.save(safeName(school.school_name||'Driving-School')+'-HPT-Analysis-'+safeName(name)+'-'+d.toISOString().slice(0,10)+'.pdf');
   }
 
   window.RajuHPTReport={generate:generate};

@@ -1,8 +1,9 @@
+// IMPORTANT: Replace the publishable-key placeholder with the key from this same Supabase project.
 window.RAJU_HPT_CONFIG = {
-  supabaseUrl: 'https://laobedcdrwgaxlbnswze.supabase.co',
-  supabaseAnonKey: 'sb_publishable_zlEHJUYUIiWNueX9PG5shA_rBr53yXl',
+  supabaseUrl: 'https://nceufqdvuuztdfyesbxx.supabase.co',
+  supabaseAnonKey: 'sb_publishable_k4nOBK0JngKf6IETQF8ReQ_VXXVhkQQ',
   videoBase: './videos/',
-  githubPublishEndpoint: 'https://laobedcdrwgaxlbnswze.supabase.co/functions/v1/hpt-publish-video',
+  githubPublishEndpoint: 'https://nceufqdvuuztdfyesbxx.supabase.co/functions/v1/hpt-publish-video',
   examClipCount: 10,
   clipLimitSeconds: 50,
   maxResponsesPerClip: 5,

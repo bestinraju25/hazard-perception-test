@@ -1,10 +1,12 @@
 {
-  "name":"Raju Motor Driving School — Hazard Perception Test",
-  "short_name":"Raju HPT",
-  "start_url":"./",
-  "display":"standalone",
-  "background_color":"#050a0f",
-  "theme_color":"#050a0f",
-  "orientation":"any",
-  "icons":[{"src":"raju-logo.png","sizes":"192x192","type":"image/png"},{"src":"raju-logo.png","sizes":"512x512","type":"image/png"}]
+  "name": "Driving School Hazard Perception Test Portal",
+  "short_name": "HPT Portal",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#050a0f",
+  "theme_color": "#0b1b29",
+  "orientation": "any",
+  "icons": [
+    {"src":"school-placeholder.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}
+  ]
 }

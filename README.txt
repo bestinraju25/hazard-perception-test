@@ -18,3 +18,7 @@ admin.html
 
 VIDEO PUBLISHING
 The browser intentionally does not contain a GitHub Personal Access Token. Put the video at the exact static path saved in the HPT video metadata.
+
+
+MULTI-SCHOOL PORTAL UPDATE
+See README-MULTI-SCHOOL-SETUP.txt for the shared multi-school portal setup and Supabase migration.
