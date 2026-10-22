@@ -1,0 +1,1 @@
+V18 Mobile UI redesign. Candidate and admin pages receive app-style mobile layouts, safe-area support, standalone web-app metadata, and responsive result/admin presentation. Existing HPT backend and scoring functionality preserved.

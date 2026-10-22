@@ -1,0 +1,10 @@
+{
+  "name":"Raju Motor Driving School — Hazard Perception Test",
+  "short_name":"Raju HPT",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#050a0f",
+  "theme_color":"#050a0f",
+  "orientation":"any",
+  "icons":[{"src":"raju-logo.png","sizes":"192x192","type":"image/png"},{"src":"raju-logo.png","sizes":"512x512","type":"image/png"}]
+}

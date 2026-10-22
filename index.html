@@ -1,0 +1,94 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no"><title>Raju Driving School Hazard Perception Test</title>
+<meta name="description" content="Raju Driving School Hazard Perception Test — watch, identify and respond to developing hazards.">
+<meta property="og:title" content="Raju Driving School Hazard Perception Test">
+<meta property="og:description" content="Watch, identify and respond to developing hazards with the Raju Driving School Hazard Perception Test.">
+<meta property="og:image" content="https://www.rajudrivingschool.com/hazard-perception-test/hpt-preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://www.rajudrivingschool.com/hazard-perception-test/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Raju Driving School">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Raju Driving School Hazard Perception Test">
+<meta name="twitter:description" content="Watch, identify and respond to developing hazards.">
+<meta name="twitter:image" content="https://www.rajudrivingschool.com/hazard-perception-test/hpt-preview.jpg"><link rel="stylesheet" href="style.css?v=47"><script src="hpt-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script><script src="hpt-report.js?v=50"></script><style>html,body,#app{overflow:hidden!important;max-width:100%;max-height:100%;}</style><meta name="theme-color" content="#050a0f"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest"></head><body>
+<div id="app" class="app">
+<header class="topbar">
+  <div class="brand"><img src="raju-logo.png" class="logo"><div><div class="school">RAJU DRIVING SCHOOL</div><div class="testname">HAZARD PERCEPTION TEST</div></div></div>
+  <div class="hud">
+    <div class="candidate"><span id="candName">Candidate</span><small id="candPhone"></small></div>
+    <div class="clip">CLIP <b id="clipNo">-- / --</b></div>
+    <div class="timer" id="timer">00:50</div>
+  </div>
+  <div class="homeTools" id="homeTools" aria-label="HPT home controls">
+    <button id="homeAttemptsBtn" class="homeTool" type="button" title="View previous HPT attempts"><span class="toolIcon">↺</span><span>MY ATTEMPTS</span></button>
+    <button id="homeFullBtn" class="homeTool iconOnly" type="button" title="Enter fullscreen"><span>⛶</span></button>
+  </div>
+</header>
+<main class="stage">
+<section id="startScreen" class="panel start">
+  <div class="homeShell">
+    <div class="homeCopy">
+      <div class="homeKicker"><span></span> COMPUTER-BASED EXAMINATION</div>
+      <div class="homeIntroTitle">
+        <h1>See the hazard.<br><em>Respond in time.</em></h1>
+        <p class="homeLead">A focused video-based assessment designed to test how quickly you recognise <strong>developing hazards</strong> on the road.</p>
+      </div>
+      <div class="homeStats" aria-label="Exam information">
+        <div><b>10</b><span>CLIPS</span></div>
+        <div><b>100</b><span>MARKS</span></div>
+        <div><b>60</b><span>PASS MARK</span></div>
+        <div><b>5</b><span>RESPONSES</span></div>
+      </div>
+      <div class="homeTip"><span>i</span><div><strong>How it works</strong><small>Watch the road, identify a developing hazard and tap when you see it.</small></div></div>
+    </div>
+
+    <div class="examCard">
+      <div class="cardAccent"></div>
+      <div class="cardTop"><div><div class="cardEyebrow">READY TO BEGIN?</div><h2>Candidate Details</h2></div><div class="cardSecure"><span>●</span> SECURE</div></div>
+      <div class="fields">
+        <label><span>Candidate Name</span><input id="name" autocomplete="name" placeholder="Enter full name"></label>
+        <label><span>Phone Number</span><input id="phone" inputmode="tel" autocomplete="tel" placeholder="Enter phone number"></label>
+        <label><span>Access Code</span><input id="accessCode" inputmode="numeric" autocomplete="off" placeholder="Enter access code" maxlength="20"></label>
+      </div>
+      <div id="accessCodeMsg" class="access-code-msg" hidden></div>
+      <button id="startBtn" class="primary startExamBtn" type="button"><span>START EXAM</span><b>→</b></button>
+      <div class="cardBottom"><span class="keyboardHint">Your result is saved automatically</span></div>
+    </div>
+  </div>
+
+  <div id="installAppCard" class="installAppCard" hidden>
+    <div class="installAppIcon">↗</div><div class="installAppCopy"><strong>Use Raju HPT like an app</strong><span>Install it on your phone for quick access and a full-screen experience.</span></div><button id="installAppBtn" class="installAppBtn" type="button">INSTALL</button>
+  </div>
+</section>
+<section id="examScreen" class="exam" hidden>
+<div class="videoWrap"><video id="video" playsinline preload="auto"></video><div id="clickLayer" class="clickLayer"></div><div id="playOverlay" class="playOverlay" hidden><button id="playNow">▶ PLAY CLIP</button></div>
+<div class="topOverlay"><div class="pill">CLIP <b id="clipNo2">1 / 10</b></div><div class="pill responsePill">RESPONSES <b id="respCount">0 / 5</b></div></div>
+<div class="rightTools"><button id="helpBtn" title="Help">?</button><button id="soundBtn" title="Sound">🔊</button><button id="fullBtn" title="Fullscreen">⛶</button><button id="exitBtn" title="Exit">×</button></div>
+<div class="tapPrompt">TAP WHEN YOU SEE A<br>DEVELOPING HAZARD</div>
+<div class="bottomHud"><div class="hint">💡 Look ahead, to the sides and behind.</div><button id="skipBtn" class="skip">SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
+</div></section>
+<section id="resultScreen" class="panel result" hidden><img src="raju-logo.png" class="resultLogo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="downloadReportBtn" class="secondary">DOWNLOAD REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
+</main><div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>MY HPT ATTEMPTS</h3><p class="attemptIntro">Enter the mobile number used for your examination to view your previous attempts.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW</button></div><div id="attemptMsg" class="attemptMsg"></div><div id="attemptList" class="attemptList"><div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div></div><div class="attemptPrivacy">Only examination records matching the entered mobile number are shown.</div></div></div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">RAJU HPT APP</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div id="loadingScreen" class="loadingScreen" aria-label="Loading Raju Hazard Perception Test">
+  <div class="loaderPanel">
+    <div class="loaderBrandBlock">
+      <img src="raju-logo.png" alt="Raju Driving School" class="loaderLogo">
+      <div class="loaderBrand">RAJU DRIVING SCHOOL</div>
+      <div class="loaderTitle">HAZARD PERCEPTION TEST</div>
+    </div>
+    <div class="loaderScene" aria-hidden="true">
+      <div class="loaderSkyGlow"></div>
+      <div class="loaderHorizon horizonOne"></div>
+      <div class="loaderHorizon horizonTwo"></div>
+      <div class="loaderRoad"><span class="roadLane laneOne"></span><span class="roadLane laneTwo"></span><span class="roadLane laneThree"></span></div>
+      <div class="loaderSignal" aria-label="Traffic signal">
+        <div class="loaderSignalHead"><i class="signalRed"></i><i class="signalAmber"></i><i class="signalGreen"></i></div>
+        <div class="loaderSignalPole"></div><div class="loaderSignalBase"></div>
+      </div>
+      <img src="training-car.png" alt="Raju Driving School training car approaching a traffic signal" class="loaderCar">
+
+    </div>
+    <div class="loaderTrack"><div id="loaderFill"></div></div>
+    <div class="loaderMeta"><span>LOADING EXPERIENCE</span><strong id="loaderPercent">0%</strong></div>
+  </div>
+</div><script src="app.js?v=47"></script></body></html>

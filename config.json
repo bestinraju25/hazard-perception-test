@@ -1,0 +1,121 @@
+{
+  "examClips": 10,
+  "clipLimit": 50,
+  "maxResponses": 5,
+  "marksPerClip": 10,
+  "passMark": 60,
+  "builtIn": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "hazards": {
+    "1": [
+      {
+        "t": 22,
+        "label": "Oncoming vehicle conflict"
+      },
+      {
+        "t": 30,
+        "label": "Vehicle approaching tunnel"
+      }
+    ],
+    "2": [
+      {
+        "t": 9,
+        "label": "Vehicle conflict at junction"
+      },
+      {
+        "t": 35,
+        "label": "Cyclist developing hazard"
+      }
+    ],
+    "3": [
+      {
+        "t": 6,
+        "label": "Vehicle emerging from side road"
+      },
+      {
+        "t": 24,
+        "label": "Vehicle crossing / converging"
+      }
+    ],
+    "4": [
+      {
+        "t": 32,
+        "label": "Large vehicle entering / converging"
+      },
+      {
+        "t": 38,
+        "label": "Pedestrian crossing"
+      }
+    ],
+    "5": [
+      {
+        "t": 14,
+        "label": "Van approaching close"
+      },
+      {
+        "t": 35,
+        "label": "Large tractor passing close"
+      }
+    ],
+    "6": [
+      {
+        "t": 7,
+        "label": "Vehicle emerging from side road"
+      },
+      {
+        "t": 34,
+        "label": "Cyclist / vehicle conflict"
+      }
+    ],
+    "7": [
+      {
+        "t": 2,
+        "label": "Roadworks / refuge obstruction"
+      },
+      {
+        "t": 47,
+        "label": "Cyclist close to lane"
+      }
+    ],
+    "8": [
+      {
+        "t": 32,
+        "label": "Truck moving into lane"
+      },
+      {
+        "t": 39,
+        "label": "Large vehicle passing close"
+      }
+    ],
+    "9": [
+      {
+        "t": 7,
+        "label": "Vehicle crossing from side road"
+      },
+      {
+        "t": 37,
+        "label": "Large vehicle crossing"
+      }
+    ],
+    "10": [
+      {
+        "t": 8,
+        "label": "Oncoming vehicle conflict"
+      },
+      {
+        "t": 42,
+        "label": "Pedestrian / roadside conflict"
+      }
+    ]
+  }
+}
