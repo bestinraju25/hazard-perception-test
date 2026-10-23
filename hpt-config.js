@@ -3,6 +3,7 @@ window.RAJU_HPT_CONFIG = {
   supabaseUrl: 'https://nceufqdvuuztdfyesbxx.supabase.co',
   supabaseAnonKey: 'sb_publishable_k4nOBK0JngKf6IETQF8ReQ_VXXVhkQQ',
   videoBase: './videos/',
+  // Deploy supabase/functions/hpt-publish-video/index.ts in this project before using Manager > Video Library uploads.
   githubPublishEndpoint: 'https://nceufqdvuuztdfyesbxx.supabase.co/functions/v1/hpt-publish-video',
   examClipCount: 10,
   clipLimitSeconds: 50,

@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const githubToken = Deno.env.get('HPT_GITHUB_TOKEN');
-    const repo = Deno.env.get('HPT_GITHUB_REPO') || 'bestinraju25/rajudrivingschool';
+    const repo = Deno.env.get('HPT_GITHUB_REPO') || 'bestinraju25/hazard-perception-test';
     const branch = Deno.env.get('HPT_GITHUB_BRANCH') || 'main';
     if (!githubToken) return json({ error: 'HPT_GITHUB_TOKEN is not configured in Supabase Edge Function secrets.' }, 500);
 
@@ -39,12 +39,20 @@ Deno.serve(async (req) => {
     const message = String(form.get('commit_message') || `HPT: ${action} video`).trim();
     if (!pathValue) return json({ error: 'Video path is required.' }, 400);
 
-    const cleanPath = pathValue.replace(/^\/+/, '').replace(/\.\.(\/|\\)/g, '');
-    if (!cleanPath.startsWith('hazard-perception-test/videos/') && !cleanPath.startsWith('videos/')) {
-      return json({ error: 'Video path must be inside the HPT videos folder.' }, 400);
+    // The live Pages site is bestinraju25.github.io/hazard-perception-test,
+    // whose repository root contains videos/ and thumbnails/. Accept only a single
+    // safe filename in either directory; never let the client write elsewhere.
+    const rawPath = pathValue.replace(/\\/g, '/').replace(/^\/+/, '');
+    if (rawPath.split('/').some(part => part === '..' || part === '.')) {
+      return json({ error: 'Invalid video path.' }, 400);
     }
-    const repoPath = cleanPath.startsWith('hazard-perception-test/') ? cleanPath : `hazard-perception-test/${cleanPath}`;
-
+    const cleanPath = rawPath.replace(/^hazard-perception-test\//, ''); // accept legacy client paths, map to repo root
+    const allowedVideo = /^videos\/[A-Za-z0-9._-]+\.(webm|mp4|m4v|mov)$/i.test(cleanPath);
+    const allowedThumbnail = /^thumbnails\/[A-Za-z0-9._-]+\.(jpg|jpeg|png|webp)$/i.test(cleanPath);
+    if (!allowedVideo && !allowedThumbnail) {
+      return json({ error: 'Path must be a video inside videos/ or a thumbnail inside thumbnails/.' }, 400);
+    }
+    const repoPath = cleanPath;
     const api = `https://api.github.com/repos/${repo}/contents/${repoPath}`;
     const headers = {
       'Authorization': `Bearer ${githubToken}`,
@@ -79,7 +87,8 @@ Deno.serve(async (req) => {
 
     const file = form.get('file');
     if (!(file instanceof File)) return json({ error: 'No video file was received.' }, 400);
-    if (file.size > 15 * 1024 * 1024) return json({ error: 'Video is too large for this GitHub upload flow. Keep HPT clips under 15 MB or use object storage/Git LFS.' }, 413);
+    const maxBytes = allowedThumbnail ? 5 * 1024 * 1024 : 15 * 1024 * 1024;
+    if (file.size > maxBytes) return json({ error: `${allowedThumbnail ? 'Thumbnail' : 'Video'} is too large for this GitHub upload flow. Maximum size: ${allowedThumbnail ? '5 MB' : '15 MB'}.` }, 413);
 
     const bytes = new Uint8Array(await file.arrayBuffer());
     let binary = '';

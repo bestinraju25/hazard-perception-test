@@ -1329,3 +1329,10 @@ body:not(.school-selected) .stage{height:100dvh!important}
 .report-modal .modal-dialog{position:relative;width:auto;margin:12px auto;pointer-events:none}
 .report-modal .modal-content{position:relative;display:flex;flex-direction:column;pointer-events:auto}
 .report-modal .modal-body{flex:1 1 auto}
+
+/* v62: explicit school exit and clean home layout */
+.exitSchoolBtn .toolIcon{font-size:14px;color:#f0b8a0}
+.exitSchoolBtn:hover{border-color:rgba(255,110,96,.72)!important;color:#ffb5a8!important;background:rgba(255,75,60,.08)!important}
+#installAppCard{display:none!important}
+@media(max-width:520px){#exitSchoolBtn span:not(.toolIcon),#homeAttemptsBtn span:not(.toolIcon){display:none!important}#exitSchoolBtn,#homeAttemptsBtn{width:34px!important;min-width:34px!important;padding:0!important}}
+@media(max-width:380px){#exitSchoolBtn,#homeAttemptsBtn,.homeTool.iconOnly{width:30px!important;min-width:30px!important;height:30px!important}}

@@ -397,6 +397,11 @@ async function buildHistoricalExam(r){
 function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('attemptList').innerHTML='<div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div>';setTimeout(()=>$('attemptPhone')?.focus(),80)}
 function closeAttempts(){show('attemptsModal',false)}
 function setupCandidateCertificate(){$('printCertBtn').onclick=printCertificate}
+bind('exitSchoolBtn','click',()=>{
+  const schoolName=activeSchool?.school_name||'this driving school';
+  if(!confirm(`Exit ${schoolName} and return to the school access screen?`))return;
+  changeSchool();
+});
 bind('enterSchoolBtn','click',enterSchool);
 bind('schoolAccessCode','keydown',e=>{if(e.key==='Enter')enterSchool()});
 bind('startBtn','click',begin);
