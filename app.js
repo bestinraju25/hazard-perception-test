@@ -116,7 +116,8 @@ async function toggleFullscreen(){
     if(!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
     else await document.exitFullscreen?.();
     updateFullscreenButtons();
-  }catch{toast('Fullscreen is not available in this browser.',true)}
+  }catch{}
+  updateFullscreenButtons();
 }
 function setupHomeMedia(){
   const full=$('homeFullBtn');
@@ -251,7 +252,18 @@ async function enterSchool(){
   if(!codeInput||!button){console.error('School access form is incomplete: missing code input or continue button.');setGateMessage('ACCESS FORM NOT READY. Refresh the page and try again.',true);return}
   const code=String(codeInput.value||'').trim();
   setGateMessage('');
-  if(!code){setGateMessage('ENTER YOUR SCHOOL ACCESS CODE',true);codeInput.focus();return}
+  if(!code){setGateMessage('ENTER YOUR SCHOOL ACCESS CODE',true);return}
+  // Close the access-code keyboard when the user submits the login form.
+  try{codeInput.blur()}catch{}
+  // Start fullscreen synchronously from the login gesture, before network awaits.
+  // Browsers may show their own native fullscreen notice; the app adds no extra message.
+  let loginFullscreenPromise=null;
+  if(!document.fullscreenElement&&document.documentElement.requestFullscreen){
+    try{
+      loginFullscreenPromise=document.documentElement.requestFullscreen({navigationUI:'hide'});
+      loginFullscreenPromise?.then(updateFullscreenButtons).catch(()=>{});
+    }catch{}
+  }
   button.disabled=true;
   const buttonLabel=button.querySelector('span');
   if(buttonLabel)buttonLabel.textContent='VERIFYING ACCESS…';
@@ -263,15 +275,21 @@ async function enterSchool(){
     // PostgreSQL json/jsonb RPCs normally return one object; accept a one-row array too.
     const payload=Array.isArray(data)?data[0]:data;
     const schoolData=payload?.school&&typeof payload.school==='object'?payload.school:payload;
-    if(!schoolData||!schoolData.id){setGateMessage('ACCESS CODE NOT RECOGNISED OR SCHOOL DISABLED. CHECK WITH YOUR DRIVING SCHOOL.',true);return}
+    if(!schoolData||!schoolData.id){
+      try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
+      updateFullscreenButtons();
+      setGateMessage('ACCESS CODE NOT RECOGNISED OR SCHOOL DISABLED. CHECK WITH YOUR DRIVING SCHOOL.',true);return
+    }
     const school={...schoolData,access_code:code};
     applySchoolBranding(school,true);
     codeInput.value='';
     setGateMessage('');
     show('schoolGate',false);show('startScreen',true);show('examScreen',false);show('resultScreen',false);
     safeText('candName','Candidate');safeText('candPhone','');
-    $('name')?.focus();
+    updateFullscreenButtons();
   }catch(e){
+    try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
+    updateFullscreenButtons();
     console.error('School access verification failed:',e?.stack||e);
     const detail=String(e?.message||'').trim();
     const message=/PGRST202|schema cache|could not find the function|function .* does not exist/i.test(detail)
@@ -307,10 +325,8 @@ function changeSchool(){
   safeValue('schoolAccessCode','');safeValue('name','');safeValue('phone','');setGateMessage('');
   show('examScreen',false);show('resultScreen',false);show('startScreen',false);show('schoolGate',true);
   document.body.classList.remove('home-active','exam-active','result-active');
-  try{const input=$('schoolAccessCode');input?.focus()}catch{}
 }
 async function begin(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
-try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen?.();}catch(e){console.warn('Fullscreen request unavailable',e)}
 updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
 async function printCertificate(examOverride=null,candidateOverride=null){
   const exam=examOverride||window._lastExam;
@@ -394,7 +410,7 @@ async function buildHistoricalExam(r){
   clipsOut.forEach(c=>{c.score=c.responses.reduce((sum,x)=>sum+Number(x.points||0),0)});
   return {id:r.id,total:Number(r.total_score||0),total_score:Number(r.total_score||0),passed:!!r.passed,candidate_name:r.candidate_name,phone:r.phone,started_at:r.started_at,completed_at:r.completed_at,school:schoolBrand(),clips:clipsOut};
 }
-function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('attemptList').innerHTML='<div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div>';setTimeout(()=>$('attemptPhone')?.focus(),80)}
+function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('attemptList').innerHTML='<div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div>';}
 function closeAttempts(){show('attemptsModal',false)}
 function setupCandidateCertificate(){$('printCertBtn').onclick=printCertificate}
 bind('exitSchoolBtn','click',()=>{
