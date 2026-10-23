@@ -1336,3 +1336,262 @@ body:not(.school-selected) .stage{height:100dvh!important}
 #installAppCard{display:none!important}
 @media(max-width:520px){#exitSchoolBtn span:not(.toolIcon),#homeAttemptsBtn span:not(.toolIcon){display:none!important}#exitSchoolBtn,#homeAttemptsBtn{width:34px!important;min-width:34px!important;padding:0!important}}
 @media(max-width:380px){#exitSchoolBtn,#homeAttemptsBtn,.homeTool.iconOnly{width:30px!important;min-width:30px!important;height:30px!important}}
+
+/* V69 — responsive readability and touch layout polish.
+   Presentation-only overrides: school access, scoring, video playback and data flow are unchanged. */
+html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, input, select, textarea { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+}
+
+@media (max-width: 800px) {
+  /* School access: let the full card scroll naturally on short screens. */
+  .schoolGate {
+    justify-content: flex-start !important;
+    align-items: stretch;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: clamp(16px, 4vw, 26px) 16px 18px !important;
+  }
+  .gateContentSimple {
+    width: min(100%, 520px) !important;
+    max-width: 520px !important;
+    flex: 0 0 auto;
+    margin: 0 auto !important;
+    padding: 18px 0 12px !important;
+    gap: clamp(16px, 3vh, 24px) !important;
+  }
+  .gateCopySimple .gateEyebrow {
+    font-size: 9px !important;
+    line-height: 1.45;
+    letter-spacing: 1.25px !important;
+    white-space: normal;
+  }
+  .gateCopySimple h1 {
+    font-size: clamp(32px, 8.4vw, 48px) !important;
+    line-height: 1.04 !important;
+    letter-spacing: -1.15px !important;
+    margin: 12px 0 !important;
+    overflow-wrap: anywhere;
+  }
+  .gateCopySimple p {
+    max-width: 36rem !important;
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+  }
+  .gateCard {
+    width: 100% !important;
+    max-width: none !important;
+    padding: clamp(18px, 5vw, 24px) !important;
+    border-radius: 18px !important;
+  }
+  .gateCardTop { gap: 11px; margin-bottom: 18px !important; }
+  .gateIcon { width: 44px; height: 44px; flex: 0 0 44px; font-size: 22px; }
+  .gateKicker { font-size: 9px !important; letter-spacing: 1.4px; }
+  .gateCard h2 { font-size: clamp(21px, 5.5vw, 25px) !important; line-height: 1.2; }
+  .gateCard label { font-size: 13px !important; margin-bottom: 8px; }
+  .gateCard input {
+    height: 50px !important;
+    padding: 0 13px !important;
+    font-size: 16px !important;
+    letter-spacing: .5px !important;
+  }
+  .gateMessage { min-height: 20px !important; font-size: 12px !important; line-height: 1.4; overflow-wrap: anywhere; }
+  .gateButton { min-height: 50px; height: auto !important; padding: 12px 15px !important; font-size: 13px !important; }
+  .gateFooter {
+    position: relative !important;
+    inset: auto !important;
+    flex: 0 0 auto;
+    margin: 8px 0 0 !important;
+    padding: 12px 2px 0;
+    border-top: 1px solid rgba(255,255,255,.12);
+    font-size: 9px !important;
+    line-height: 1.45;
+    letter-spacing: .8px !important;
+  }
+  .gateFooter span { display: block !important; max-width: 58%; }
+  .gateFooter a { text-align: right; }
+
+  /* Candidate home: normal-size copy, a readable four-item information row and a scrollable sheet. */
+  .topbar { height: 60px !important; min-height: 60px; padding: 6px 10px !important; gap: 8px; }
+  .topbar .brand { min-width: 0; flex: 1 1 auto; gap: 8px; }
+  .topbar .logo { width: 42px !important; height: 42px !important; flex: 0 0 42px; }
+  .topbar .school { max-width: 100%; font-size: 11px !important; line-height: 1.2; letter-spacing: .45px !important; white-space: normal; overflow-wrap: anywhere; }
+  .topbar .testname { font-size: 7px !important; line-height: 1.25; letter-spacing: .8px !important; white-space: normal; }
+  .hud { display: none !important; }
+  .homeTools { flex: 0 0 auto; gap: 6px !important; }
+  .homeTool, .homeTool.iconOnly {
+    width: 36px !important; min-width: 36px !important; height: 36px !important;
+    padding: 0 !important; border-radius: 10px !important; font-size: 16px !important;
+  }
+  .homeTool:first-child span:not(.toolIcon), #homeAttemptsBtn span:not(.toolIcon) { display: none !important; }
+  .stage { height: calc(100dvh - 60px) !important; min-height: 0; overflow: hidden !important; }
+  .start.panel {
+    position: absolute !important; inset: 0 !important; width: 100% !important;
+    height: 100% !important; max-width: none !important; min-height: 0 !important;
+    padding: 20px 15px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    display: block !important; overflow-x: hidden !important; overflow-y: auto !important;
+    overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
+  }
+  .start.panel:after { display: none !important; }
+  .homeShell {
+    width: 100% !important; max-width: 640px !important; min-height: 0 !important;
+    height: auto !important; margin: 0 auto !important; overflow: visible !important;
+    display: flex !important; flex-direction: column !important; align-items: stretch !important;
+    justify-content: flex-start !important; gap: 20px !important;
+  }
+  .homeCopy { width: 100% !important; min-width: 0; padding: 0 !important; text-align: center !important; }
+  .homeKicker {
+    display: flex; justify-content: center !important; flex-wrap: wrap; white-space: normal;
+    gap: 7px; margin: 0 0 10px !important; font-size: 9px !important;
+    line-height: 1.45; letter-spacing: 1.1px !important;
+  }
+  .homeKicker span { flex: 0 0 6px; width: 6px; height: 6px; }
+  .homeIntroTitle { display: block !important; width: 100%; margin: 0 0 12px !important; }
+  .homeIntroTitle h1, .homeCopy h1 {
+    font-size: clamp(28px, 7.2vw, 38px) !important;
+    line-height: 1.08 !important; letter-spacing: -1.1px !important;
+    margin: 0 0 9px !important; overflow-wrap: anywhere;
+  }
+  .homeLead {
+    max-width: 560px !important; margin: 0 auto !important;
+    font-size: 13px !important; line-height: 1.5 !important;
+  }
+  .homeStats {
+    width: 100% !important; max-width: none !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important; margin: 14px 0 12px !important;
+  }
+  .homeStats div { min-width: 0; padding: 10px 5px !important; border-radius: 11px !important; }
+  .homeStats b { font-size: clamp(18px, 4.6vw, 23px) !important; line-height: 1.15; }
+  .homeStats span { font-size: clamp(8px, 2vw, 10px) !important; line-height: 1.25; letter-spacing: .25px !important; margin-top: 5px !important; white-space: normal !important; overflow-wrap: anywhere; }
+  .homeTip { width: 100%; max-width: none; margin: 0; padding: 11px 12px !important; gap: 10px; border-radius: 12px; text-align: left; }
+  .homeTip>span { width: 22px; height: 22px; flex-basis: 22px; font-size: 12px; }
+  .homeTip strong { font-size: 12px !important; line-height: 1.3; }
+  .homeTip small { font-size: 11px !important; line-height: 1.45 !important; margin-top: 3px; }
+  .examCard {
+    width: 100% !important; max-width: none !important; min-width: 0 !important;
+    margin: 0 !important; padding: 20px !important; border-radius: 18px !important;
+    overflow: visible !important;
+  }
+  .cardTop { width: 100%; min-width: 0; gap: 10px; margin-bottom: 16px !important; align-items: center; }
+  .cardTop>div:first-child { min-width: 0; }
+  .cardEyebrow { font-size: 9px !important; line-height: 1.4; letter-spacing: 1.4px !important; }
+  .examCard h2 { font-size: clamp(20px, 5.5vw, 25px) !important; line-height: 1.2 !important; margin: 4px 0 0 !important; white-space: normal !important; }
+  .cardSecure { flex: 0 0 auto; font-size: 8px !important; letter-spacing: .5px; padding: 6px 7px !important; }
+  .examCard .fields { width: 100% !important; display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: 13px !important; margin: 0 !important; }
+  .examCard .fields label {
+    position: static !important; display: block !important; height: auto !important;
+    width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+    margin: 0 !important; padding: 0 !important; color: #d6e0e6 !important;
+    font-size: 12px !important; line-height: 1.35 !important; font-weight: 800;
+  }
+  .examCard .fields label:before { display: none !important; content: none !important; }
+  .examCard .fields label span {
+    position: static !important; display: block !important; margin: 0 0 6px !important;
+    color: #d6e0e6 !important; font-size: 12px !important; line-height: 1.35 !important;
+    letter-spacing: .1px !important; font-weight: 800 !important; text-transform: none !important;
+  }
+  .examCard .fields input {
+    position: static !important; inset: auto !important; display: block !important;
+    width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+    height: 48px !important; margin: 0 !important; padding: 0 13px !important;
+    border-radius: 11px !important; font-size: 16px !important; line-height: normal !important;
+    font-weight: 500 !important; box-sizing: border-box !important;
+  }
+  .examCard .fields input::placeholder { color: #9aabb5 !important; opacity: 1; }
+  .startExamBtn { width: 100% !important; height: 50px !important; min-height: 50px; margin: 15px 0 0 !important; font-size: 13px !important; letter-spacing: 1px !important; border-radius: 12px !important; }
+  .startExamBtn b { font-size: 22px !important; }
+  .cardBottom { margin-top: 10px !important; justify-content: center !important; gap: 8px; }
+  .keyboardHint { font-size: 10px !important; line-height: 1.4; text-align: center !important; }
+  .installAppCard { display: none !important; }
+
+  /* Result and record overlays remain fully reachable when the device is short. */
+  .result.panel {
+    inset: 6px !important; height: auto !important; min-height: 0 !important;
+    padding: 16px 13px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-x: hidden !important; overflow-y: auto !important;
+    justify-content: flex-start !important; align-items: stretch !important;
+    text-align: center !important; gap: 0 !important;
+  }
+  .result .performanceSummary { padding: 12px !important; }
+  .result .performanceSummary p, .resultAdvice p { font-size: 12px !important; line-height: 1.5 !important; }
+  .result .performanceTitle { font-size: 10px !important; }
+  .result .performanceStats span { font-size: 10px !important; }
+  .result .resultSummary span { font-size: 8px !important; line-height: 1.3; }
+  .result .resultSummary b { font-size: 14px !important; }
+  .result .resultActions { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px !important; }
+  .result .resultActions button { min-width: 0; min-height: 44px !important; padding: 10px 8px !important; font-size: 10px !important; white-space: normal !important; line-height: 1.3; }
+  .attemptsModal, .installHelpModal, .limitModal { padding: 12px !important; overflow-y: auto; }
+  .attemptsCard { width: 100% !important; max-width: 560px; max-height: calc(100dvh - 24px) !important; padding: 24px 16px 16px !important; border-radius: 18px !important; }
+  .attemptsCard h3 { font-size: 21px !important; line-height: 1.2; }
+  .attemptIntro { font-size: 13px !important; }
+  .attemptSearch { grid-template-columns: minmax(0, 1fr) 78px !important; }
+  .attemptSearch input { min-width: 0; font-size: 16px; }
+  .attemptPrivacy { font-size: 10px !important; line-height: 1.45; }
+  .installHelpCard { max-height: calc(100dvh - 24px); overflow-y: auto; }
+}
+
+@media (max-width: 430px) {
+  .schoolGate { padding: 12px 12px 14px !important; }
+  .gateContentSimple { gap: 15px !important; padding-top: 12px !important; }
+  .gateCopySimple h1 { font-size: clamp(30px, 8.3vw, 37px) !important; }
+  .gateCopySimple .gateEyebrow { font-size: 8.5px !important; letter-spacing: .9px !important; }
+  .gateCard { padding: 17px !important; }
+  .gateCardTop { margin-bottom: 14px !important; }
+  .gateFooter { font-size: 8px !important; letter-spacing: .4px !important; }
+  .gateFooter span { max-width: 52%; }
+  .start.panel { padding-left: 12px !important; padding-right: 12px !important; }
+  .homeShell { gap: 16px !important; }
+  .homeIntroTitle h1, .homeCopy h1 { font-size: clamp(27px, 7.1vw, 32px) !important; }
+  .homeLead { font-size: 12.5px !important; }
+  .homeStats { gap: 5px !important; }
+  .homeStats div { padding: 9px 3px !important; }
+  .homeStats span { font-size: 8px !important; letter-spacing: 0 !important; }
+  .examCard { padding: 17px !important; }
+  .result .resultActions button { font-size: 9.5px !important; }
+  .topOverlay { top: 8px !important; left: 8px !important; right: 8px !important; gap: 6px; }
+  .pill { padding: 7px 9px !important; font-size: 11px !important; }
+  .pill b { font-size: 15px !important; }
+  .rightTools { top: 58px !important; right: 8px !important; gap: 6px !important; }
+  .rightTools button { width: 35px !important; height: 35px !important; font-size: 17px !important; }
+  .tapPrompt { max-width: calc(100vw - 76px); bottom: 83px !important; font-size: 11px !important; line-height: 1.35; padding: 8px 12px !important; }
+  .bottomHud { left: 8px !important; right: 8px !important; bottom: 7px !important; grid-template-columns: minmax(0,1fr) 94px !important; grid-template-rows: 36px 16px !important; gap: 4px 8px !important; }
+  .skip { height: 40px !important; min-width: 0; font-size: 10px !important; }
+  .timeline { min-width: 0; gap: 6px !important; }
+  .timeline span { font-size: 10px !important; }
+  .track { min-width: 0; height: 8px !important; }
+}
+
+@media (max-width: 360px) {
+  .topbar { padding-left: 7px !important; padding-right: 7px !important; }
+  .topbar .logo { width: 36px !important; height: 36px !important; flex-basis: 36px; }
+  .topbar .school { font-size: 10px !important; }
+  .topbar .testname { font-size: 6.5px !important; }
+  .homeTools { gap: 4px !important; }
+  .homeTool, .homeTool.iconOnly { width: 32px !important; min-width: 32px !important; height: 32px !important; }
+  .homeStats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .homeStats span { font-size: 9px !important; }
+  .gateCard { padding: 15px !important; }
+  .attemptSearch { grid-template-columns: minmax(0,1fr) 66px !important; }
+}
+
+@media (max-height: 520px) and (max-width: 800px) {
+  .schoolGate { justify-content: flex-start !important; }
+  .gateContentSimple { padding-top: 8px !important; gap: 10px !important; }
+  .gateCopySimple h1 { font-size: 30px !important; margin: 7px 0 !important; }
+  .gateCopySimple p { font-size: 12px !important; }
+  .gateCard { padding: 14px !important; }
+  .gateCardTop { margin-bottom: 10px !important; }
+  .gateCard input, .gateButton { height: 44px !important; min-height: 44px; }
+  .homeShell { gap: 12px !important; }
+  .homeIntroTitle h1, .homeCopy h1 { font-size: 26px !important; }
+  .homeLead { font-size: 12px !important; }
+  .examCard { padding: 14px !important; }
+  .examCard .fields { gap: 9px !important; }
+  .examCard .fields input { height: 44px !important; }
+}
