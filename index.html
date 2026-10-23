@@ -11,7 +11,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Driving School Hazard Perception Test">
 <meta name="twitter:description" content="Enter your driving school access code to begin.">
-<meta name="twitter:image" content="https://www.rajudrivingschool.com/hazard-perception-test/hpt-preview.jpg"><link rel="stylesheet" href="style.css?v=49"><script src="hpt-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script><script src="hpt-report.js?v=51"></script><style>html,body,#app{overflow:hidden!important;max-width:100%;max-height:100%;}</style><meta name="theme-color" content="#050a0f"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest"></head><body>
+<meta name="twitter:image" content="https://www.rajudrivingschool.com/hazard-perception-test/hpt-preview.jpg"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link rel="stylesheet" href="style.css?v=61"><script src="hpt-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script><script src="hpt-report.js?v=61"></script><style>html,body,#app{overflow:hidden!important;max-width:100%;max-height:100%;}</style><meta name="theme-color" content="#050a0f"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest"></head><body>
 <div id="app" class="app">
 <header class="topbar">
   <div class="brand"><img id="headerSchoolLogo" src="school-placeholder.svg" class="logo" alt="Driving school logo"><div><div id="headerSchoolName" class="school">HAZARD PERCEPTION PORTAL</div><div class="testname">HAZARD PERCEPTION TEST</div></div></div>
@@ -22,26 +22,21 @@
   </div>
   <div class="homeTools" id="homeTools" aria-label="HPT home controls">
     <button id="homeAttemptsBtn" class="homeTool" type="button" title="View previous HPT attempts"><span class="toolIcon">↺</span><span>MY ATTEMPTS</span></button>
-    <button id="changeSchoolBtn" class="homeTool" type="button" title="Change driving school" hidden><span class="toolIcon">⇄</span><span>CHANGE SCHOOL</span></button>
     <button id="homeFullBtn" class="homeTool iconOnly" type="button" title="Enter fullscreen"><span>⛶</span></button>
   </div>
 </header>
 <main class="stage">
 <section id="schoolGate" class="schoolGate" aria-labelledby="gateHeading">
   <div class="gateGlow"></div>
-  <div class="gateBrand"><img id="gateLogo" src="school-placeholder.svg" alt="Hazard Perception Test Portal"><span>ONE PORTAL · MULTIPLE DRIVING SCHOOLS</span></div>
-  <div class="gateContent">
-    <div class="gateCopy"><div class="gateEyebrow"><span></span> SECURE SCHOOL ACCESS</div><h1 id="gateHeading">Your school.<br><em>Your test.</em></h1><p>Enter the access code provided by your driving school to load its branded Hazard Perception Test.</p>
-      <div class="gateFeatures"><div><b>01</b><span>School-branded experience</span></div><div><b>02</b><span>Same official video library</span></div><div><b>03</b><span>Results saved automatically</span></div></div>
-    </div>
-    <div class="gateCard"><div class="gateCardTop"><div class="gateIcon">↗</div><div><div class="gateKicker">DRIVING SCHOOL LOGIN</div><h2>Enter Access Code</h2></div></div>
-      <label for="schoolAccessCode">School Access Code</label><input id="schoolAccessCode" type="text" maxlength="64" autocomplete="off" placeholder="Enter your school code" aria-describedby="schoolGateMsg">
+  <div class="gateContent gateContentSimple">
+    <div class="gateCopy gateCopySimple"><div class="gateEyebrow"><span></span> DRIVING SCHOOL HAZARD PERCEPTION</div><h1 id="gateHeading">Hazard<br><em>Perception Test</em></h1><p>Enter your school's access code to begin.</p></div>
+    <div class="gateCard"><div class="gateCardTop"><div class="gateIcon">↗</div><div><div class="gateKicker">SCHOOL ACCESS</div><h2>Enter Access Code</h2></div></div>
+      <label for="schoolAccessCode">Access code</label><input id="schoolAccessCode" type="text" maxlength="64" autocomplete="off" placeholder="School access code" aria-describedby="schoolGateMsg">
       <div id="schoolGateMsg" class="gateMessage" role="status" aria-live="polite"></div>
-      <button id="enterSchoolBtn" class="gateButton" type="button"><span>CONTINUE TO TEST</span><b>→</b></button>
-      <div class="gateSecure"><span>●</span> SCHOOL ACCESS VERIFIED SECURELY</div>
+      <button id="enterSchoolBtn" class="gateButton" type="button"><span>CONTINUE</span><b>→</b></button>
     </div>
   </div>
-  <div class="gateFooter"><span>HAZARD PERCEPTION TEST PLATFORM</span><a href="admin.html?tab=schools">ADMIN / MANAGER</a></div>
+  <div class="gateFooter"><span>HAZARD PERCEPTION TEST</span><a href="admin.html?tab=schools">ADMIN / MANAGER</a></div>
 </section>
 <section id="startScreen" class="panel start" hidden>
   <div class="homeShell">
@@ -83,44 +78,16 @@
 <div class="tapPrompt">TAP WHEN YOU SEE A<br>DEVELOPING HAZARD</div>
 <div class="bottomHud"><div class="hint">💡 Look ahead, to the sides and behind.</div><button id="skipBtn" class="skip">SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
 </div></section>
-<section id="resultScreen" class="panel result" hidden><img id="resultSchoolLogo" src="school-placeholder.svg" class="resultLogo" alt="Driving school logo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="downloadReportBtn" class="secondary">DOWNLOAD REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
-</main><div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>MY HPT ATTEMPTS</h3><p class="attemptIntro">Enter the mobile number used for your examination to view your previous attempts.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW</button></div><div id="attemptMsg" class="attemptMsg"></div><div id="attemptList" class="attemptList"><div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div></div><div class="attemptPrivacy">Only examination records matching the entered mobile number are shown.</div></div></div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div id="loadingScreen" class="loadingScreen" aria-label="Loading Hazard Perception Test">
-  <div class="loaderPanel">
-    <div class="loaderBrandBlock">
-      <img id="loaderSchoolLogo" src="school-placeholder.svg" alt="Driving school logo" class="loaderLogo">
-      <div id="loaderSchoolName" class="loaderBrand">HAZARD PERCEPTION PORTAL</div>
-      <div class="loaderTitle">HAZARD PERCEPTION TEST</div>
-    </div>
-    <div class="loaderScene" aria-hidden="true">
-      <div class="loaderSkyGlow"></div>
-      <div class="loaderHorizon horizonOne"></div>
-      <div class="loaderHorizon horizonTwo"></div>
-      <div class="loaderRoad"><span class="roadLane laneOne"></span><span class="roadLane laneTwo"></span><span class="roadLane laneThree"></span></div>
-      <div class="loaderSignal" aria-label="Traffic signal">
-        <div class="loaderSignalHead"><i class="signalRed"></i><i class="signalAmber"></i><i class="signalGreen"></i></div>
-        <div class="loaderSignalPole"></div><div class="loaderSignalBase"></div>
-      </div>
-      <img src="training-car.png" alt="Training car approaching a traffic signal" class="loaderCar">
-
-    </div>
-    <div class="loaderTrack"><div id="loaderFill"></div></div>
-    <div class="loaderMeta"><span>LOADING EXPERIENCE</span><strong id="loaderPercent">0%</strong></div>
-  </div>
-</div><script>
-/* Startup watchdog: an unexpected script error must never leave users trapped on the loading screen. */
-(function(){
-  function recoverStartup(message){
-    const loader=document.getElementById('loadingScreen');
-    if(!loader||loader.classList.contains('loaded'))return;
-    loader.remove();
-    const gate=document.getElementById('schoolGate');
-    if(gate)gate.hidden=false;
-    const msg=document.getElementById('schoolGateMsg');
-    if(msg){msg.textContent=message||'The portal did not finish starting. Refresh the page and try again.';msg.classList.add('bad')}
-  }
-  window.addEventListener('error',function(event){
-    if(/app\.js(?:\?|$)/i.test(event.filename||''))recoverStartup('The portal encountered a startup error. Refresh the page; if it repeats, open it through a local web server.');
-  });
-  window.setTimeout(function(){recoverStartup('The portal took too long to start. Refresh the page and try again.');},12000);
-})();
-</script><script src="app.js?v=57"></script></body></html>
+<section id="resultScreen" class="panel result" hidden><img id="resultSchoolLogo" src="school-placeholder.svg" class="resultLogo" alt="Driving school logo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="viewFullReportBtn" class="secondary">VIEW FULL REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
+</main><div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>MY HPT ATTEMPTS</h3><p class="attemptIntro">Enter the mobile number used for your examination to view your previous attempts.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW</button></div><div id="attemptMsg" class="attemptMsg"></div><div id="attemptList" class="attemptList"><div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div></div><div class="attemptPrivacy">Only examination records matching the entered mobile number are shown.</div></div></div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div class="modal fade report-modal" id="fullReportModal" tabindex="-1" aria-labelledby="fullReportTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header report-modal-header"><div><div class="report-modal-kicker">HAZARD PERCEPTION TEST</div><h2 class="modal-title" id="fullReportTitle">Full examination report</h2><div id="reportCandidateMeta" class="report-candidate-meta"></div></div><button type="button" class="btn-close btn-close-white" id="closeFullReportBtn" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body"><div id="reportSummary" class="report-summary-strip"></div>
+      <div class="report-toolbar"><div class="report-filters" role="group" aria-label="Filter hazards"><button class="report-filter active" data-report-filter="all" type="button">All hazards</button><button class="report-filter" data-report-filter="identified" type="button">Identified</button><button class="report-filter" data-report-filter="missed" type="button">Missed</button></div><div class="report-timing-note">Times are clip positions (MM:SS.ss)</div></div>
+      <div id="reportHazardList" class="report-hazard-list"><div class="report-loading">Preparing hazard evidence…</div></div>
+    </div><div class="modal-footer report-modal-footer"><span>Actual time = official hazard timestamp · Click time = video position at tap</span><button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">CLOSE REPORT</button></div>
+  </div></div>
+</div>
+<div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="app.js?v=61"></script></body></html>

@@ -10,7 +10,7 @@ function gateMessageElement(){let e=$('schoolGateMsg');if(e)return e;const input
 function setGateMessage(text,bad=false){const e=gateMessageElement();if(e){e.textContent=String(text??'');e.className='gateMessage'+(bad?' bad':'')}return e}
 const C=window.RAJU_HPT_CONFIG;
 let clips=[], order=[], pos=0, responses=[], scores=[], running=false, finishing=false, timer=null, responseLocked=false;
-let candidate={name:'',phone:''}, sound=true, activeSchool=null, schoolAccessCode='';
+let candidate={name:'',phone:''}, sound=true, activeSchool=null, schoolAccessCode='', examStartedAt=null;
 const video=$('video');
 let audioCtx=null;
 let roadAudio=null;
@@ -189,7 +189,7 @@ async function loadClips(){
   }
   return clips.filter(c=>c.active&&c.video_path&&c.file&&c.hazards?.length>=1);
 }
-async function saveAttempt(){const sb=await supabase();if(!sb)return {ok:false,error:'Supabase is not available.'};const total=scores.reduce((a,b)=>a+b,0);const payload={candidate_name:candidate.name,phone:candidate.phone,started_at:new Date(Date.now()-C.examClipCount*C.clipLimitSeconds*1000).toISOString(),completed_at:new Date().toISOString(),total_score:total,passed:total>=C.passMark,clip_order:order.map(c=>c.clip_code),responses:scores.flatMap((_,i)=>(order[i]._responses||[]).map(r=>({video_id:order[i].id||null,clip_code:order[i].clip_code||null,response_no:r.response_no,click_time_seconds:r.t,hazard_no:r.hazard_no||null,awarded_marks:r.points}))),p_school_id:activeSchool?.id||null,p_school_access_code:schoolAccessCode||null};
+async function saveAttempt(completedAt){const sb=await supabase();if(!sb)return {ok:false,error:'Supabase is not available.'};const total=scores.reduce((a,b)=>a+b,0);const payload={candidate_name:candidate.name,phone:candidate.phone,started_at:examStartedAt||new Date().toISOString(),completed_at:completedAt||new Date().toISOString(),total_score:total,passed:total>=C.passMark,clip_order:order.map(c=>c.clip_code),responses:scores.flatMap((_,i)=>(order[i]._responses||[]).map(r=>({video_id:order[i].id||null,clip_code:order[i].clip_code||null,response_no:r.response_no,click_time_seconds:Number(r.t),hazard_no:r.hazard_no||null,awarded_marks:r.points}))),p_school_id:activeSchool?.id||null,p_school_access_code:schoolAccessCode||null};
 for(let attempt=1;attempt<=2;attempt++){
   const {data,error}=await sb.rpc('hpt_record_attempt',payload);
   if(!error&&data)return {ok:true,id:data};
@@ -203,10 +203,10 @@ function scoreThis(){return responses.reduce((a,r)=>a+r.points,0)}
 async function finishExam(){
   stopRoadAudio();
   const total=scores.reduce((a,b)=>a+b,0),completedAt=new Date().toISOString();
-  const reportClips=order.map((c,i)=>({clip_code:c.clip_code,title:c.title,file:c.file||c.video_path,hazards:(c.hazards||[]).map(h=>({hazard_no:h.hazard_no,t:Number(h.t),label:h.label||`Hazard ${h.hazard_no}`})),responses:(c._responses||[]).map(r=>({response_no:r.response_no,t:Number(r.t),hazard_no:r.hazard_no||null,points:Number(r.points||0),frameData:r.frameData||null})),score:Number(scores[i]||0)}));
-  const saved=await saveAttempt();
-  show('examScreen',false);show('resultScreen',true);if(total>=C.passMark){setTimeout(()=>playOneShot('audio/test-pass-sound.mp3',1.0),120)}$('candidateResult').textContent=`${candidate.name} • ${candidate.phone}`;$('finalScore').textContent=`${total} / 100`;$('passText').textContent=total>=C.passMark?'PASS — EXAMINATION STANDARD MET':'NOT PASSED — BELOW PASS MARK';$('passText').className='status '+(total>=C.passMark?'pass':'fail');$('resultSaveStatus').textContent=saved.ok?'Result recorded successfully.':'Result could not be recorded automatically. Please inform the school admin.';$('resultSaveStatus').className='save-status '+(saved.ok?'ok':'error');$('printCertBtn').hidden=total<C.passMark;const rows=scores.map((s,i)=>`<div class="scoreRow"><span>Clip ${String(i+1).padStart(2,'0')}</span><b>${s} / 10</b></div>`).join('');$('resultDetails').innerHTML=`<div class="scoreGrid">${rows}</div><div class="resultSummary"><div><span>PASS MARK</span><b>${C.passMark}</b></div><div><span>YOUR SCORE</span><b>${total}</b></div><div><span>STATUS</span><b>${total>=C.passMark?'PASS':'NOT PASSED'}</b></div></div>`;
-  window._lastExam={total,total_score:total,passed:total>=C.passMark,saved,candidate_name:candidate.name,phone:candidate.phone,completed_at:completedAt,started_at:new Date(Date.now()-C.examClipCount*C.clipLimitSeconds*1000).toISOString(),school:schoolBrand(),clips:reportClips};
+  const reportClips=order.map((c,i)=>({clip_code:c.clip_code,title:c.title,file:c.file||c.video_path,hazards:(c.hazards||[]).map(h=>({hazard_no:h.hazard_no,t:Number(h.t),label:h.label||`Hazard ${h.hazard_no}`})),responses:(c._responses||[]).map(r=>({response_no:r.response_no,t:Number(r.t),video_time_seconds:Number(r.t),hazard_no:r.hazard_no||null,points:Number(r.points||0),clicked_at:r.clicked_at||null,frameData:r.frameData||null})),score:Number(scores[i]||0)}));
+  const saved=await saveAttempt(completedAt);
+  show('examScreen',false);show('resultScreen',true);if(total>=C.passMark){setTimeout(()=>playOneShot('audio/test-pass-sound.mp3',1.0),120)}$('candidateResult').textContent=`${candidate.name} • ${candidate.phone}`;$('finalScore').textContent=`${total} / 100`;$('passText').textContent=total>=C.passMark?'PASS — EXAMINATION STANDARD MET':'NOT PASSED — BELOW PASS MARK';$('passText').className='status '+(total>=C.passMark?'pass':'fail');$('resultSaveStatus').textContent=saved.ok?'Result recorded successfully.':'Result could not be recorded automatically. Please inform the school admin.';$('resultSaveStatus').className='save-status '+(saved.ok?'ok':'error');$('printCertBtn').hidden=total<C.passMark;const hazardRows=reportClips.flatMap(c=>(c.hazards||[]).map(h=>({clip_code:c.clip_code,hazard_no:Number(h.hazard_no),hazard:h,response:(c.responses||[]).find(r=>Number(r.hazard_no)===Number(h.hazard_no))})));const identified=hazardRows.filter(h=>h.response&&Number(h.response.points)>0).length,missed=Math.max(0,hazardRows.length-identified);const reactionTimes=hazardRows.filter(h=>h.response&&Number(h.response.points)>0&&Number.isFinite(Number(h.response.t))).map(h=>Math.max(0,Number(h.response.t)-Number((reportClips.find(c=>String(c.clip_code)===String(h.clip_code))?.hazards||[]).find(x=>Number(x.hazard_no)===h.hazard_no)?.t||0)));const avgReaction=reactionTimes.length?reactionTimes.reduce((a,b)=>a+b,0)/reactionTimes.length:null;let performanceText;if(total>=85)performanceText=`Excellent hazard awareness. You identified ${identified} of ${hazardRows.length} official hazards, with ${missed} missed. Keep scanning well ahead and maintain this consistency.`;else if(total>=C.passMark)performanceText=`Good work — you reached the pass mark. You identified ${identified} of ${hazardRows.length} official hazards and missed ${missed}. Keep practising early recognition of developing hazards.`;else performanceText=`More practice is recommended. You identified ${identified} of ${hazardRows.length} official hazards and missed ${missed}. Focus on scanning ahead, spotting changing traffic situations and responding promptly.`;if(avgReaction!==null)performanceText+=` Average response time for identified hazards: ${avgReaction.toFixed(2)} seconds after the official hazard timestamp.`;$('resultDetails').innerHTML=`<div class="performanceSummary"><div class="performanceTitle">PERFORMANCE SUMMARY</div><p>${performanceText}</p><div class="performanceStats"><span><b>${identified}</b> / ${hazardRows.length} hazards identified</span><span><b>${missed}</b> missed</span><span><b>${reactionTimes.length?avgReaction.toFixed(2)+' s':'—'}</b> average delay</span></div></div><div class="resultSummary"><div><span>PASS MARK</span><b>${C.passMark} / 100</b></div><div><span>HAZARD RECOGNITION</span><b>${hazardRows.length?Math.round(identified/hazardRows.length*100):0}%</b></div><div><span>EXAM STATUS</span><b>${total>=C.passMark?'PASS':'NOT PASSED'}</b></div></div>`;
+  window._lastExam={total,total_score:total,passed:total>=C.passMark,saved,candidate_name:candidate.name,phone:candidate.phone,completed_at:completedAt,started_at:examStartedAt||completedAt,school:schoolBrand(),clips:reportClips};
   if(total>=C.passMark)setupCandidateCertificate();
 }
 function schoolBrand(s=activeSchool){
@@ -231,7 +231,7 @@ function applySchoolBranding(s,persist=true){
   document.documentElement.style.setProperty('--yellow',brandColor);
   document.documentElement.style.setProperty('--panel',darkColor);document.documentElement.style.setProperty('--school-dark',darkColor);
   if(persist&&s){try{sessionStorage.setItem('hpt_school_session',JSON.stringify({...s,access_code:schoolAccessCode}))}catch{}}
-  const change=$('changeSchoolBtn');if(change)change.hidden=!b;
+  const change=$('changeSchoolBtn');if(change)change.hidden=true;
   const tools=$('homeTools');if(tools)tools.hidden=!b;
 }
 function resetSchoolBranding(){
@@ -309,7 +309,7 @@ function changeSchool(){
   document.body.classList.remove('home-active','exam-active','result-active');
   try{const input=$('schoolAccessCode');input?.focus()}catch{}
 }
-async function begin(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};$('candName').textContent=n;$('candPhone').textContent=p;
+async function begin(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
 try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen?.();}catch(e){console.warn('Fullscreen request unavailable',e)}
 updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
 async function printCertificate(examOverride=null,candidateOverride=null){
@@ -355,7 +355,7 @@ async function lookupAttempts(){
     list.innerHTML=rows.map((r,i)=>{
       const passed=Number(r.total_score||0)>=C.passMark;
       const d=new Date(r.completed_at||r.started_at);
-      return `<article class="attemptCard"><div class="attemptTop"><div><span class="attemptDate">${d.toLocaleDateString('en-IN')} • ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span><strong>Attempt ${rows.length-i}</strong></div><span class="attemptStatus ${passed?'pass':'fail'}">${passed?'PASS':'NOT PASSED'}</span></div><div class="attemptScore"><b>${Number(r.total_score||0)}</b><span>/ 100</span></div><div class="attemptMeta">Pass mark ${C.passMark} • ${passed?'Certificate available':'Certificate not available'}</div><div class="attemptActions"><button class="attemptReportBtn" type="button" data-attempt-report="${escHtml(r.id)}">↓ DOWNLOAD REPORT</button>${passed?`<button class="attemptCertBtn" type="button" data-attempt-cert="${escHtml(r.id)}">↓ DOWNLOAD CERTIFICATE</button>`:''}</div></article>`
+      return `<article class="attemptCard"><div class="attemptTop"><div><span class="attemptDate">${d.toLocaleDateString('en-IN')} • ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span><strong>Attempt ${rows.length-i}</strong></div><span class="attemptStatus ${passed?'pass':'fail'}">${passed?'PASS':'NOT PASSED'}</span></div><div class="attemptScore"><b>${Number(r.total_score||0)}</b><span>/ 100</span></div><div class="attemptMeta">Pass mark ${C.passMark} • ${passed?'Certificate available':'Certificate not available'}</div><div class="attemptActions"><button class="attemptReportBtn" type="button" data-attempt-report="${escHtml(r.id)}">VIEW FULL REPORT</button>${passed?`<button class="attemptCertBtn" type="button" data-attempt-cert="${escHtml(r.id)}">↓ DOWNLOAD CERTIFICATE</button>`:''}</div></article>`
     }).join('');
     list.querySelectorAll('[data-attempt-cert]').forEach(btn=>btn.onclick=async()=>{
       const r=rows.find(x=>String(x.id)===String(btn.dataset.attemptCert));if(!r)return;
@@ -365,14 +365,13 @@ async function lookupAttempts(){
     });
     list.querySelectorAll('[data-attempt-report]').forEach(btn=>btn.onclick=async()=>{
       const r=rows.find(x=>String(x.id)===String(btn.dataset.attemptReport));if(!r)return;
-      btn.disabled=true;btn.textContent='GENERATING…';
+      btn.disabled=true;btn.textContent='LOADING…';
       try{
         const report=await buildHistoricalExam(r);
-        if(!window.RajuHPTReport?.generate)throw new Error('Report generator unavailable');
-        await window.RajuHPTReport.generate(report);
-        toast('Complete HPT report downloaded.');
-      }catch(e){console.error(e);toast('Could not generate the HPT report.',true)}
-      finally{btn.disabled=false;btn.textContent='↓ DOWNLOAD REPORT'}
+        if(!window.RajuHPTReport?.open)throw new Error('Report viewer unavailable');
+        window.RajuHPTReport.open(report);
+      }catch(e){console.error(e);toast('Could not open the full report.',true)}
+      finally{btn.disabled=false;btn.textContent='VIEW FULL REPORT'}
     });
   }catch(e){console.error(e);list.innerHTML='';if(msg){msg.textContent='Could not load attempts. Please try again.';msg.className='attemptMsg bad'}}
 }
@@ -400,18 +399,13 @@ function closeAttempts(){show('attemptsModal',false)}
 function setupCandidateCertificate(){$('printCertBtn').onclick=printCertificate}
 bind('enterSchoolBtn','click',enterSchool);
 bind('schoolAccessCode','keydown',e=>{if(e.key==='Enter')enterSchool()});
-bind('changeSchoolBtn','click',changeSchool);
 bind('startBtn','click',begin);
 bind('resultClose','click',()=>{show('resultScreen',false);show('startScreen',true)});
 bind('newBtn','click',()=>{show('resultScreen',false);show('startScreen',true)});
 bind('printCertBtn','click',()=>printCertificate());
-bind('downloadReportBtn','click',async()=>{
-  const b=$('downloadReportBtn');
-  if(!window._lastExam||!window.RajuHPTReport){toast('Report generator is not available. Please refresh the page.',true);return}
-  b.disabled=true;b.textContent='GENERATING…';
-  try{await window.RajuHPTReport.generate(window._lastExam);toast('Complete HPT report downloaded.')}
-  catch(e){console.error(e);toast('Could not generate the HPT report.',true)}
-  finally{b.disabled=false;b.textContent='DOWNLOAD REPORT'}
+bind('viewFullReportBtn','click',()=>{
+  if(!window._lastExam||!window.RajuHPTReport?.open){toast('Full report viewer is not available. Refresh the page and try again.',true);return}
+  window.RajuHPTReport.open(window._lastExam);
 });
 const viewAttemptsBtn=$('homeAttemptsBtn')||$('viewAttemptsBtn');if(viewAttemptsBtn)viewAttemptsBtn.addEventListener('click',openAttempts);
 bind('attemptSearchBtn','click',lookupAttempts);bind('attemptCloseBtn','click',closeAttempts);
@@ -454,7 +448,7 @@ video.addEventListener('click',e=>{
       if(!best||rounded>best.points)best={hazard_no:hn,points:rounded};
     }
   });
-  const r={t,response_no:responses.length+1,hazard_no:best?.hazard_no||null,points:best?.points||0,frameData:captureResponseFrame()};
+  const r={t:Number(t.toFixed(3)),video_time_seconds:Number(t.toFixed(3)),clicked_at:new Date().toISOString(),response_no:responses.length+1,hazard_no:best?.hazard_no||null,points:best?.points||0,frameData:captureResponseFrame()};
   responses.push(r);
   responseBeep();
   if(responses.length>=max)responseLocked=true;
@@ -469,5 +463,5 @@ window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;show('ins
 bind('installAppBtn','click',async()=>{if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch{}deferredInstallPrompt=null;return}showInstallHelp()});
 bind('installHelpClose','click',()=>show('installHelpModal',false));bind('installHelpOk','click',()=>show('installHelpModal',false));
 if(!isStandalone())show('installAppCard',true);
-setupConsoleFeedback();setupHomeMedia();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);startLoadingScreen();bootSchoolSession();
+setupConsoleFeedback();setupHomeMedia();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);document.getElementById('loadingScreen')?.remove();bootSchoolSession();
 })();

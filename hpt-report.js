@@ -1,145 +1,114 @@
-/* Raju HPT — compact evidence report. Safe when video frame capture is unavailable. */
+/* RAJU HPT v61 — interactive in-page full report with official/click timestamp frames. */
 (function(){
   'use strict';
-  function fmtTime(v){
-    if(v===null||v===undefined||isNaN(Number(v))) return '—';
-    var s=Number(v), sign=s<0?'-':''; s=Math.abs(s);
-    var m=Math.floor(s/60), sec=(s%60).toFixed(1);
-    return sign+String(m).padStart(2,'0')+':'+sec.padStart(4,'0');
+  const byId=id=>document.getElementById(id);
+  let currentExam=null, currentRows=[], currentFilter='all', openSerial=0, fallbackShown=false;
+  const frameCache=new Map();
+  const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function fmtTime(value){
+    if(value===null||value===undefined||value===''||!Number.isFinite(Number(value)))return '—';
+    const n=Number(value),cs=Math.round(Math.abs(n)*100),m=Math.floor(cs/6000),sec=(cs%6000)/100;
+    return (n<0?'-':'')+String(m).padStart(2,'0')+':'+sec.toFixed(2).padStart(5,'0');
   }
-  function safeName(s){return String(s||'Candidate').replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'')||'Candidate'}
-  function imageData(url){return new Promise(function(resolve,reject){
-    var img=new Image(); img.crossOrigin='anonymous'; img.onload=function(){try{
-      var c=document.createElement('canvas'),w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
-      if(!w||!h)throw new Error('image has no size'); c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0);resolve(c.toDataURL('image/jpeg',.82));
-    }catch(e){reject(e)}}; img.onerror=function(){reject(new Error('image unavailable'))}; img.src=url+(url.indexOf('?')>=0?'&':'?')+'report='+Date.now();
-  })}
-  function captureFrame(url,time){return new Promise(function(resolve,reject){
-    var v=document.createElement('video'),done=false;
-    var timer=setTimeout(function(){if(!done){done=true;cleanup();reject(new Error('frame timeout'))}},4500);
-    v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
-    function cleanup(){clearTimeout(timer);try{v.pause();v.removeAttribute('src');v.load()}catch(e){}}
-    function fail(e){if(done)return;done=true;cleanup();reject(e||new Error('frame failed'))}
-    v.onerror=function(){fail(new Error('video unavailable'))};
-    v.onloadedmetadata=function(){try{var t=Math.max(0,Math.min(Number(time)||0,(v.duration||Number(time)||0)-.05));v.currentTime=t}catch(e){fail(e)}};
-    v.onseeked=function(){if(done)return;try{
-      var c=document.createElement('canvas'),maxW=640,maxH=360,w=v.videoWidth||640,h=v.videoHeight||360,r=Math.min(maxW/w,maxH/h,1);
-      c.width=Math.max(1,Math.round(w*r));c.height=Math.max(1,Math.round(h*r));c.getContext('2d').drawImage(v,0,0,c.width,c.height);var data=c.toDataURL('image/jpeg',.76);done=true;cleanup();resolve(data);
-    }catch(e){fail(e)}};
-    v.src=url;try{v.load()}catch(e){fail(e)}
-  })}
-  async function frameFor(clip,time,fallbackData){
-    if(fallbackData)return fallbackData;
-    if(clip&&clip.file&&time!==null&&time!==undefined){try{return await captureFrame(clip.file,time)}catch(e){}}
-    var n=String(clip&&clip.clip_code||'').replace(/\D/g,'');
-    if(n){try{return await imageData('thumbnails/'+Number(n)+'.jpg')}catch(e){}}
-    return null;
-  }
-  function txt(doc,s,x,y,size,bold,color,align){doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor.apply(doc,color||[45,58,68]);doc.text(String(s==null?'':s),x,y,{align:align||'left'});}
-  function box(doc,x,y,w,h,fill,stroke){doc.setFillColor.apply(doc,fill);doc.rect(x,y,w,h,'F');if(stroke){doc.setDrawColor.apply(doc,stroke);doc.rect(x,y,w,h,'S')}}
-  function hexRgb(hex,fallback){var m=/^#?([0-9a-f]{6})$/i.exec(String(hex||''));if(!m)return fallback||[255,196,0];var n=parseInt(m[1],16);return[(n>>16)&255,(n>>8)&255,n&255]}
-  function header(doc,W,page,total,school){var dark=hexRgb(school&&school.dark_color,[5,10,15]),brand=hexRgb(school&&school.brand_color,[255,196,0]);doc.setFillColor.apply(doc,dark);doc.rect(0,0,W,16,'F');txt(doc,String(school&&school.school_name||'DRIVING SCHOOL').toUpperCase(),11,7.5,10.5,true,brand);txt(doc,'HAZARD PERCEPTION TEST • COMPLETE ANALYSIS REPORT',11,12.5,6.5,false,[190,202,210]);txt(doc,'Page '+page+' / '+total,W-11,9.5,6.5,false,[130,145,155],'right');}
-  function footer(doc,W,H,school){doc.setDrawColor(55,70,80);doc.line(10,H-8,W-10,H-8);var meta=[school&&school.school_name,school&&school.location,school&&school.contact_number,'Hazard Perception Test'].filter(Boolean).join(' • ');txt(doc,meta,10,H-4,6,false,[110,122,132]);txt(doc,'Generated electronically',W-10,H-4,6,false,[110,122,132],'right');}
-  async function generate(exam){
-    if(!exam||!window.jspdf||!window.jspdf.jsPDF)throw new Error('PDF generator is not available.');
-    var jsPDF=window.jspdf.jsPDF,clips=exam.clips||[],name=exam.candidate_name||'Candidate',phone=exam.phone||'—',total=Number(exam.total_score||exam.total||0),passed=!!exam.passed||total>=60,d=new Date(exam.completed_at||Date.now()),school=exam.school||window.HPTCurrentSchool||{};
-    var rows=[];
-    clips.forEach(function(c){
-      var hs=(c.hazards||[]).slice().sort(function(a,b){return Number(a.hazard_no)-Number(b.hazard_no)}),rs=c.responses||[];
-      hs.forEach(function(h){
-        var m=null;for(var j=0;j<rs.length;j++){if(Number(rs[j].hazard_no)===Number(h.hazard_no)){m=rs[j];break}}
-        var ht=Number(h.t)||0,ct=m&&m.t!=null?Number(m.t):null,pts=m?Number(m.points||0):0;
-        rows.push({clip:c,hazard:h,match:m,ht:ht,ct:ct,reaction:m&&ct!=null?ct-ht:null,points:pts,max:hs.length===1?10:5,status:pts>0?'IDENTIFIED':'MISSED'});
+  function schoolOf(exam){return exam?.school||window.HPTCurrentSchool||{school_name:'Driving School',brand_color:'#ffc400',dark_color:'#0b1b29'};}
+  function collectRows(exam){
+    const rows=[];
+    (Array.isArray(exam?.clips)?exam.clips:[]).forEach((clip,clipIndex)=>{
+      const hazards=(Array.isArray(clip.hazards)?clip.hazards:[]).slice().sort((a,b)=>Number(a.hazard_no)-Number(b.hazard_no));
+      const responses=Array.isArray(clip.responses)?clip.responses:[];
+      hazards.forEach((hazard,hazardIndex)=>{
+        const hazardNo=Number(hazard.hazard_no||hazardIndex+1);
+        // Only show a click when the scorer actually assigned it to this official hazard.
+        // Unmatched taps are intentionally omitted from the user-facing report.
+        const response=responses.find(r=>Number(r.hazard_no)===hazardNo&&Number(r.points)>0)||null;
+        const actual=Number(hazard.t);
+        const click=response&&response.t!==null&&response.t!==undefined&&Number.isFinite(Number(response.t))?Number(response.t):null;
+        rows.push({index:rows.length,clip,clipCode:String(clip.clip_code??String(clipIndex+1).padStart(2,'0')),hazardNo,label:hazard.label||('Official hazard '+hazardNo),actual:Number.isFinite(actual)?actual:null,click,delay:click!==null&&Number.isFinite(actual)?click-actual:null,points:response?Number(response.points||0):0,max:hazards.length===1?10:5,response,identified:!!(response&&Number(response.points)>0)});
       });
     });
-    var totalHazards=rows.length,identified=rows.filter(function(r){return r.points>0}).length,missed=totalHazards-identified;
-    var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),W=297,H=210;
-
-    // Compact card report: no clip numbers, no extra-click rows, and no table rows spilling into the footer.
-    // Compact two-column hazard cards. 8 cards per page fit inside the printable
-    // area without crossing the footer; text and evidence stay in fixed columns.
-    var cardsPerPage=8,totalPages=Math.max(1,Math.ceil(rows.length/cardsPerPage));
-    var margin=12, gap=4, cardW=(W-margin*2-gap)/2, cardH=26.5, rowGap=3.5;
-
-    function card(doc,r,x,y,w,h,idx){
-      var bg=idx%2===0?[245,247,249]:[235,241,245];
-      box(doc,x,y,w,h,bg,[205,215,222]);
-
-      // Header
-      txt(doc,'HAZARD '+r.hazard.hazard_no,x+4,y+5.3,6.0,true,[25,42,54]);
-      txt(doc,r.status,x+w-4,y+5.3,4.7,true,
-        r.status==='IDENTIFIED'?[25,125,65]:[190,50,65],'right');
-
-      // Fixed timing columns
-      var col1=x+4, col2=x+18, col3=x+32, col4=x+46;
-      txt(doc,'OFFICIAL',col1,y+10.7,3.7,true,[105,120,130]);
-      txt(doc,'CLICK',col2,y+10.7,3.7,true,[105,120,130]);
-      txt(doc,'REACTION',col3,y+10.7,3.7,true,[105,120,130]);
-      txt(doc,'MARKS',col4,y+10.7,3.7,true,[105,120,130]);
-      txt(doc,fmtTime(r.ht),col1,y+16.0,5.4,true,[35,55,68]);
-      txt(doc,r.ct==null?'—':fmtTime(r.ct),col2,y+16.0,5.4,true,[35,55,68]);
-      txt(doc,r.reaction==null?'—':fmtTime(r.reaction),col3,y+16.0,5.4,true,[35,55,68]);
-      txt(doc,(r.points||0)+' / '+r.max,col4,y+16.0,5.4,true,[184,132,12]);
-
-      // Evidence area on the right; fixed dimensions prevent overlap.
-      var ex=x+w-62, ey=y+4.2, ew=27, eh=15.2;
-      if(r._actual)doc.addImage(r._actual,'JPEG',ex,ey,ew,eh);
-      else box(doc,ex,ey,ew,eh,[215,220,224]);
-      if(r._response)doc.addImage(r._response,'JPEG',ex+30,ey,ew,eh);
-      else box(doc,ex+30,ey,ew,eh,[215,220,224]);
-
-      txt(doc,'A '+fmtTime(r.ht),ex,y+h-2.2,3.6,true,[65,80,90]);
-      txt(doc,'R '+(r.ct==null?'—':fmtTime(r.ct)),ex+30,y+h-2.2,3.6,true,[65,80,90]);
-    }
-
-    for(var page=0;page<totalPages;page++){
-      if(page)doc.addPage();
-      header(doc,W,page+1,totalPages,school);
-      var from=page*cardsPerPage,to=Math.min(rows.length,from+cardsPerPage);
-      var startY;
-
-      if(page===0){
-        txt(doc,'HPT COMPLETE ANALYSIS',12,26,14.2,true,[20,34,48]);
-        txt(doc,'Candidate: '+name,12,32.5,7.0,true,[50,64,75]);
-        txt(doc,'Phone: '+phone,12,37.0,6.0,false,[90,105,115]);
-        txt(doc,'Completed: '+d.toLocaleString('en-IN'),12,41.5,6.0,false,[90,105,115]);
-
-        txt(doc,passed?'PASS':'NOT PASSED',250,27,9.5,true,
-          passed?[20,135,70]:[210,60,75],'right');
-        txt(doc,total+' / 100',250,36,15.5,true,[184,132,12],'right');
-        txt(doc,'Pass mark: 60 / 100',250,41.5,6.0,false,[90,105,115],'right');
-
-        var metrics=[['HAZARDS',totalHazards],['IDENTIFIED',identified],['MISSED',missed]];
-        metrics.forEach(function(m,i){
-          var x=12+i*84.5;
-          box(doc,x,47,80,13,[10,25,36],[50,70,82]);
-          txt(doc,m[0],x+40,52.2,4.1,true,[155,168,176],'center');
-          txt(doc,m[1],x+40,58.7,8.4,true,[255,196,0],'center');
-        });
-
-        txt(doc,'Hazard evidence analysis',12,66.5,8.2,true,[20,34,48]);
-        txt(doc,'A = actual hazard frame/time   R = candidate response frame/time',12,71.0,4.8,false,[95,108,118]);
-        startY=75;
-      } else {
-        txt(doc,'Hazard evidence analysis — continued',12,26,12.5,true,[20,34,48]);
-        txt(doc,'Official hazards and candidate responses',12,32.5,5.8,false,[95,108,118]);
-        startY=37.5;
-      }
-
-      for(var ri=from;ri<to;ri++){
-        var r=rows[ri];
-        r._actual=await frameFor(r.clip,r.ht,null);
-        r._response=r.match&&r.ct!=null?await frameFor(r.clip,r.ct,r.match.frameData||null):null;
-        var local=ri-from,col=local%2,row=Math.floor(local/2);
-        card(doc,r,margin+col*(cardW+gap),startY+row*(cardH+rowGap),cardW,cardH,ri);
-      }
-
-      txt(doc,'Each clip is scored out of 10. One official hazard = up to 10 marks; two official hazards = up to 5 marks each.',
-          12,H-14,4.9,false,[100,112,122]);
-      footer(doc,W,H,school);
-    }
-    doc.save(safeName(school.school_name||'Driving-School')+'-HPT-Analysis-'+safeName(name)+'-'+d.toISOString().slice(0,10)+'.pdf');
+    return rows;
   }
-
-  window.RajuHPTReport={generate:generate};
+  function setModalVisible(open){
+    const modal=byId('fullReportModal');if(!modal)return;
+    if(window.bootstrap?.Modal){
+      const instance=window.bootstrap.Modal.getOrCreateInstance(modal,{backdrop:true,keyboard:true,focus:true});
+      if(open)instance.show();else instance.hide();
+    }else{
+      if(open){modal.style.display='block';modal.classList.add('show');modal.removeAttribute('aria-hidden');modal.setAttribute('aria-modal','true');document.body.classList.add('report-modal-open');
+        if(!fallbackShown){const b=document.createElement('div');b.className='modal-backdrop fade show report-fallback-backdrop';b.id='reportFallbackBackdrop';b.addEventListener('click',()=>setModalVisible(false));document.body.appendChild(b);fallbackShown=true;}}
+      else{modal.style.display='none';modal.classList.remove('show');modal.setAttribute('aria-hidden','true');modal.removeAttribute('aria-modal');document.body.classList.remove('report-modal-open');byId('reportFallbackBackdrop')?.remove();fallbackShown=false;}
+    }
+  }
+  function renderSummary(exam,rows){
+    const identified=rows.filter(r=>r.identified).length,missed=rows.length-identified,score=Number(exam.total_score??exam.total??0),passMark=60,passed=Boolean(exam.passed??score>=passMark);
+    byId('reportCandidateMeta').textContent=[exam.candidate_name||'Candidate',exam.phone||'',new Date(exam.completed_at||Date.now()).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})].filter(Boolean).join(' · ');
+    const summary=byId('reportSummary');summary.innerHTML=`<div class="report-sum-card report-sum-score"><span>FINAL SCORE</span><strong>${score} <small>/ 100</small></strong><em class="${passed?'text-pass':'text-fail'}">${passed?'PASS':'NOT PASSED'}</em></div><div class="report-sum-card"><span>OFFICIAL HAZARDS</span><strong>${rows.length}</strong></div><div class="report-sum-card"><span>IDENTIFIED</span><strong>${identified}</strong></div><div class="report-sum-card"><span>MISSED</span><strong>${missed}</strong></div>`;
+  }
+  function renderRows(){
+    const list=byId('reportHazardList');if(!list)return;
+    const filtered=currentRows.filter(r=>currentFilter==='all'||(currentFilter==='identified'?r.identified:!r.identified));
+    list.innerHTML=filtered.length?filtered.map(r=>{
+      const actual=fmtTime(r.actual),click=r.click===null?'Not identified':fmtTime(r.click),delay=r.delay===null?'—':fmtTime(r.delay);
+      const outcome=r.identified?'IDENTIFIED':'MISSED';
+      return `<article class="report-hazard-card ${r.identified?'is-identified':'is-missed'}" data-report-row="${r.index}" data-outcome="${r.identified?'identified':'missed'}">
+        <div class="report-hazard-top"><div><div class="report-clip-tag">CLIP ${escapeHTML(r.clipCode)} <span>·</span> HAZARD ${r.hazardNo}</div><h3>${escapeHTML(r.label)}</h3></div><span class="report-outcome ${r.identified?'identified':'missed'}">${outcome}</span></div>
+        <div class="report-time-grid"><div><span>ACTUAL HAZARD</span><strong>${actual}</strong></div><div><span>CANDIDATE CLICK</span><strong>${click}</strong></div><div><span>REACTION DELAY</span><strong>${delay}</strong></div><div><span>MARKS</span><strong>${r.points} / ${r.max}</strong></div></div>
+        <div class="report-image-grid">
+          <div class="report-shot"><div class="report-shot-label"><span>ACTUAL HAZARD FRAME</span><b>${actual}</b></div><button class="report-frame-btn" type="button" data-report-frame="actual" data-row-index="${r.index}" aria-label="View actual hazard frame"><div class="report-frame-placeholder" data-frame-placeholder="actual">Loading frame…</div><img data-frame-image="actual" alt="Actual hazard frame at ${actual}" hidden></button></div>
+          <div class="report-shot"><div class="report-shot-label"><span>CANDIDATE CLICK FRAME</span><b>${r.click===null?'No matched click':fmtTime(r.click)}</b></div><button class="report-frame-btn" type="button" data-report-frame="click" data-row-index="${r.index}" aria-label="View candidate click frame" ${r.click===null?'disabled':''}><div class="report-frame-placeholder" data-frame-placeholder="click">${r.click===null?'No click was scored for this hazard':'Loading frame…'}</div><img data-frame-image="click" alt="Candidate click frame at ${r.click===null?'not identified':fmtTime(r.click)}" hidden></button></div>
+        </div><div class="report-frame-footnote">Images are captured from the source clip at the timestamps shown.</div>
+      </article>`;
+    }).join(''):'<div class="report-empty">No hazards in this filter.</div>';
+    const token=openSerial;
+    const jobs=[];filtered.forEach(r=>{jobs.push([r,'actual']);if(r.click!==null)jobs.push([r,'click']);});
+    // Limit concurrent video decoders. A typical test has 20 official hazards.
+    let cursor=0;const workers=Array.from({length:3},async()=>{while(cursor<jobs.length){const job=jobs[cursor++];await hydrateFrame(job[0],job[1],token);}});Promise.all(workers).catch(()=>{});
+  }
+  function captureFrame(url,time){
+    return new Promise((resolve,reject)=>{
+      if(!url||!Number.isFinite(Number(time))){reject(new Error('Frame source or timestamp is not available'));return;}
+      const v=document.createElement('video');let done=false;
+      const timer=window.setTimeout(()=>finish(new Error('Timed out while capturing video frame')),10000);
+      function cleanup(){window.clearTimeout(timer);v.onloadedmetadata=v.onseeked=v.onerror=null;try{v.pause();v.removeAttribute('src');v.load()}catch{}}
+      function finish(err,data){if(done)return;done=true;cleanup();err?reject(err):resolve(data);}
+      v.muted=true;v.playsInline=true;v.preload='auto';if(window.location.protocol!=='file:')v.crossOrigin='anonymous';
+      v.onerror=()=>finish(new Error('Source video could not be opened for frame capture'));
+      v.onloadedmetadata=()=>{try{const duration=Number(v.duration)||0;const t=Math.max(0,Math.min(Number(time),Math.max(0,duration-.08)));v.currentTime=t;}catch(e){finish(e)}};
+      v.onseeked=()=>{try{const w=v.videoWidth||0,h=v.videoHeight||0;if(!w||!h)throw new Error('Video frame has no dimensions');const maxW=960,maxH=540,scale=Math.min(maxW/w,maxH/h,1),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*scale));c.height=Math.max(1,Math.round(h*scale));const ctx=c.getContext('2d');ctx.drawImage(v,0,0,c.width,c.height);finish(null,c.toDataURL('image/jpeg',.84));}catch(e){finish(e)}};
+      v.src=url;try{v.load()}catch(e){finish(e)}
+    });
+  }
+  async function hydrateFrame(row,which,token){
+    const card=document.querySelector(`[data-report-row="${row.index}"]`);if(!card)return;
+    const image=card.querySelector(`[data-frame-image="${which}"]`),placeholder=card.querySelector(`[data-frame-placeholder="${which}"]`);if(!image||!placeholder)return;
+    try{
+      let data=null;
+      if(which==='click'&&row.response?.frameData&&String(row.response.frameData).startsWith('data:image/'))data=row.response.frameData;
+      if(!data){const url=row.clip.file||row.clip.video_path||row.clip.src;const t=which==='actual'?row.actual:row.click;const cacheKey=String(url)+'|'+String(Number(t).toFixed(2));if(frameCache.has(cacheKey))data=frameCache.get(cacheKey);else{data=await captureFrame(url,t);frameCache.set(cacheKey,data);}}
+      if(token!==openSerial||!document.body.contains(image))return;
+      image.src=data;image.hidden=false;placeholder.hidden=true;
+      image.addEventListener('error',()=>{image.hidden=true;placeholder.hidden=false;placeholder.textContent='Frame image could not be displayed.'},{once:true});
+    }catch(e){
+      if(token!==openSerial||!document.body.contains(placeholder))return;
+      placeholder.textContent='Frame unavailable. Open this portal from localhost or its hosted URL to enable video-frame capture.';
+      placeholder.classList.add('frame-unavailable');
+    }
+  }
+  function open(exam){
+    if(!exam)throw new Error('No examination report data is available.');
+    currentExam=exam;currentRows=collectRows(exam);currentFilter='all';openSerial++;
+    renderSummary(exam,currentRows);document.querySelectorAll('[data-report-filter]').forEach(b=>b.classList.toggle('active',b.dataset.reportFilter==='all'));
+    renderRows();setModalVisible(true);
+  }
+  document.addEventListener('click',event=>{
+    const filter=event.target.closest('[data-report-filter]');if(filter){currentFilter=filter.dataset.reportFilter||'all';document.querySelectorAll('[data-report-filter]').forEach(b=>b.classList.toggle('active',b===filter));renderRows();return;}
+    const frameButton=event.target.closest('[data-report-frame]');if(frameButton&&!frameButton.disabled){const row=currentRows.find(r=>r.index===Number(frameButton.dataset.rowIndex));const image=frameButton.querySelector('img');if(image&&!image.hidden&&image.src){byId('reportLightboxImage').src=image.src;byId('reportLightboxCaption').textContent=`Clip ${row?.clipCode||''} · Hazard ${row?.hazardNo||''} · ${frameButton.dataset.reportFrame==='actual'?'Actual hazard':'Candidate click'} · ${frameButton.dataset.reportFrame==='actual'?fmtTime(row?.actual):fmtTime(row?.click)}`;byId('reportImageLightbox').hidden=false;}return;}
+    if(event.target.closest('#reportLightboxClose')){byId('reportImageLightbox').hidden=true;byId('reportLightboxImage').removeAttribute('src');}
+  });
+  byId('closeFullReportBtn')?.addEventListener('click',()=>setModalVisible(false));
+  byId('reportLightboxClose')?.addEventListener('click',()=>{byId('reportImageLightbox').hidden=true;byId('reportLightboxImage').removeAttribute('src')});
+  byId('reportImageLightbox')?.addEventListener('click',e=>{if(e.target===byId('reportImageLightbox')){byId('reportImageLightbox').hidden=true;byId('reportLightboxImage').removeAttribute('src')}});
+  byId('fullReportModal')?.addEventListener('hidden.bs.modal',()=>{openSerial++;byId('reportImageLightbox').hidden=true;});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!byId('reportImageLightbox').hidden){byId('reportImageLightbox').hidden=true;byId('reportLightboxImage').removeAttribute('src');e.stopPropagation();}});
+  window.RajuHPTReport={open,formatTime:fmtTime};
 })();
