@@ -1,0 +1,80 @@
+HAZARD PERCEPTION TEST — VIDEO PUBLISHING FUNCTION DEPLOYMENT
+=============================================================
+
+Why the browser displays “Failed to fetch”
+------------------------------------------
+The admin page uploads a selected video by calling the Supabase Edge Function
+`hpt-publish-video`. The function source is included in this project at:
+
+  supabase/functions/hpt-publish-video/index.ts
+
+The configured endpoint is:
+  https://nceufqdvuuztdfyesbxx.supabase.co/functions/v1/hpt-publish-video
+
+This is a separate deployment from the static GitHub Pages website. Uploading
+admin.html/admin.js to GitHub Pages does NOT deploy the Supabase Edge Function.
+The function must be deployed to the Supabase project above.
+
+IMPORTANT: Do these steps once
+------------------------------
+1. Open the Supabase Dashboard for project `nceufqdvuuztdfyesbxx`.
+2. Go to Edge Functions > Secrets.
+3. Add this secret:
+
+     Name:  HPT_GITHUB_TOKEN
+     Value: <your GitHub fine-grained personal access token>
+
+   The token must be limited to repository `bestinraju25/hazard-perception-test`
+   and have Contents: Read and write permission. Do not paste this token into
+   this project, browser JavaScript, GitHub Pages, or ChatGPT.
+
+   The function already defaults to repository `bestinraju25/hazard-perception-test`
+   and branch `main`; HPT_GITHUB_REPO and HPT_GITHUB_BRANCH are optional.
+   Supabase injects SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY automatically;
+   do not add or expose a service-role key in browser code.
+
+4. Extract this ZIP. Open PowerShell in the `hazard-perception-test` folder
+   (the folder containing `admin.html`, `hpt-config.js`, and `supabase`).
+5. Make sure Node.js/npm is installed, then run these commands one at a time:
+
+     npx --yes supabase@latest login
+     npx --yes supabase@latest link --project-ref nceufqdvuuztdfyesbxx
+     npx --yes supabase@latest functions deploy hpt-publish-video --project-ref nceufqdvuuztdfyesbxx --use-api
+
+   The first command opens a browser so you can sign in to Supabase. Complete
+   the sign-in with the account that has access to this project. The link step
+   may ask for your project's database password. The deploy command publishes
+   only this function; it does not change database tables or website files.
+
+   A Windows helper is also included: `DEPLOY-HPT-PUBLISH-VIDEO-WINDOWS.bat`.
+   Run it from this folder after setting HPT_GITHUB_TOKEN in the Dashboard.
+
+6. In Supabase Dashboard > Edge Functions, confirm `hpt-publish-video` appears
+   as deployed. Then sign out/in to the admin page if needed and try uploading
+   a small test video.
+
+What the function does
+----------------------
+- Verifies the signed-in Supabase user and checks for an active row in
+  public.admin_users.
+- Publishes the video into the GitHub repository's videos/ folder.
+- Publishes the generated thumbnail into thumbnails/.
+- The admin page then saves the clip and hazard timestamps in Supabase.
+
+Troubleshooting after deployment
+--------------------------------
+- “HPT_GITHUB_TOKEN is not configured”: add the secret in Edge Functions > Secrets.
+- “GitHub upload failed (401/403)”: review token expiry and repository Contents
+  read/write permissions.
+- “Video is too large”: this function currently accepts video files up to 15 MB
+  and thumbnails up to 5 MB. This is separate from the current Failed to fetch
+  connection error.
+- If the endpoint is still unreachable, check the browser Network tab for the
+  OPTIONS and POST requests and review Edge Functions > hpt-publish-video > Logs.
+  The function must be deployed in project `nceufqdvuuztdfyesbxx`; CORS is already
+  configured in the included source for POST/OPTIONS, Authorization and apikey.
+
+Security notes
+--------------
+Never put HPT_GITHUB_TOKEN or a Supabase service-role key in hpt-config.js,
+admin.js, any public website file, or a ZIP that will be uploaded to GitHub.

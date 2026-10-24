@@ -1,0 +1,6 @@
+project_id = "hazard-perception-test"
+
+[functions.hpt-publish-video]
+# The function validates the signed-in user's token with Supabase Auth and checks admin_users.active.
+# Disable only the gateway's legacy JWT gate so current JWT signing keys are supported.
+verify_jwt = false

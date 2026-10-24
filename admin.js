@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const C=window.RAJU_HPT_CONFIG; const sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey); const $=id=>document.getElementById(id);
-let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='';
+let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',editingGitHubFilePath='';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>{s=Math.max(0,Number(s)||0);return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}.${Math.floor((s%1)*10)}`};
 const notice=(t,bad=false)=>{const e=$('notice');e.hidden=false;e.textContent=t;e.className='notice '+(bad?'bad':'good');clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,6000)};
@@ -38,47 +38,144 @@ if(mr)mr.innerHTML=rows.map(r=>`<article class="result-card"><div class="rc-head
 async function deleteAttempt(id){const r=results.find(x=>x.id===id);if(!r||!confirm(`Delete the complete examination record for ${r.candidate_name}? This cannot be undone.`))return;const {error}=await sb.from('hpt_responses').delete().eq('attempt_id',id);if(error){notice(error.message,true);return}const {error:e2}=await sb.from('hpt_attempts').delete().eq('id',id);if(e2){notice(e2.message,true);return}await loadResults();updateStats();notice('Examination record deleted.')}
 async function showDetail(id){if(!(await guard()))return;const r=results.find(x=>x.id===id);if(!r)return;const {data:rs,error}=await sb.from('hpt_responses').select('response_no,click_time_seconds,hazard_no,awarded_marks,video_id').eq('attempt_id',id).order('response_no');if(error){notice(error.message,true);return}$('detailTitle').textContent=r.candidate_name;$('detailMeta').textContent=`${r.hpt_schools?.school_name||'Legacy / unknown'} • ${r.phone} • ${new Date(r.started_at).toLocaleString('en-IN')} • ${isPassed(r)?'PASS':'NOT PASSED'} • ${r.total_score}/100`;$('detailBody').innerHTML=`<div class="detail-clip"><span>Responses</span><b>${rs?.length||0}</b></div><div class="detail-clip"><span>Randomized order</span><b>${(r.clip_order||[]).map(esc).join(' → ')||'—'}</b></div>`+(rs||[]).map(x=>`<div class="detail-clip"><span>Response ${x.response_no} • ${Number(x.click_time_seconds).toFixed(1)}s • Hazard ${x.hazard_no||'—'}</span><b>+${x.awarded_marks}</b></div>`).join('');$('detailModal').hidden=false}
 function updateStats(){const passed=results.filter(isPassed).length,avg=results.length?Math.round(results.reduce((a,r)=>a+Number(r.total_score||0),0)/results.length):0,ready=videos.filter(v=>v.active&&v.hazard_count>=1).length;$('statAttempts').textContent=results.length;$('statPassed').textContent=passed;$('statAverage').textContent=avg;$('statVideos').textContent=ready}
-async function loadVideos(){const {data,error}=await sb.from('hpt_videos').select('id,clip_code,title,video_path,duration_seconds,active,updated_at,hpt_hazards(id,hazard_no,timestamp_seconds,label)').order('clip_code');if(error){notice(error.message,true);return}videos=(data||[]).map(v=>({...v,hazard_count:(v.hpt_hazards||[]).length}));renderVideos()}
-function thumbPath(v){const n=String(v.clip_code||'').replace(/\D/g,'');return n?`thumbnails/${Number(n)}.jpg`:''}
-function renderVideos(){$('videoGrid').innerHTML=videos.map(v=>{const thumb=thumbPath(v);return `<article class="video-card"><div class="vc-preview" data-edit="${v.id}" title="Open clip"><img class="vc-thumb" src="${thumb}" alt="Preview of Clip ${esc(v.clip_code)}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><video class="vc-thumb-fallback" src="${esc(resolveVideoPath(v.video_path))}" muted playsinline preload="metadata" hidden></video><span class="vc-play">▶</span></div><div class="vc-top"><span class="clip">CLIP ${esc(v.clip_code)}</span><span class="status ${v.active?'on':'off'}">● ${v.active?'ACTIVE':'INACTIVE'}</span></div><h3>${esc(v.title)}</h3><p>${esc(v.video_path)}</p><div class="tags"><span>${Number(v.duration_seconds||0).toFixed(1)}s</span><span>${v.hazard_count===1?'1 hazard • 10 marks':'2 hazards • 5 marks each'}</span></div><div class="vc-actions"><button class="small" data-edit="${v.id}">EDIT & MARK</button><button class="small" data-toggle="${v.id}">${v.active?'DISABLE':'ENABLE'}</button></div></article>`}).join('')||'<div class="empty">No HPT clips registered.</div>';document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editVideo(b.dataset.edit));document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>toggleVideo(b.dataset.toggle))}
+async function publisherRequest(action,fields={},file=null){
+  const a=await guard();if(!a)throw new Error('Admin session is required. Please sign in again.');
+  const fd=new FormData();fd.append('action',action);
+  Object.entries(fields||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null)fd.append(k,String(v))});
+  if(file)fd.append('file',file);
+  let result;
+  try{result=await sb.functions.invoke('hpt-publish-video',{body:fd})}
+  catch(e){throw new Error(`Could not reach the HPT GitHub publishing service. Deploy the updated hpt-publish-video function to Supabase project ${new URL(C.supabaseUrl).hostname.split('.')[0]}. ${e?.message||''}`.trim())}
+  const {data,error}=result||{};
+  if(error){
+    let detail=error.message||'Unknown Edge Function error.';
+    const response=error.context;
+    if(response&&typeof response.clone==='function'){
+      try{const body=await response.clone().text();if(body){try{const parsed=JSON.parse(body);detail=parsed.error||parsed.message||body}catch{detail=body}}}catch{}
+    }
+    if(/fetch|network|connection/i.test(detail))detail=`The Supabase Edge Function could not be reached. Confirm that hpt-publish-video is deployed and the browser can reach Supabase. (${detail})`;
+    throw new Error(detail);
+  }
+  if(data?.error)throw new Error(data.error);
+  if(!data||data.ok===false)throw new Error('The HPT publishing service returned an empty or unsuccessful response.');
+  return data;
+}
+async function loadVideos(){
+  const {data,error}=await sb.from('hpt_videos').select('id,clip_code,title,video_path,duration_seconds,active,updated_at,hpt_hazards(id,hazard_no,timestamp_seconds,label)').order('clip_code');
+  if(error){notice(error.message,true);return}
+  const registered=(data||[]).map(v=>({...v,hazard_count:(v.hpt_hazards||[]).length,githubOnly:false,githubMissing:false}));
+  let remote=[],githubSyncOk=false;
+  try{
+    const response=await publisherRequest('list_videos');
+    remote=Array.isArray(response.videos)?response.videos:[];githubSyncOk=true;
+  }catch(e){
+    const detail=/video path is required/i.test(e.message)
+      ?'The deployed Supabase publishing function is outdated. Deploy the V73 hpt-publish-video function from this package.'
+      :e.message;
+    notice(`GitHub library sync unavailable. Showing ${registered.length} Supabase-registered clips only. ${detail}`,true);
+  }
+
+  const byCode=new Map();
+  registered.forEach(v=>byCode.set(String(Number.parseInt(String(v.clip_code).replace(/\D/g,''),10)),v));
+
+  // A clip may have more than one extension in GitHub (for example 11.webm and 11.mp4).
+  // Keep one library card per clip number and prefer the file path already stored in Supabase.
+  const remoteByCode=new Map();
+  remote.forEach(file=>{
+    const filename=String(file.name||file.path||'').split('/').pop();
+    const match=filename.match(/^(\d+)\.(webm|mp4|m4v|mov)$/i);
+    if(!match)return;
+    const number=String(Number(match[1]));
+    const row=byCode.get(number);
+    const ext=match[2].toLowerCase();
+    const score=(row&&String(row.video_path||'')===String(file.path||'')?100:0)
+      +({mp4:4,webm:3,m4v:2,mov:1}[ext]||0);
+    const previous=remoteByCode.get(number);
+    if(!previous||score>previous.score)remoteByCode.set(number,{file,score});
+  });
+
+  const used=new Set();
+  const discovered=[...remoteByCode.entries()].map(([number,entry])=>{
+    const file=entry.file;
+    const code=String(Number(number)).padStart(2,'0');
+    const row=byCode.get(number);
+    if(row){
+      used.add(row.id);
+      return {...row,clip_code:row.clip_code||code,video_path:file.path||row.video_path,githubOnly:false,githubMissing:false,githubSize:Number(file.size||0),githubSha:file.sha||null};
+    }
+    return {id:`github:${file.path}`,clip_code:code,title:`Hazard Perception Clip ${code}`,video_path:file.path,duration_seconds:0,active:false,updated_at:null,hpt_hazards:[],hazard_count:0,githubOnly:true,githubMissing:false,githubSize:Number(file.size||0),githubSha:file.sha||null};
+  });
+  const missing=registered.filter(v=>!used.has(v.id)).map(v=>({...v,githubMissing:githubSyncOk}));
+  videos=[...discovered,...missing].sort((a,b)=>Number(String(a.clip_code).replace(/\D/g,''))-Number(String(b.clip_code).replace(/\D/g,''))||String(a.video_path).localeCompare(String(b.video_path)));
+  const sync=$('videoLibrarySync');if(sync){
+    const configuredCount=discovered.filter(v=>!v.githubOnly).length;
+    const setupCount=discovered.filter(v=>v.githubOnly).length;
+    const missingCount=missing.length;
+    sync.textContent=githubSyncOk
+      ?`GitHub: ${discovered.length} unique clips • ${configuredCount} configured • ${setupCount} need hazard setup${missingCount?` • ${missingCount} registered files missing from GitHub`:''}.`
+      :`GitHub sync is unavailable. Showing ${registered.length} Supabase-registered clips only.`;
+  }
+  renderVideos();
+}
+
+function resolveAssetPath(path){
+  if(!path)return '';
+  if(/^https?:\/\//i.test(path))return path;
+  const clean=String(path).replace(/^\.\//,'').replace(/^\/+/, '');
+  // Local file:// admin copies do not contain videos uploaded after the ZIP was built.
+  // Load those previews directly from the public GitHub repository.
+  if(location.protocol==='file:')return new URL(clean,'https://raw.githubusercontent.com/bestinraju25/hazard-perception-test/main/').href;
+  return new URL(clean,location.href).href;
+}
+function thumbPath(v){const n=String(v.clip_code||'').replace(/\D/g,'');return n?resolveAssetPath(`thumbnails/${Number(n)}.jpg`):''}
+function renderVideos(){
+  $('videoGrid').innerHTML=videos.map(v=>{
+    const thumb=thumbPath(v),status=v.githubOnly?'SETUP REQUIRED':v.githubMissing?'GITHUB FILE MISSING':(v.active?'ACTIVE':'INACTIVE');
+    const statusClass=(v.active&&!v.githubOnly&&!v.githubMissing)?'on':'off';
+    const duration=Number(v.duration_seconds)>0?`${Number(v.duration_seconds).toFixed(1)}s`:'Duration not set';
+    const hazardText=v.hazard_count===1?'1 hazard • 10 marks':v.hazard_count>=2?'2 hazards • 5 marks each':'Hazards not configured';
+    const extra=v.githubOnly?'<span>GitHub file • needs setup</span>':v.githubMissing?'<span>File not found in GitHub</span>':(v.githubSize?`<span>${(v.githubSize/1048576).toFixed(1)} MB</span>`:'');
+    return `<article class="video-card"><div class="vc-preview" data-edit="${esc(v.id)}" title="Open clip"><img class="vc-thumb" src="${esc(thumb)}" alt="Preview of Clip ${esc(v.clip_code)}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><video class="vc-thumb-fallback" src="${esc(resolveVideoPath(v.video_path))}" muted playsinline preload="metadata" hidden></video><span class="vc-play">▶</span></div><div class="vc-top"><span class="clip">CLIP ${esc(v.clip_code)}</span><span class="status ${statusClass}">● ${status}</span></div><h3>${esc(v.title)}</h3><p>${esc(v.video_path)}</p><div class="tags"><span>${duration}</span><span>${hazardText}</span>${extra}</div><div class="vc-actions"><button class="small" data-edit="${esc(v.id)}">${v.githubOnly?'CONFIGURE HAZARDS':'EDIT & MARK'}</button>${v.githubOnly?'':`<button class="small" data-toggle="${esc(v.id)}" ${v.githubMissing?'disabled':''}>${v.active?'DISABLE':'ENABLE'}</button>`}</div></article>`;
+  }).join('')||'<div class="empty">No video files found in GitHub or Supabase.</div>';
+  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editVideo(b.dataset.edit));
+  document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>toggleVideo(b.dataset.toggle));
+}
 function clearLocal(){if(localUrl){URL.revokeObjectURL(localUrl);localUrl=null}localFile=null}
-function resetEditor(){clearLocal();editingId=null;editingCode='';$('videoFile').value='';$('fileName').textContent='No file selected';$('videoTitle').value='';$('h1t').value='';$('h2t').value='';$('h1label').value='';$('h2label').value='';$('hasHazard2').checked=true;$('hazard2Block').hidden=false;$('marker2').hidden=true;$('mark2').hidden=false;$('active').checked=true;$('clipCodeDisplay').textContent='—';$('videoPathDisplay').textContent='videos/—';$('h1preview').textContent='Not set';$('h2preview').textContent='Not set';$('preview').removeAttribute('src');$('preview').load();$('previewEmpty').hidden=false;$('deleteVideo').hidden=true;emsg('')}
+function resetEditor(){clearLocal();editingId=null;editingCode='';editingGitHubFilePath='';$('videoFile').value='';$('fileName').textContent='No file selected';$('videoTitle').value='';$('h1t').value='';$('h2t').value='';$('h1label').value='';$('h2label').value='';$('hasHazard2').checked=true;$('hazard2Block').hidden=false;$('marker2').hidden=true;$('mark2').hidden=false;$('active').checked=true;$('clipCodeDisplay').textContent='—';$('videoPathDisplay').textContent='videos/—';$('h1preview').textContent='Not set';$('h2preview').textContent='Not set';$('preview').removeAttribute('src');$('preview').load();$('previewEmpty').hidden=false;$('deleteVideo').hidden=true;emsg('')}
 function nextClipCode(){const nums=videos.map(v=>parseInt(String(v.clip_code).replace(/\D/g,''),10)).filter(Number.isFinite);let n=Math.max(10,...nums)+1;while(videos.some(v=>String(v.clip_code).padStart(2,'0')===String(n).padStart(2,'0')))n++;return String(n).padStart(2,'0')}
 function newVideo(){resetEditor();editingId=null;editingCode=nextClipCode();$('editor').hidden=false;$('editorEyebrow').textContent='NEW VIDEO';$('editorTitle').textContent='Upload HPT Video';$('editorSub').textContent='Select a video, then configure one or two developing hazards.';$('clipCodeDisplay').textContent=editingCode;$('videoPathDisplay').textContent=`videos/${editingCode}.webm`;$('videosPanel').hidden=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
-function editVideo(id){const v=videos.find(x=>x.id===id);if(!v)return;clearLocal();editingId=id;editingCode=v.clip_code;$('editor').hidden=false;$('editorEyebrow').textContent='EDIT CLIP';$('editorTitle').textContent=`Edit Clip ${v.clip_code}`;$('editorSub').textContent='Replace the video if needed, adjust one or two hazard points, then save.';$('clipCodeDisplay').textContent=v.clip_code;$('videoPathDisplay').textContent=v.video_path;$('videoTitle').value=v.title;$('active').checked=!!v.active;$('videoFile').value='';$('fileName').textContent='No replacement selected';const hs=(v.hpt_hazards||[]).sort((a,b)=>a.hazard_no-b.hazard_no);const h1=hs.find(x=>x.hazard_no===1),h2=hs.find(x=>x.hazard_no===2);$('h1t').value=h1?.timestamp_seconds??'';$('h2t').value=h2?.timestamp_seconds??'';$('h1label').value=h1?.label??'';$('h2label').value=h2?.label??'';$('hasHazard2').checked=!!h2;$('hazard2Block').hidden=!h2;$('marker2').hidden=!h2;$('mark2').hidden=!h2;updateHazardPreviews();$('preview').src=resolveVideoPath(v.video_path);$('previewEmpty').hidden=true;$('preview').load();$('deleteVideo').hidden=false;$('videosPanel').hidden=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
-function resolveVideoPath(path){if(!path)return '';if(/^https?:\/\//i.test(path))return path;const clean=path.replace(/^\.\//,'');return new URL(clean,location.href).href}
+function editVideo(id){const v=videos.find(x=>x.id===id);if(!v)return;clearLocal();editingId=v.githubOnly?null:v.id;editingGitHubFilePath=v.githubOnly?v.video_path:'';editingCode=v.clip_code;$('editor').hidden=false;$('editorEyebrow').textContent='EDIT CLIP';$('editorTitle').textContent=`Edit Clip ${v.clip_code}`;$('editorSub').textContent='Replace the video if needed, adjust one or two hazard points, then save.';$('clipCodeDisplay').textContent=v.clip_code;$('videoPathDisplay').textContent=v.video_path;$('videoTitle').value=v.title;$('active').checked=!!v.active;$('videoFile').value='';$('fileName').textContent='No replacement selected';const hs=(v.hpt_hazards||[]).sort((a,b)=>a.hazard_no-b.hazard_no);const h1=hs.find(x=>x.hazard_no===1),h2=hs.find(x=>x.hazard_no===2);$('h1t').value=h1?.timestamp_seconds??'';$('h2t').value=h2?.timestamp_seconds??'';$('h1label').value=h1?.label??'';$('h2label').value=h2?.label??'';$('hasHazard2').checked=!!h2;$('hazard2Block').hidden=!h2;$('marker2').hidden=!h2;$('mark2').hidden=!h2;updateHazardPreviews();$('preview').src=resolveVideoPath(v.video_path);$('previewEmpty').hidden=true;$('preview').load();$('deleteVideo').hidden=false;$('videosPanel').hidden=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
+function resolveVideoPath(path){return resolveAssetPath(path)}
 function setMarkers(){const d=Number($('preview').duration)||50;const fill=Math.min(100,(Number($('preview').currentTime)||0)/Math.max(1,d)*100);$('trackFill').style.width=fill+'%';for(const n of [1,2]){const val=Number($(`h${n}t`).value),m=$(`marker${n}`);if(Number.isFinite(val)&&val>=0&&val<=d){m.hidden=false;m.style.left=(val/d*100)+'%'}else m.hidden=true}}
 function updateHazardPreviews(){for(const n of [1,2]){$(`h${n}preview`).textContent=Number.isFinite(Number($(`h${n}t`).value))&&$(`h${n}t`).value!==''?fmt(Number($(`h${n}t`).value)):'Not set'}setMarkers()}
 function setHaz(n){if(!$('preview').src||!Number.isFinite($('preview').currentTime)){emsg('Choose a playable video first.',true);return}const t=Number($('preview').currentTime.toFixed(1));$(`h${n}t`).value=t;updateHazardPreviews();emsg(`Hazard ${n} set at ${fmt(t)}.`)}
-function validate(){const title=$('videoTitle').value.trim(),t1=Number($('h1t').value),t2=Number($('h2t').value),d=Number($('preview').duration),has2=$('hasHazard2').checked;if(!localFile&&!editingId)return 'Choose a video file first.';if(!title)return 'Enter a clip title.';if(!Number.isFinite(t1))return 'Set Hazard 1 using the button below the video.';if(has2&&(!Number.isFinite(t2)||t1===t2))return 'Set a different timestamp for Hazard 2.';if(Number.isFinite(d)&&(t1>d||(has2&&t2>d)))return 'A hazard timestamp cannot be beyond the video duration.';return ''}
-async function publishFile(path,file=localFile){const a=await guard();if(!a)return false;const fd=new FormData();fd.append('file',file);fd.append('path',path);fd.append('commit_message',`HPT: publish ${editingCode}`);const {data:{session}}=await sb.auth.getSession();let r;try{r=await fetch(C.githubPublishEndpoint,{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,apikey:C.supabaseAnonKey},body:fd})}catch(e){throw new Error(`Video publishing service is not reachable. The Supabase Edge Function hpt-publish-video must be deployed in project ${new URL(C.supabaseUrl).hostname.split('.')[0]}. If the function is already deployed, check its CORS settings and browser network access. (${e.message})`)}const text=await r.text();let j={};try{j=JSON.parse(text)}catch{}if(!r.ok)throw new Error(j.error||j.message||`GitHub upload failed (${r.status}).`);return j}
+function validate(){const title=$('videoTitle').value.trim(),t1=Number($('h1t').value),t2=Number($('h2t').value),d=Number($('preview').duration),has2=$('hasHazard2').checked;if(!localFile&&!editingId&&!editingGitHubFilePath)return 'Choose a video file first.';if(!title)return 'Enter a clip title.';if(!$('h1t').value.trim()||!Number.isFinite(t1))return 'Set Hazard 1 using the button below the video.';if(has2&&(!$('h2t').value.trim()||!Number.isFinite(t2)||t1===t2))return 'Set a different timestamp for Hazard 2.';if(Number.isFinite(d)&&(t1>d||(has2&&t2>d)))return 'A hazard timestamp cannot be beyond the video duration.';return ''}
+async function publishFile(path,file=localFile){return publisherRequest('publish',{path,commit_message:`HPT: publish ${editingCode}`},file)}
 async function makeVideoThumbnail(file){return await new Promise((resolve,reject)=>{const url=URL.createObjectURL(file),v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='metadata';let done=false;const cleanup=()=>{URL.revokeObjectURL(url);v.remove()};v.onerror=()=>{if(!done){done=true;cleanup();reject(new Error('Could not read video for thumbnail.'))}};v.onloadedmetadata=()=>{try{v.currentTime=Math.min(1,Math.max(.1,(v.duration||1)*.08))}catch(e){v.currentTime=0}};v.onseeked=()=>{if(done)return;const c=document.createElement('canvas');c.width=640;c.height=360;const x=c.getContext('2d');x.drawImage(v,0,0,c.width,c.height);c.toBlob(b=>{done=true;cleanup();b?resolve(b):reject(new Error('Could not create thumbnail.'))},'image/jpeg',.86)};v.src=url;v.load()})}
-async function saveVideo(){const problem=validate();if(problem){emsg(problem,true);return}const duration=Number($('preview').duration);let path=editingId?(videos.find(v=>v.id===editingId)?.video_path||`videos/${editingCode}.webm`):`videos/${editingCode}.webm`;if(localFile){const ext=(localFile.name.split('.').pop()||'webm').toLowerCase().replace(/[^a-z0-9]/g,'');path=`videos/${editingCode}.${ext||'webm'}`}
+async function saveVideo(){const problem=validate();if(problem){emsg(problem,true);return}const duration=Number($('preview').duration);let path=editingGitHubFilePath||(editingId?(videos.find(v=>v.id===editingId)?.video_path||`videos/${editingCode}.webm`):`videos/${editingCode}.webm`);if(localFile){const ext=(localFile.name.split('.').pop()||'webm').toLowerCase().replace(/[^a-z0-9]/g,'');path=`videos/${editingCode}.${ext||'webm'}`}
 $('saveVideo').disabled=true;$('saveVideo').textContent='SAVING & PUBLISHING…';emsg('Uploading video…');try{if(localFile){await publishFile(path,localFile);try{const thumb=await makeVideoThumbnail(localFile);await publishFile(`thumbnails/${Number(String(editingCode).replace(/\D/g,''))}.jpg`,thumb)}catch(thumbErr){console.warn('HPT thumbnail upload skipped:',thumbErr)}}const payload={clip_code:editingCode,title:$('videoTitle').value.trim(),video_path:path,duration_seconds:Number((duration||50).toFixed(2)),active:$('active').checked,updated_at:new Date().toISOString()};let id=editingId;if(id){const {error}=await sb.from('hpt_videos').update(payload).eq('id',id);if(error)throw error}else{const {data:existing,error:qerr}=await sb.from('hpt_videos').select('id').eq('clip_code',editingCode).maybeSingle();if(qerr)throw qerr;if(existing?.id){id=existing.id;const {error}=await sb.from('hpt_videos').update(payload).eq('id',id);if(error)throw error}else{const {data,error}=await sb.from('hpt_videos').insert(payload).select('id').single();if(error)throw error;id=data.id}}
-const {error:he}=await sb.from('hpt_hazards').upsert([{video_id:id,hazard_no:1,timestamp_seconds:Number($('h1t').value),label:$('h1label').value.trim()||'Developing hazard 1'}],{onConflict:'video_id,hazard_no'});if(he)throw he;if($('hasHazard2').checked){const {error:he2}=await sb.from('hpt_hazards').upsert([{video_id:id,hazard_no:2,timestamp_seconds:Number($('h2t').value),label:$('h2label').value.trim()||'Developing hazard 2'}],{onConflict:'video_id,hazard_no'});if(he2)throw he2}else{const {error:del2}=await sb.from('hpt_hazards').delete().eq('video_id',id).eq('hazard_no',2);if(del2)throw del2}editingId=id;await loadVideos();updateStats();emsg($('hasHazard2').checked?'✓ Clip saved. Two hazards are live, 5 marks each.':'✓ Clip saved. One hazard is live and worth 10 marks.');notice(`Clip ${editingCode} saved successfully.`)}catch(e){emsg(e.message||'Could not save this clip.',true);notice(e.message||'Could not save this clip.',true)}finally{$('saveVideo').disabled=false;$('saveVideo').textContent='✓ SAVE & PUBLISH VIDEO'}}
-async function toggleVideo(id){const v=videos.find(x=>x.id===id);if(!v)return;const {error}=await sb.from('hpt_videos').update({active:!v.active,updated_at:new Date().toISOString()}).eq('id',id);if(error){notice(error.message,true);return}await loadVideos();updateStats()}
+const {error:he}=await sb.from('hpt_hazards').upsert([{video_id:id,hazard_no:1,timestamp_seconds:Number($('h1t').value),label:$('h1label').value.trim()||'Developing hazard 1'}],{onConflict:'video_id,hazard_no'});if(he)throw he;if($('hasHazard2').checked){const {error:he2}=await sb.from('hpt_hazards').upsert([{video_id:id,hazard_no:2,timestamp_seconds:Number($('h2t').value),label:$('h2label').value.trim()||'Developing hazard 2'}],{onConflict:'video_id,hazard_no'});if(he2)throw he2}else{const {error:del2}=await sb.from('hpt_hazards').delete().eq('video_id',id).eq('hazard_no',2);if(del2)throw del2}editingId=id;editingGitHubFilePath='';await loadVideos();updateStats();emsg($('hasHazard2').checked?'✓ Clip saved. Two hazards are live, 5 marks each.':'✓ Clip saved. One hazard is live and worth 10 marks.');notice(`Clip ${editingCode} saved successfully.`)}catch(e){emsg(e.message||'Could not save this clip.',true);notice(e.message||'Could not save this clip.',true)}finally{$('saveVideo').disabled=false;$('saveVideo').textContent='✓ SAVE & PUBLISH VIDEO'}}
+async function toggleVideo(id){const v=videos.find(x=>x.id===id);if(!v)return;if(v.githubOnly){editVideo(id);notice(`Configure hazard timestamps for Clip ${v.clip_code} before enabling it.`);return}const {error}=await sb.from('hpt_videos').update({active:!v.active,updated_at:new Date().toISOString()}).eq('id',id);if(error){notice(error.message,true);return}await loadVideos();updateStats()}
 async function deleteVideo(){
-  const v=videos.find(x=>x.id===editingId);
+  const v=videos.find(x=>x.id===editingId||(editingGitHubFilePath&&x.video_path===editingGitHubFilePath));
   if(!v)return;
-  const ok=confirm(`Delete Clip ${v.clip_code} permanently?\n\nThis will delete the video from GitHub and remove its HPT metadata and hazard timestamps from Supabase.\n\nThis cannot be undone.`);
+  const removesMetadata=!!editingId;
+  const ok=confirm(`Delete Clip ${v.clip_code} permanently?\n\nThis will delete the video from GitHub${removesMetadata?' and remove its HPT metadata and hazard timestamps from Supabase':''}.\n\nThis cannot be undone.`);
   if(!ok)return;
   $('deleteVideo').disabled=true;$('deleteVideo').textContent='DELETING…';emsg('Deleting video from GitHub…');
   try{
-    const a=await guard();if(!a)throw new Error('Admin session is required.');
-    const {data:{session}}=await sb.auth.getSession();
-    const fd=new FormData();fd.append('action','delete');fd.append('path',v.video_path);fd.append('commit_message',`HPT: delete ${v.clip_code}`);
-    let r;try{r=await fetch(C.githubPublishEndpoint,{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,apikey:C.supabaseAnonKey},body:fd})}catch(e){throw new Error(`Video publishing service is not reachable. Deploy hpt-publish-video to project ${new URL(C.supabaseUrl).hostname.split('.')[0]} and check its CORS settings. (${e.message})`)}
-    const text=await r.text();let j={};try{j=JSON.parse(text)}catch{}
-    if(!r.ok)throw new Error(j.error||j.message||`GitHub delete failed (${r.status}).`);
+    const j=await publisherRequest('delete',{path:v.video_path,commit_message:`HPT: delete ${v.clip_code}`});
     emsg('GitHub video deleted. Removing HPT metadata…');
-    const {error:h}=await sb.from('hpt_hazards').delete().eq('video_id',editingId);if(h)throw h;
-    const {error}=await sb.from('hpt_videos').delete().eq('id',editingId);if(error)throw error;
+    if(editingId){
+      const {error:h}=await sb.from('hpt_hazards').delete().eq('video_id',editingId);if(h)throw h;
+      const {error}=await sb.from('hpt_videos').delete().eq('id',editingId);if(error)throw error;
+    }
     const wasMissing=!!j.missing;
-    closeEditor();await loadVideos();updateStats();notice(wasMissing?`Clip ${v.clip_code} metadata deleted. GitHub file was already missing.`:`Clip ${v.clip_code} deleted from GitHub and Supabase.`);
+    closeEditor();await loadVideos();updateStats();notice(wasMissing?`Clip ${v.clip_code} GitHub file was already missing; metadata cleaned up.`:`Clip ${v.clip_code} deleted from GitHub${removesMetadata?' and Supabase':''}.`);
   }catch(e){emsg(e.message||'Could not delete this clip.',true);notice(e.message||'Could not delete this clip.',true)}
   finally{$('deleteVideo').disabled=false;$('deleteVideo').textContent='Delete clip'}
 }
-function closeEditor(){clearLocal();$('editor').hidden=true;editingId=null;editingCode=''}
+function closeEditor(){clearLocal();$('editor').hidden=true;editingId=null;editingCode='';editingGitHubFilePath=''}
 async function imageData(url){return await new Promise((resolve,reject)=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{const c=document.createElement('canvas');c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;const x=c.getContext('2d');x.drawImage(img,0,0);resolve(c.toDataURL('image/png'))};img.onerror=reject;img.src=url+'?v='+Date.now()})}
 async function downloadReport(id){
   const r=results.find(x=>x.id===id);if(!r||!window.RajuHPTReport){notice('Report generator is not available. Please refresh the page.',true);return}
