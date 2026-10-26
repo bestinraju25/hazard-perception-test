@@ -1,0 +1,33 @@
+HAZARD PERCEPTION TEST — SEO UPDATE V81
+
+Preferred public domain
+https://www.hazardperceptiontest.co.in/
+
+Included changes
+1. Updated homepage canonical URL to the preferred www HTTPS domain.
+2. Updated Open Graph and Twitter URLs to the www domain.
+3. Refined homepage title/description keyword metadata while retaining the existing page content and layout.
+4. Added social preview image alt text and locale metadata.
+5. Added Organization, WebSite and WebApplication structured data.
+6. Added robots.txt with a sitemap declaration and exclusion for the admin interface.
+7. Added sitemap.xml containing the public homepage only.
+8. Retained the existing generic HPT social preview image and all existing application assets.
+
+Important deployment steps
+1. Upload/commit the complete project to the same GitHub Pages repository and publishing branch.
+2. In your domain/DNS provider, ensure the www host points to the GitHub Pages site as configured for this repository.
+3. In GitHub Pages settings, confirm the custom domain is www.hazardperceptiontest.co.in and HTTPS is enabled.
+4. Configure the apex domain hazardperceptiontest.co.in to redirect to https://www.hazardperceptiontest.co.in/ (or use your DNS/CDN provider's redirect rule). The CNAME file alone does not create this redirect.
+5. Open these URLs after deployment:
+   https://www.hazardperceptiontest.co.in/robots.txt
+   https://www.hazardperceptiontest.co.in/sitemap.xml
+6. In Google Search Console, add/verify the Domain property hazardperceptiontest.co.in using DNS TXT verification, then submit sitemap.xml.
+7. In Bing Webmaster Tools, import the verified property or add the site and submit the same sitemap.
+
+SEO notes
+- Metadata, sitemap submission and structured data help search engines understand and discover the site; they do not guarantee indexing or a #1 ranking.
+- Google does not use the meta keywords tag for ranking. The tag is retained for compatibility, but useful page content, crawlability, links and user experience matter much more.
+- This version does not create additional public landing pages. The current application remains a single-page public landing/login experience.
+- Keep admin/private candidate data out of public sitemap entries.
+- Verify the social preview using the Facebook Sharing Debugger and WhatsApp after deployment; social platforms may cache previews.
+- Search engines may take days or longer to recrawl updated pages.
