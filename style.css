@@ -1699,3 +1699,80 @@ button:focus-visible, a:focus-visible, input:focus-visible {
     text-shadow: 0 2px 8px rgba(0,0,0,.95) !important;
   }
 }
+
+
+/* V77 — Responsive split-screen school login and registration landing page */
+.schoolGateLanding{position:absolute;inset:0;display:block!important;overflow-y:auto!important;overflow-x:hidden!important;padding:clamp(28px,5vh,58px) clamp(16px,5vw,72px) 28px!important;scrollbar-width:thin;scrollbar-color:#526b7d transparent}
+.landingHero{position:relative;z-index:1;width:min(1120px,100%);margin:0 auto}
+.landingIntro{text-align:center;max-width:760px;margin:0 auto 30px}
+.landingIntro .gateEyebrow{justify-content:center}
+.landingIntro h1{font-size:clamp(34px,5.5vw,64px);line-height:1.04;letter-spacing:-1.8px;font-weight:900;margin:16px 0 12px}
+.landingIntro h1 em{font-style:normal;color:var(--yellow)}
+.landingIntro>p{color:#b8c7d2;font-size:clamp(14px,1.5vw,18px);line-height:1.6;margin:0 auto;max-width:650px}
+.landingColumns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(18px,3vw,30px);align-items:stretch;max-width:980px;margin:0 auto}
+.landingLoginCard{max-width:none!important;justify-self:stretch!important;width:100%;min-height:330px;padding:clamp(24px,3vw,36px)!important}
+.landingLoginCard .gateCardTop{margin-bottom:24px}
+.landingLoginCard h2,.landingRegisterCard h2{font-size:clamp(23px,2.6vw,31px);font-weight:850;line-height:1.18;letter-spacing:-.5px;margin:4px 0 0}
+.landingLoginCard>label{display:block;font-size:13px;font-weight:800;color:#dce6ed;margin:0 0 8px}
+.landingLoginCard>input{width:100%;min-height:54px;border:1px solid #385264;border-radius:12px;background:#06111a;color:#fff;padding:0 16px;outline:none}
+.landingLoginCard>input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px color-mix(in srgb,var(--yellow) 17%,transparent)}
+.landingLoginCard .gateButton{width:100%;margin-top:14px;min-height:56px}
+.landingCardNote{font-size:11px;color:#8096a5;text-align:center;margin:16px 0 0}
+.landingRegisterCard{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-height:330px;padding:clamp(24px,3vw,38px);border:1px solid rgba(117,166,192,.28);border-radius:22px;background:linear-gradient(145deg,rgba(12,34,47,.9),rgba(5,15,24,.93));box-shadow:0 25px 65px #0005;backdrop-filter:blur(15px)}
+.registerIcon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:#16a34a20;border:1px solid #22c55e65;color:#4ade80;font-size:26px;margin-bottom:19px}
+.landingRegisterCard .gateKicker{color:#70d99a}
+.landingRegisterCard h2{max-width:430px;margin:10px 0 13px}
+.landingRegisterCard>p{color:#aebfca;line-height:1.65;font-size:14px;margin:0 0 22px;max-width:430px}
+.whatsappInquiryBtn{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;min-height:58px;padding:12px 16px;border-radius:13px;background:#16a34a;color:white;text-decoration:none;font-weight:900;font-size:14px;box-shadow:0 12px 30px #16a34a30;transition:transform .2s,background .2s}
+.whatsappInquiryBtn:hover{background:#15803d;color:white;transform:translateY(-2px)}
+.whatsappInquiryBtn svg{width:22px;height:22px;fill:currentColor;flex:0 0 auto}
+.whatsappInquiryBtn b{font-size:19px;margin-left:auto}
+.landingRegisterCard>small{color:#8299a8;font-size:11px;margin-top:13px;line-height:1.5}
+.landingTrust{display:flex;align-items:center;justify-content:center;gap:13px;flex-wrap:wrap;margin:27px auto 0;color:#9fb0bd;font-size:9px;font-weight:800;letter-spacing:1.4px}
+.landingTrust span{color:#4ade80;font-size:8px}.landingTrust i{width:3px;height:3px;background:#526b7d;border-radius:50%}
+.landingSeo{position:relative;z-index:1;width:min(980px,100%);margin:44px auto 30px;padding:clamp(20px,3vw,32px);border:1px solid #263e4d;border-radius:18px;background:rgba(5,15,23,.86);color:#b7c6d0}
+.landingSeo h2{font-size:clamp(18px,2vw,23px);font-weight:850;color:#f1f5f9;margin:0 0 10px}
+.landingSeo p{font-size:14px;line-height:1.8;margin:0 0 23px}
+.landingSeo p:last-child{margin-bottom:0}
+.schoolGateLanding .gateFooter{position:relative;left:auto;right:auto;bottom:auto;width:min(1120px,100%);margin:20px auto 0;padding:14px 0 0;border-top:1px solid #ffffff15}
+.topScorersCard{position:relative;max-width:1120px;margin:24px auto 0;padding:22px;border:1px solid #2b4657;border-radius:20px;background:linear-gradient(145deg,rgba(12,30,43,.96),rgba(5,14,22,.98));box-shadow:0 18px 45px #0004}
+.topScorersHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.topScorersHeader h2{font-size:clamp(20px,2.5vw,27px);font-weight:900;margin:5px 0}
+.topScorersHeader p{color:#94a9b8;font-size:13px;margin:0}
+.leaderboardLive{display:flex;align-items:center;gap:7px;border:1px solid #245d45;color:#75e5a1;background:#123322;padding:7px 10px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:1px}
+.leaderboardLive i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 #4ade8070;animation:leaderPulse 1.8s infinite}
+@keyframes leaderPulse{70%{box-shadow:0 0 0 7px #4ade8000}100%{box-shadow:0 0 0 0 #4ade8000}}
+.leaderboardContent{display:grid;gap:8px;margin-top:18px}
+.leaderboardRow{display:flex;align-items:center;gap:13px;padding:12px 14px;border:1px solid #243b4b;border-radius:12px;background:#091722}
+.leaderboardRow.leaderboardTop{border-color:#b78d3545;background:linear-gradient(90deg,#8a68151c,#091722)}
+.leaderboardRank{width:35px;flex:0 0 35px;text-align:center;font-size:22px;font-weight:900;color:#aab7c2}
+.leaderboardStudent{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.leaderboardStudent strong{font-size:14px;color:#f4f7fa;overflow-wrap:anywhere}
+.leaderboardStudent small{font-size:11px;color:#8299a8}
+.leaderboardScore{font-size:23px;color:var(--yellow);font-weight:950;white-space:nowrap}
+.leaderboardScore small{font-size:11px;color:#8299a8;margin-left:3px}
+.leaderboardLoading,.leaderboardEmpty{padding:20px;text-align:center;color:#8ea3b2;font-size:13px;border:1px dashed #344d5e;border-radius:12px}
+.leaderboardUpdated{font-size:10px;color:#718b9b;text-align:right;margin-top:12px}
+.start{overflow-y:auto!important;overflow-x:hidden!important;padding-bottom:28px}
+@media(max-width:760px){
+ .schoolGateLanding{padding:28px 15px 24px!important}
+ .landingIntro{margin-bottom:23px}
+ .landingColumns{grid-template-columns:1fr;max-width:520px;gap:15px}
+ .landingLoginCard,.landingRegisterCard{min-height:0}
+ .landingRegisterCard{padding:25px}
+ .landingTrust{gap:8px;font-size:8px;letter-spacing:.8px;margin-top:20px}
+ .landingSeo{margin-top:28px;padding:20px}
+ .landingSeo p{font-size:13px}
+ .topScorersCard{margin:18px 12px 24px;padding:17px}
+ .start{overflow-y:auto!important}
+}
+@media(max-width:420px){
+ .landingIntro h1{font-size:35px}
+ .landingLoginCard,.landingRegisterCard{padding:21px!important}
+ .whatsappInquiryBtn{font-size:12px}
+ .topScorersHeader{flex-direction:column}
+}
+
+@media(max-width:600px){
+  .topbar .logo{width:62px!important;height:54px!important;flex:0 0 62px!important;object-fit:contain!important}
+}
