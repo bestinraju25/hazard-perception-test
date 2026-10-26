@@ -5,9 +5,9 @@
 <meta http-equiv="content-language" content="en-IN">
 <meta name="language" content="English">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Hazard Perception Test Kerala | School Road Safety Test India</title>
-<meta name="description" content="Explore the Hazard Perception Test in Kerala: interactive, video-based road-safety assessment and hazard-awareness training for driving schools and students across India. Register your school or sign in with your access code.">
-<meta name="keywords" content="hazard perception test, hazard perception test Kerala, hazard perception test India, hazard perception training, driving school hazard perception test, school road safety test India, road safety awareness, video-based hazard perception">
+<title>Hazard Perception Test | Driving School Road Safety Platform</title>
+<meta name="description" content="Interactive Hazard Perception Test and video-based road-safety training for driving schools and students. Explore school access, hazard-awareness assessment and road safety learning, with a focus on Kerala and schools everywhere.">
+<meta name="keywords" content="hazard perception test, hazard perception test Kerala, hazard perception platform, hazard perception training, driving school hazard perception test, school road safety assessment, road safety awareness, video-based hazard perception">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="Hazard Perception Test">
 <link rel="canonical" href="https://www.hazardperceptiontest.co.in/">
@@ -15,8 +15,8 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_IN">
 <meta property="og:site_name" content="Hazard Perception Test">
-<meta property="og:title" content="Hazard Perception Test Kerala | School Road Safety Test India">
-<meta property="og:description" content="A video-based Hazard Perception Test platform for driving schools and students across India. Build hazard awareness, improve reaction skills and promote safer roads.">
+<meta property="og:title" content="Hazard Perception Test | Driving School Road Safety Platform">
+<meta property="og:description" content="A video-based Hazard Perception Test platform for driving schools and students. Build hazard awareness, improve reaction skills and promote safer roads.">
 <meta property="og:url" content="https://www.hazardperceptiontest.co.in/">
 <meta property="og:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
 <meta property="og:image:width" content="1200">
@@ -24,12 +24,12 @@
 <meta property="og:image:alt" content="Hazard Perception Test — interactive video-based road safety assessment for driving schools and students">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image:alt" content="Hazard Perception Test — interactive video-based road safety assessment">
-<meta name="twitter:title" content="Hazard Perception Test Kerala">
-<meta name="twitter:description" content="A central Hazard Perception Test platform for driving schools and students across India.">
+<meta name="twitter:title" content="Hazard Perception Test">
+<meta name="twitter:description" content="A central Hazard Perception Test platform for driving schools and students, with interactive video-based learning and school access.">
 <meta name="twitter:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
 <link rel="icon" href="school-placeholder.svg" type="image/svg+xml">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=82">
+<link rel="stylesheet" href="style.css?v=83">
 <script src="hpt-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -55,7 +55,7 @@
       "@id": "https://www.hazardperceptiontest.co.in/#website",
       "url": "https://www.hazardperceptiontest.co.in/",
       "name": "Hazard Perception Test",
-      "description": "Interactive video-based hazard perception training and school road safety assessment for driving schools in Kerala and India.",
+      "description": "Interactive video-based hazard perception training and school road safety assessment for driving schools and students.",
       "inLanguage": "en-IN",
       "publisher": { "@id": "https://www.hazardperceptiontest.co.in/#organization" }
     },
@@ -95,7 +95,7 @@
   <div class="landingHero">
     <div class="landingIntro">
       <div class="gateEyebrow"><span></span> DIGITAL ROAD SAFETY LEARNING</div>
-      <h1 id="gateHeading">Hazard Perception Test <em>Kerala</em></h1>
+      <h1 id="gateHeading">Hazard Perception Test</h1>
       <p>Build safer driving habits through realistic, interactive video-based hazard perception training.</p>
     </div>
     <div class="landingColumns">
@@ -112,7 +112,15 @@
         <div class="gateKicker">FOR DRIVING SCHOOLS</div>
         <h2>Don't have an access code? Register your school today!</h2>
         <p>Enhance your students' road safety awareness with our interactive Hazard Perception Test.</p>
-        <a class="whatsappInquiryBtn" href="https://wa.me/918943764734?text=Hello%2C%20I%20would%20like%20to%20register%20my%20driving%20school%20for%20the%20Hazard%20Perception%20Test." target="_blank" rel="noopener noreferrer" aria-label="Send inquiry via WhatsApp">
+        <div class="whatsappInquiryFields">
+          <label for="inquirySchoolName">Driving school name</label>
+          <input id="inquirySchoolName" type="text" maxlength="120" placeholder="Enter driving school name" autocomplete="organization">
+          <label for="inquiryContact">Contact number</label>
+          <input id="inquiryContact" type="tel" maxlength="30" inputmode="tel" placeholder="Enter contact number" autocomplete="tel">
+          <label for="inquiryLocation">Location</label>
+          <input id="inquiryLocation" type="text" maxlength="120" placeholder="Town / District" autocomplete="address-level2">
+        </div>
+        <a id="whatsappInquiryBtn" class="whatsappInquiryBtn" href="https://wa.me/918943764734" target="_blank" rel="noopener noreferrer" aria-label="Send inquiry via WhatsApp">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.52 3.48A11.83 11.83 0 0 0 12.1 0C5.57 0 .25 5.32.25 11.85c0 2.09.55 4.13 1.59 5.93L.15 24l6.37-1.67a11.86 11.86 0 0 0 5.58 1.42h.01c6.53 0 11.85-5.32 11.85-11.85 0-3.17-1.23-6.15-3.44-8.42ZM12.1 21.73a9.86 9.86 0 0 1-5.02-1.37l-.36-.21-3.78.99 1.01-3.68-.23-.38a9.82 9.82 0 0 1-1.51-5.23c0-5.44 4.43-9.87 9.88-9.87 2.64 0 5.12 1.03 6.98 2.89a9.8 9.8 0 0 1 2.89 6.98c0 5.45-4.43 9.88-9.86 9.88Zm5.42-7.4c-.3-.15-1.77-.87-2.05-.97-.28-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.09 4.49.71.31 1.27.49 1.7.63.72.23 1.37.2 1.89.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35Z"/></svg>
           <span>Send Inquiry via WhatsApp</span><b>↗</b>
         </a>
@@ -125,9 +133,9 @@
     <h2 id="seoHeading">A smarter approach to hazard perception and road safety education</h2>
     <p>The <strong>Hazard Perception Test in Kerala</strong> is a video-based learning and assessment experience that helps learners recognise developing road hazards before they become dangerous situations. Students watch realistic driving scenarios and respond when they identify a developing hazard. This practical format encourages observation, anticipation and timely decision-making—skills that support safer driving on busy roads, junctions and changing traffic conditions.</p>
     <h2>Why driving schools should use a school road safety test</h2>
-    <p>Driving schools play an important role in preparing responsible road users, not just helping candidates learn vehicle controls. A structured <strong>School Road Safety Test in India</strong> gives instructors an additional way to discuss hazard awareness, vulnerable road users, safe following distances and emerging traffic risks. Video-based practice can make these lessons more engaging, while examination results help students understand where further learning may be useful.</p>
+    <p>Driving schools play an important role in preparing responsible road users, not just helping candidates learn vehicle controls. A structured <strong>school road safety assessment</strong> gives instructors an additional way to discuss hazard awareness, vulnerable road users, safe following distances and emerging traffic risks. Video-based practice can make these lessons more engaging, while examination results help students understand where further learning may be useful.</p>
     <h2>Interactive hazard perception training for students and schools</h2>
-    <p>Our <strong>Hazard Perception Test</strong> platform provides registered schools with access-code-based entry and an interactive assessment designed for student practice and evaluation. Schools can introduce learners to realistic hazard scenarios and encourage consistent road-safety awareness as part of their training programme. Contact us to learn how your driving school can get started with the Kerala hazard perception training platform.</p>
+    <p>Our <strong>Hazard Perception Test</strong> platform provides registered schools with access-code-based entry and an interactive assessment designed for student practice and evaluation. Schools can introduce learners to realistic hazard scenarios and encourage consistent road-safety awareness as part of their training programme. Contact us to learn how your driving school can get started with the hazard perception training platform for your driving school. Our content is informed by road conditions and learner needs in Kerala, while the platform can serve driving schools in other regions as well.</p>
   </section>
   <div class="gateFooter"><span>HAZARD PERCEPTION TEST · SCHOOL ROAD SAFETY</span><a href="admin.html?tab=schools">ADMIN / MANAGER</a></div>
 </section>
@@ -187,4 +195,4 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=78"></script></body></html>
+<script src="app.js?v=66"></script></body></html>

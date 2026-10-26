@@ -2012,3 +2012,12 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   font-style: normal;
   color: var(--yellow);
 }
+
+/* V83 — WhatsApp school enquiry form fields */
+.whatsappInquiryFields{display:grid;grid-template-columns:1fr;gap:6px;width:100%;margin:2px 0 14px}
+.whatsappInquiryFields label{color:#d8e5eb;font-size:11px;font-weight:800;margin:3px 0 0}
+.whatsappInquiryFields input{width:100%;min-height:43px;padding:10px 12px;border:1px solid #355365;border-radius:10px;background:#06131d;color:#f6f9fb;font:inherit;font-size:13px;outline:none}
+.whatsappInquiryFields input::placeholder{color:#7f95a3}
+.whatsappInquiryFields input:focus{border-color:#25d366;box-shadow:0 0 0 3px #25d36622}
+.landingRegisterCard .whatsappInquiryBtn{margin-top:2px}
+@media(max-width:760px){.whatsappInquiryFields{gap:5px}.whatsappInquiryFields input{min-height:46px;font-size:16px}}

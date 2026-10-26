@@ -294,13 +294,18 @@ async function enterSchool(){
     if(!sb)throw new Error('The portal cannot connect to the access service. Check the Supabase URL, publishable key, and internet connection.');
     const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:code});
     if(error)throw error;
-    // PostgreSQL json/jsonb RPCs normally return one object; accept a one-row array too.
+    // The updated verification RPC distinguishes an unknown code from a disabled school.
     const payload=Array.isArray(data)?data[0]:data;
+    if(payload?.status==='disabled'){
+      try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
+      updateFullscreenButtons();
+      setGateMessage('HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.',true);return;
+    }
     const schoolData=payload?.school&&typeof payload.school==='object'?payload.school:payload;
     if(!schoolData||!schoolData.id){
       try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
       updateFullscreenButtons();
-      setGateMessage('ACCESS CODE NOT RECOGNISED OR SCHOOL DISABLED. CHECK WITH YOUR DRIVING SCHOOL.',true);return
+      setGateMessage('ACCESS CODE NOT RECOGNISED. PLEASE CHECK THE CODE OR CONTACT YOUR DRIVING SCHOOL.',true);return
     }
     const school={...schoolData,access_code:code};
     applySchoolBranding(school,true);
@@ -315,7 +320,7 @@ async function enterSchool(){
     console.error('School access verification failed:',e?.stack||e);
     const detail=String(e?.message||'').trim();
     const message=/PGRST202|schema cache|could not find the function|function .* does not exist/i.test(detail)
-      ?'ACCESS SERVICE NOT INSTALLED. Run 09-fix-school-access-verification.sql in the connected Supabase project.'
+      ?'SCHOOL ACCESS SERVICE IS NOT UPDATED. Run 11-provider-admin-and-school-status-v83.sql in the connected Supabase project.'
       :(detail?`ACCESS VERIFICATION FAILED: ${detail.slice(0,180)}`:'ACCESS VERIFICATION UNAVAILABLE. PLEASE TRY AGAIN.');
     setGateMessage(message,true);
   }finally{
@@ -333,7 +338,10 @@ async function bootSchoolSession(){
     const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:saved.access_code});
     const payload=Array.isArray(data)?data[0]:data;
     const schoolData=payload?.school&&typeof payload.school==='object'?payload.school:payload;
-    if(!error&&schoolData?.id&&String(schoolData.id)===String(saved.id)){
+    if(!error&&payload?.status==='disabled'){
+      try{sessionStorage.removeItem('hpt_school_session')}catch{}
+      setGateMessage('HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.',true);
+    }else if(!error&&schoolData?.id&&String(schoolData.id)===String(saved.id)){
       applySchoolBranding({...schoolData,access_code:saved.access_code},true);
       show('schoolGate',false);show('startScreen',true);
     }else{try{sessionStorage.removeItem('hpt_school_session')}catch{}}
@@ -348,7 +356,10 @@ function changeSchool(){
   show('examScreen',false);show('resultScreen',false);show('startScreen',false);show('schoolGate',true);
   document.body.classList.remove('home-active','exam-active','result-active');
 }
-async function begin(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
+async function begin(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}
+  try{const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:schoolAccessCode});if(error)throw error;const status=Array.isArray(data)?data[0]:data;if(status?.status==='disabled'||!(status?.school?.id||status?.id)){changeSchool();setGateMessage(status?.status==='disabled'?'HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.':'SCHOOL ACCESS COULD NOT BE VERIFIED. PLEASE CONTACT THE PROVIDER.',true);return}}
+  catch(e){console.warn('School access revalidation failed:',e);toast('Could not verify school access. Please try again.',true);return}
+  clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
 updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
 async function printCertificate(examOverride=null,candidateOverride=null){
   // Ignore browser click events; only a genuine saved exam object may override _lastExam.
@@ -438,6 +449,12 @@ async function buildHistoricalExam(r){
 function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('attemptList').innerHTML='<div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div>';}
 function closeAttempts(){show('attemptsModal',false)}
 function setupCandidateCertificate(){const btn=$('printCertBtn');if(btn)btn.hidden=true}
+bind('whatsappInquiryBtn','click',e=>{
+  const name=$('inquirySchoolName')?.value.trim()||'',contact=$('inquiryContact')?.value.trim()||'',location=$('inquiryLocation')?.value.trim()||'';
+  if(!name||!contact||!location){e.preventDefault();const target=!name?'inquirySchoolName':!contact?'inquiryContact':'inquiryLocation';$(target)?.focus();toast('Please enter school name, contact number and location before sending the inquiry.',true);return}
+  const message=`Hello, I would like to enquire about the Hazard Perception Test for my driving school.\n\nDriving School Name: ${name}\nContact Number: ${contact}\nLocation: ${location}\n\nPlease share the registration and implementation details.`;
+  e.currentTarget.href=`https://wa.me/918943764734?text=${encodeURIComponent(message)}`;
+});
 bind('exitSchoolBtn','click',()=>{
   const schoolName=activeSchool?.school_name||'this driving school';
   if(!confirm(`Exit ${schoolName} and return to the school access screen?`))return;
