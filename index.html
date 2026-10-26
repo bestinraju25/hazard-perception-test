@@ -24,7 +24,7 @@
 <meta name="twitter:image" content="https://hazardperceptiontest.co.in/hpt-preview.jpg">
 <link rel="icon" href="school-placeholder.svg" type="image/svg+xml">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=78">
+<link rel="stylesheet" href="style.css?v=79">
 <script src="hpt-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -115,6 +115,11 @@
         <div><b>5</b><span>RESPONSES</span></div>
       </div>
       <div class="homeTip"><span>i</span><div><strong>How it works</strong><small>Watch the road, identify a developing hazard and tap when you see it.</small></div></div>
+      <section id="topScorers" class="topScorersCard" aria-labelledby="topScorersTitle">
+        <div class="topScorersHeader"><div><div class="cardEyebrow">SCHOOL LEADERBOARD</div><h2 id="topScorersTitle">🏆 Top Scorers Spotlight</h2><p>Celebrate your school's best hazard awareness performances.</p></div><span class="leaderboardLive"><i></i> LIVE</span></div>
+        <div id="leaderboardContent" class="leaderboardContent" aria-live="polite"><div class="leaderboardLoading">Loading school top scorers…</div></div>
+        <div class="leaderboardUpdated" id="leaderboardUpdated">Updated just now</div>
+      </section>
     </div>
 
     <div class="examCard">
@@ -128,12 +133,6 @@
       <div class="cardBottom"><span class="keyboardHint">Your result is saved automatically</span></div>
     </div>
   </div>
-  <section id="topScorers" class="topScorersCard" aria-labelledby="topScorersTitle">
-      <div class="topScorersHeader"><div><div class="cardEyebrow">SCHOOL LEADERBOARD</div><h2 id="topScorersTitle">🏆 Top Scorers Spotlight</h2><p>Celebrate your school's best hazard awareness performances.</p></div><span class="leaderboardLive"><i></i> LIVE</span></div>
-      <div id="leaderboardContent" class="leaderboardContent" aria-live="polite"><div class="leaderboardLoading">Loading school top scorers…</div></div>
-      <div class="leaderboardUpdated" id="leaderboardUpdated">Updated just now</div>
-  </section>
-
   <div id="installAppCard" class="installAppCard" hidden>
     <div class="installAppIcon">↗</div><div class="installAppCopy"><strong>Use your school HPT like an app</strong><span>Install it on your phone for quick access and a full-screen experience.</span></div><button id="installAppBtn" class="installAppBtn" type="button">INSTALL</button>
   </div>
