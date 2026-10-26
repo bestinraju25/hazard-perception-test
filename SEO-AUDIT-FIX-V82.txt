@@ -1,0 +1,40 @@
+HAZARD PERCEPTION TEST — SEO AUDIT FIX V82
+
+This update fixes the two issues in the SEO/GEO audit screenshot.
+
+1. Meta language
+- The homepage already declared <html lang="en-IN">.
+- Added <meta http-equiv="content-language" content="en-IN"> and
+  <meta name="language" content="English"> for compatibility with SEO audit tools.
+
+2. More than one H1
+- The public landing/login heading remains the single H1:
+  "Hazard Perception Test Kerala".
+- The post-login candidate home heading "See the hazard. Respond in time."
+  is now an H2, because it is a subordinate section heading, not a second
+  page-level title.
+- Updated the corresponding CSS selectors so the candidate heading keeps
+  its existing typography, spacing and responsive appearance.
+
+3. Cache version
+- style.css reference is now style.css?v=82 so the corrected heading styles
+  are not hidden by an older browser cache.
+
+Validation
+- Homepage has exactly one H1.
+- Language metadata and html lang declaration are present.
+- Structured data JSON-LD remains valid.
+- Existing SEO metadata, canonical www URL, social preview, robots.txt,
+  sitemap.xml, school access, leaderboard, candidate form and exam code remain
+  in the project.
+
+Deployment
+- Upload the complete project contents to the existing GitHub Pages repository.
+- Commit to the publishing branch.
+- Re-run the SEO audit on https://www.hazardperceptiontest.co.in/
+  after GitHub Pages has deployed the new files and the cache has refreshed.
+
+Note
+- The html lang attribute is the main HTML language signal. The extra meta
+  language declarations are included to satisfy compatibility checks in
+  third-party SEO audit tools; they do not guarantee search ranking.
