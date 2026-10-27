@@ -521,7 +521,7 @@ html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
 .homeShell{position:relative;z-index:2;max-width:1280px;min-height:100%;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(360px,.72fr);gap:clamp(50px,7vw,110px);align-items:center}
 .homeCopy{padding:0 0 10px}.homeKicker{display:flex;align-items:center;gap:9px;color:var(--yellow);font-size:10px;font-weight:900;letter-spacing:2.8px;margin-bottom:22px}.homeKicker span{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 14px rgba(57,255,114,.5)}
 .homeBrand{display:flex;align-items:center;gap:14px;margin-bottom:25px}.homeLogo{width:76px;height:60px;object-fit:contain}.homeSchool{font-size:clamp(18px,2vw,25px);font-weight:900;letter-spacing:1.7px}.homeTest{color:var(--yellow);font-size:11px;font-weight:900;letter-spacing:2.4px;margin-top:5px}
-.homeCopy h1{font-size:clamp(48px,6vw,82px);line-height:.94;letter-spacing:-3.5px;margin:0 0 19px;font-weight:950;color:#fff}.homeCopy h1 em{font-style:normal;color:var(--yellow)}.homeLead{max-width:620px;color:#a9bac5;font-size:17px;line-height:1.55;margin:0 0 28px}.homeLead strong{color:#f6f8fb}
+.homeCopy h2{font-size:clamp(48px,6vw,82px);line-height:.94;letter-spacing:-3.5px;margin:0 0 19px;font-weight:950;color:#fff}.homeCopy h2 em{font-style:normal;color:var(--yellow)}.homeLead{max-width:620px;color:#a9bac5;font-size:17px;line-height:1.55;margin:0 0 28px}.homeLead strong{color:#f6f8fb}
 .homeStats{display:grid;grid-template-columns:repeat(4,minmax(0,112px));gap:8px;margin-bottom:23px}.homeStats div{padding:12px 10px;border:1px solid rgba(64,94,110,.72);border-radius:13px;background:linear-gradient(180deg,rgba(12,31,44,.78),rgba(5,16,24,.76));box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}.homeStats b{display:block;font-size:24px;line-height:1;color:#fff}.homeStats span{display:block;color:#718591;font-size:7px;font-weight:900;letter-spacing:1.5px;margin-top:6px}
 .homeTip{display:flex;align-items:flex-start;gap:11px;max-width:560px;padding:12px 14px;border:1px solid rgba(64,94,110,.55);border-radius:14px;background:rgba(4,14,21,.42)}.homeTip>span{display:grid;place-items:center;flex:0 0 23px;width:23px;height:23px;border-radius:50%;background:rgba(255,196,0,.1);color:var(--yellow);font-weight:900;font-size:12px}.homeTip strong{display:block;font-size:10px;letter-spacing:.8px}.homeTip small{display:block;color:#718692;font-size:9px;line-height:1.4;margin-top:3px}
 .examCard{position:relative;z-index:3;width:100%;max-width:500px;justify-self:end;padding:30px;border:1px solid rgba(77,111,128,.72);border-radius:24px;background:linear-gradient(145deg,rgba(12,28,40,.96),rgba(4,12,19,.98));box-shadow:0 30px 90px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(16px)}.cardAccent{position:absolute;left:28px;right:28px;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--yellow),transparent);box-shadow:0 0 16px rgba(255,196,0,.2)}.cardTop{margin-bottom:24px}.cardEyebrow{font-size:10px;letter-spacing:2.5px;color:var(--yellow)}.examCard h2{font-size:28px;margin:5px 0 0;letter-spacing:-.5px}.cardSecure{font-size:8px;font-weight:900;letter-spacing:1px;color:#718691;border:1px solid #294252;border-radius:9px;padding:7px 8px}.cardSecure span{color:var(--green);margin-right:4px}
@@ -529,14 +529,14 @@ html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
 .startExamBtn{width:100%;height:57px;margin-top:19px;border-radius:15px;display:flex;align-items:center;justify-content:center;gap:22px;font-size:13px;letter-spacing:1.5px;box-shadow:0 14px 35px rgba(255,196,0,.13)}.startExamBtn b{font-size:24px;font-weight:500}.cardBottom{margin-top:14px}.attemptsLink{height:37px!important;padding:0 10px!important;border-radius:10px!important;background:rgba(255,255,255,.025)!important;border:1px solid #294252!important;color:#b7c4cc!important;font-size:8px!important}.attemptsLink:hover{border-color:rgba(255,196,0,.7)!important;color:var(--yellow)!important}.attemptsIcon{color:var(--yellow);font-size:13px}.attemptsArrow{font-size:17px;color:#718692}.keyboardHint{font-size:8px;color:#617580}
 .installAppCard{position:relative;z-index:3;max-width:1280px;width:100%;margin:12px auto 0!important;border-radius:13px!important}
 .loadingScreen{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#122331 0,#060d14 48%,#020609 100%);opacity:1;visibility:visible;transition:opacity .4s ease,visibility .4s ease}.loadingScreen.loaded{opacity:0;visibility:hidden}.loadingScreen:before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(circle at center,black,transparent 78%)}.loaderPanel{position:relative;width:min(390px,84vw);text-align:center}.loaderLogo{width:118px;height:92px;object-fit:contain;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45));animation:loaderPulse 1.4s ease-in-out infinite}.loaderBrand{font-size:17px;font-weight:950;letter-spacing:2px;margin-top:7px}.loaderTitle{font-size:9px;font-weight:900;letter-spacing:3px;color:var(--yellow);margin-top:6px}.loaderTrack{height:4px;margin-top:31px;border-radius:99px;background:#1b2b35;overflow:hidden}.loaderTrack div{height:100%;width:0;background:var(--yellow);box-shadow:0 0 14px rgba(255,196,0,.45);transition:width .08s linear}.loaderMeta{display:flex;justify-content:space-between;margin-top:9px;color:#667b87;font-size:7px;font-weight:900;letter-spacing:1.5px}.loaderMeta strong{color:#dce4e8;font-size:9px;letter-spacing:.5px}@keyframes loaderPulse{50%{transform:translateY(-3px) scale(1.025);filter:drop-shadow(0 16px 35px rgba(255,196,0,.12))}}
-@media(max-width:900px){.start.panel{padding:28px 18px 18px}.start.panel:after{display:none}.homeShell{grid-template-columns:1fr;gap:24px;align-content:center;min-height:100%}.homeCopy{text-align:center;padding:0}.homeKicker{justify-content:center;margin-bottom:12px;font-size:8px}.homeBrand{justify-content:center;margin-bottom:13px}.homeLogo{width:52px;height:43px}.homeSchool{font-size:16px}.homeTest{font-size:8px}.homeCopy h1{font-size:clamp(35px,8vw,54px);letter-spacing:-1.8px;margin-bottom:10px}.homeLead{font-size:12px;line-height:1.4;margin:0 auto 15px;max-width:540px}.homeStats{justify-content:center;grid-template-columns:repeat(4,minmax(0,90px));margin-bottom:13px}.homeStats div{padding:9px 5px}.homeStats b{font-size:19px}.homeStats span{font-size:6px}.homeTip{margin:0 auto;text-align:left}.examCard{max-width:540px;justify-self:center;padding:20px;border-radius:20px}.cardTop{margin-bottom:15px}.examCard h2{font-size:22px}.examCard .fields{gap:9px}.examCard .fields input{height:45px}.startExamBtn{height:50px;margin-top:13px}.topbar{height:62px;padding:5px 10px}.logo{width:54px;height:46px}.school{font-size:14px}.testname{font-size:7px}.homeTool{height:34px}.homeTool.iconOnly{width:34px}}
-@media(max-width:520px){.start.panel{padding:15px 12px}.homeShell{gap:13px}.homeKicker{font-size:6.5px;letter-spacing:2px;margin-bottom:7px}.homeBrand{margin-bottom:7px;gap:8px}.homeLogo{width:43px;height:35px}.homeSchool{font-size:13px}.homeTest{font-size:6.5px;letter-spacing:1.5px}.homeCopy h1{font-size:29px;letter-spacing:-1px;margin-bottom:6px}.homeLead{font-size:9.5px;line-height:1.35;margin-bottom:8px}.homeStats{gap:4px;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:8px}.homeStats div{padding:7px 2px;border-radius:9px}.homeStats b{font-size:16px}.homeStats span{font-size:5px;letter-spacing:1px;margin-top:4px}.homeTip{padding:8px 9px;gap:8px}.homeTip>span{width:19px;height:19px;flex-basis:19px;font-size:10px}.homeTip strong{font-size:8px}.homeTip small{font-size:7px}.examCard{padding:14px;border-radius:16px}.cardTop{margin-bottom:9px}.cardEyebrow{font-size:7px;letter-spacing:1.8px}.examCard h2{font-size:18px}.cardSecure{font-size:6px;padding:6px}.examCard .fields{gap:7px}.examCard .fields label{font-size:7px}.examCard .fields input{height:40px;margin-top:4px;font-size:12px;padding:0 11px}.startExamBtn{height:44px;margin-top:9px;border-radius:12px;font-size:10px}.startExamBtn b{font-size:19px}.cardBottom{margin-top:7px}.attemptsLink{height:30px!important;font-size:6.5px!important}.keyboardHint{font-size:6px}.homeTools{gap:5px}.homeTools .homeTool:first-child span:not(.toolIcon){display:none}.homeTools .homeTool:first-child{width:34px;padding:0;font-size:16px}}
-@media(max-height:700px) and (min-width:521px){.start.panel{padding-top:18px;padding-bottom:12px}.homeShell{gap:22px}.homeKicker{margin-bottom:10px}.homeBrand{margin-bottom:10px}.homeCopy h1{font-size:42px;margin-bottom:9px}.homeLead{font-size:12px;margin-bottom:12px}.homeStats{margin-bottom:10px}.homeTip{padding:8px 10px}.examCard{padding:18px}.examCard .fields{gap:8px}.examCard .fields input{height:42px}.startExamBtn{height:46px;margin-top:10px}}
+@media(max-width:900px){.start.panel{padding:28px 18px 18px}.start.panel:after{display:none}.homeShell{grid-template-columns:1fr;gap:24px;align-content:center;min-height:100%}.homeCopy{text-align:center;padding:0}.homeKicker{justify-content:center;margin-bottom:12px;font-size:8px}.homeBrand{justify-content:center;margin-bottom:13px}.homeLogo{width:52px;height:43px}.homeSchool{font-size:16px}.homeTest{font-size:8px}.homeCopy h2{font-size:clamp(35px,8vw,54px);letter-spacing:-1.8px;margin-bottom:10px}.homeLead{font-size:12px;line-height:1.4;margin:0 auto 15px;max-width:540px}.homeStats{justify-content:center;grid-template-columns:repeat(4,minmax(0,90px));margin-bottom:13px}.homeStats div{padding:9px 5px}.homeStats b{font-size:19px}.homeStats span{font-size:6px}.homeTip{margin:0 auto;text-align:left}.examCard{max-width:540px;justify-self:center;padding:20px;border-radius:20px}.cardTop{margin-bottom:15px}.examCard h2{font-size:22px}.examCard .fields{gap:9px}.examCard .fields input{height:45px}.startExamBtn{height:50px;margin-top:13px}.topbar{height:62px;padding:5px 10px}.logo{width:54px;height:46px}.school{font-size:14px}.testname{font-size:7px}.homeTool{height:34px}.homeTool.iconOnly{width:34px}}
+@media(max-width:520px){.start.panel{padding:15px 12px}.homeShell{gap:13px}.homeKicker{font-size:6.5px;letter-spacing:2px;margin-bottom:7px}.homeBrand{margin-bottom:7px;gap:8px}.homeLogo{width:43px;height:35px}.homeSchool{font-size:13px}.homeTest{font-size:6.5px;letter-spacing:1.5px}.homeCopy h2{font-size:29px;letter-spacing:-1px;margin-bottom:6px}.homeLead{font-size:9.5px;line-height:1.35;margin-bottom:8px}.homeStats{gap:4px;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:8px}.homeStats div{padding:7px 2px;border-radius:9px}.homeStats b{font-size:16px}.homeStats span{font-size:5px;letter-spacing:1px;margin-top:4px}.homeTip{padding:8px 9px;gap:8px}.homeTip>span{width:19px;height:19px;flex-basis:19px;font-size:10px}.homeTip strong{font-size:8px}.homeTip small{font-size:7px}.examCard{padding:14px;border-radius:16px}.cardTop{margin-bottom:9px}.cardEyebrow{font-size:7px;letter-spacing:1.8px}.examCard h2{font-size:18px}.cardSecure{font-size:6px;padding:6px}.examCard .fields{gap:7px}.examCard .fields label{font-size:7px}.examCard .fields input{height:40px;margin-top:4px;font-size:12px;padding:0 11px}.startExamBtn{height:44px;margin-top:9px;border-radius:12px;font-size:10px}.startExamBtn b{font-size:19px}.cardBottom{margin-top:7px}.attemptsLink{height:30px!important;font-size:6.5px!important}.keyboardHint{font-size:6px}.homeTools{gap:5px}.homeTools .homeTool:first-child span:not(.toolIcon){display:none}.homeTools .homeTool:first-child{width:34px;padding:0;font-size:16px}}
+@media(max-height:700px) and (min-width:521px){.start.panel{padding-top:18px;padding-bottom:12px}.homeShell{gap:22px}.homeKicker{margin-bottom:10px}.homeBrand{margin-bottom:10px}.homeCopy h2{font-size:42px;margin-bottom:9px}.homeLead{font-size:12px;margin-bottom:12px}.homeStats{margin-bottom:10px}.homeTip{padding:8px 10px}.examCard{padding:18px}.examCard .fields{gap:8px}.examCard .fields input{height:42px}.startExamBtn{height:46px;margin-top:10px}}
 
 /* V29 — reference cleanup: remove duplicated home branding and in-card attempts link. */
 .homeIntroTitle{margin:0 0 28px;max-width:650px}
-.homeIntroTitle h1{font-size:clamp(48px,5.4vw,76px);line-height:.95;letter-spacing:-3px;margin:0 0 15px;font-weight:950;color:#f7f9fb}
-.homeIntroTitle h1 em{font-style:normal;color:var(--yellow)}
+.homeIntroTitle h2{font-size:clamp(48px,5.4vw,76px);line-height:.95;letter-spacing:-3px;margin:0 0 15px;font-weight:950;color:#f7f9fb}
+.homeIntroTitle h2 em{font-style:normal;color:var(--yellow)}
 .homeLead{max-width:600px;color:#9fb0bb;font-size:16px;line-height:1.55;margin:0}
 .homeLead strong{color:#f5f7f9}
 .homeBrand{display:none!important}
@@ -546,7 +546,7 @@ html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
 
 @media(max-width:900px){
   .homeIntroTitle{margin-bottom:13px}
-  .homeIntroTitle h1{font-size:clamp(35px,8vw,54px);letter-spacing:-1.8px;margin-bottom:9px}
+  .homeIntroTitle h2{font-size:clamp(35px,8vw,54px);letter-spacing:-1.8px;margin-bottom:9px}
   .homeLead{font-size:12px;line-height:1.4;margin:0 auto;max-width:540px}
   .homeCopy{text-align:center}
   .cardBottom{justify-content:center!important}
@@ -554,7 +554,7 @@ html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
 }
 @media(max-width:520px){
   .homeIntroTitle{margin-bottom:8px}
-  .homeIntroTitle h1{font-size:29px;letter-spacing:-1px;margin-bottom:6px}
+  .homeIntroTitle h2{font-size:29px;letter-spacing:-1px;margin-bottom:6px}
   .homeLead{font-size:10px;line-height:1.35}
   .keyboardHint{font-size:6px}
 }
@@ -753,7 +753,7 @@ html,body,#app{width:100%;height:100%;max-width:100%;max-height:100%;overflow:hi
   }
   .homeKicker span{width:5px;height:5px;flex:0 0 5px}
   .homeIntroTitle{width:100%;max-width:none;margin:0 0 8px}
-  .homeIntroTitle h1{
+  .homeIntroTitle h2{
     font-size:27px;
     line-height:.98;
     letter-spacing:-1.15px;
@@ -866,7 +866,7 @@ html,body,#app{width:100%;height:100%;max-width:100%;max-height:100%;overflow:hi
   .homeTool{width:29px!important;min-width:29px;height:29px!important}
   .start.panel{padding-left:8px;padding-right:8px}
   .homeShell{gap:8px}
-  .homeIntroTitle h1{font-size:25px}
+  .homeIntroTitle h2{font-size:25px}
   .homeLead{font-size:9px;max-width:280px}
   .homeStats{gap:3px}
   .homeStats div{padding:6px 1px}
@@ -1452,7 +1452,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   }
   .homeKicker span { flex: 0 0 6px; width: 6px; height: 6px; }
   .homeIntroTitle { display: block !important; width: 100%; margin: 0 0 12px !important; }
-  .homeIntroTitle h1, .homeCopy h1 {
+  .homeIntroTitle h2, .homeCopy h2 {
     font-size: clamp(28px, 7.2vw, 38px) !important;
     line-height: 1.08 !important; letter-spacing: -1.1px !important;
     margin: 0 0 9px !important; overflow-wrap: anywhere;
@@ -1547,7 +1547,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .gateFooter span { max-width: 52%; }
   .start.panel { padding-left: 12px !important; padding-right: 12px !important; }
   .homeShell { gap: 16px !important; }
-  .homeIntroTitle h1, .homeCopy h1 { font-size: clamp(27px, 7.1vw, 32px) !important; }
+  .homeIntroTitle h2, .homeCopy h2 { font-size: clamp(27px, 7.1vw, 32px) !important; }
   .homeLead { font-size: 12.5px !important; }
   .homeStats { gap: 5px !important; }
   .homeStats div { padding: 9px 3px !important; }
@@ -1589,7 +1589,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .gateCardTop { margin-bottom: 10px !important; }
   .gateCard input, .gateButton { height: 44px !important; min-height: 44px; }
   .homeShell { gap: 12px !important; }
-  .homeIntroTitle h1, .homeCopy h1 { font-size: 26px !important; }
+  .homeIntroTitle h2, .homeCopy h2 { font-size: 26px !important; }
   .homeLead { font-size: 12px !important; }
   .examCard { padding: 14px !important; }
   .examCard .fields { gap: 9px !important; }
@@ -1868,7 +1868,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
    gap:17px!important;padding:0!important;overflow:visible!important}
  .homeCopy{height:auto!important;overflow:visible!important;width:100%!important}
  .homeIntroTitle{display:block!important}
- .homeCopy h1{font-size:clamp(32px,7vw,52px)!important}
+ .homeCopy h2{font-size:clamp(32px,7vw,52px)!important}
  .homeLead{font-size:14px!important;margin-bottom:14px!important}
  .homeStats{grid-template-columns:repeat(4,minmax(0,1fr))!important}
  .homeStats>div{padding:10px 5px!important}
@@ -2001,6 +2001,28 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 
 
+/* V82 — semantic heading hierarchy: one public H1, candidate screen title is H2 */
+.homeIntroHeading {
+  display: block;
+  margin: 0 0 15px;
+  font: inherit;
+}
+.homeIntroTitle h2 em,
+.homeCopy h2 em {
+  font-style: normal;
+  color: var(--yellow);
+}
+
+/* V83 — WhatsApp school enquiry form fields */
+.whatsappInquiryFields{display:grid;grid-template-columns:1fr;gap:6px;width:100%;margin:2px 0 14px}
+.whatsappInquiryFields label{color:#d8e5eb;font-size:11px;font-weight:800;margin:3px 0 0}
+.whatsappInquiryFields input{width:100%;min-height:43px;padding:10px 12px;border:1px solid #355365;border-radius:10px;background:#06131d;color:#f6f9fb;font:inherit;font-size:13px;outline:none}
+.whatsappInquiryFields input::placeholder{color:#7f95a3}
+.whatsappInquiryFields input:focus{border-color:#25d366;box-shadow:0 0 0 3px #25d36622}
+.landingRegisterCard .whatsappInquiryBtn{margin-top:2px}
+@media(max-width:760px){.whatsappInquiryFields{gap:5px}.whatsappInquiryFields input{min-height:46px;font-size:16px}}
+
+
 /* V84 — clearer leaderboard heading and mobile school identity layout. */
 
 /* Desktop and laptop: prevent title compression/overlap beside the live badge. */
@@ -2111,7 +2133,8 @@ button:focus-visible, a:focus-visible, input:focus-visible {
     margin: 0 0 9px !important;
     text-align: center !important;
   }
-  body.home-active .homeIntroTitle > h1 {
+  body.home-active .homeIntroTitle > h1,
+  body.home-active .homeIntroTitle > .homeIntroHeading {
     display: none !important;
   }
   body.home-active .mobileSchoolBrand {

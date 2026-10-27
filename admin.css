@@ -138,3 +138,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .schoolItemActions .small { min-width: 0; white-space: normal; font-size: 10px !important; }
   .access-settings-row input { min-height: 44px; font-size: 16px; }
 }
+
+
+/* V83 — neutral provider admin branding and school-wise reporting controls */
+.providerMark,.login-provider-mark{display:grid;place-items:center;width:60px;height:54px;border-radius:14px;background:linear-gradient(145deg,#ffc400,#d99400);color:#09131c;font-weight:1000;font-size:22px;letter-spacing:-1px;border:1px solid #ffe08a;box-shadow:0 8px 24px #ffc40024}
+.login-provider-mark{width:82px;height:72px;margin:0 auto 22px;font-size:29px;border-radius:20px}
+.brand{gap:14px!important}
+.brand b{display:block;color:#f5f8fb;font-weight:1000;letter-spacing:1.2px}
+.brand span{display:block;color:#ffc400;font-weight:900;letter-spacing:1.8px;font-size:10px;margin-top:4px}
+.resultsFilters{display:grid;grid-template-columns:minmax(180px,1.2fr) repeat(4,minmax(135px,.8fr)) auto;gap:9px;align-items:center}
+.resultsFilters select,.resultsFilters input{min-width:0;width:100%;min-height:42px;border:1px solid #304c5e;border-radius:10px;background:#071521;color:#edf4f8;padding:9px 11px}
+.resultsFilters select:focus,.resultsFilters input:focus{outline:2px solid #ffc40066;border-color:#ffc400}
+.resultsScopeCount{font-size:11px;color:#8ba0af}
+.schoolItemActions{flex-wrap:wrap;max-width:135px}
+.schoolItemActions .small{white-space:nowrap}
+@media(max-width:1050px){.resultsFilters{grid-template-columns:repeat(3,minmax(0,1fr))}.resultsFilters input{grid-column:span 2}}
+@media(max-width:700px){.resultsFilters{grid-template-columns:1fr 1fr}.resultsFilters input{grid-column:1/-1}.resultsFilters button{grid-column:1/-1}.providerMark{width:46px;height:42px;font-size:18px}.login-provider-mark{width:70px;height:62px}}
