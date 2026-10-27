@@ -216,6 +216,45 @@ function schoolBrand(s=activeSchool){
   return {id:s.id,school_name:s.school_name||'Driving School',contact_number:s.contact_number||'',location:s.location||'',logo_url:s.logo_url||'',brand_color:s.brand_color||'#ffc400',dark_color:s.dark_color||'#0b1b29'};
 }
 
+async function loadGlobalMonthlyTopThree(){
+  const host=$('globalPodium'),monthLabel=$('globalLeaderboardMonth'),updated=$('globalLeaderboardUpdated');
+  if(!host)return;
+  if(monthLabel)monthLabel.textContent=`(${new Intl.DateTimeFormat('en-IN',{month:'long',year:'numeric',timeZone:'Asia/Kolkata'}).format(new Date())})`;
+  host.innerHTML='<div class="globalPodiumLoading">Loading this month’s global champions…</div>';
+  try{
+    const sb=await supabase();
+    if(!sb)throw new Error('Leaderboard service is not configured.');
+    const {data,error}=await sb.rpc('hpt_global_monthly_top_three');
+    if(error)throw error;
+    const ranked=Array.isArray(data)?data:[];
+    if(!ranked.length){
+      host.innerHTML='<div class="globalPodiumEmpty"><strong>Be among this month’s first champions!</strong><span>Complete an examination at a participating driving school to appear here.</span></div>';
+      if(updated)updated.textContent='Updated just now';
+      return;
+    }
+    const byRank=[ranked[0],ranked[1],ranked[2]];
+    const displayOrder=[{rank:2,row:byRank[1]},{rank:1,row:byRank[0]},{rank:3,row:byRank[2]}].filter(x=>x.row);
+    const medal={1:'🥇',2:'🥈',3:'🥉'};
+    host.innerHTML=displayOrder.map(({rank,row})=>{
+      const score=Math.max(0,Number(row.total_score)||0);
+      const reaction=row.average_reaction_seconds==null?null:Number(row.average_reaction_seconds);
+      return `<article class="globalPodiumPlace place-${rank}" aria-label="Rank ${rank}: ${escHtml(row.display_name||'Student')}, ${score} marks, ${escHtml(row.school_name||'Driving school')}">
+        <div class="globalPodiumMedal">${medal[rank]}</div>
+        <div class="globalPodiumRank">${rank===1?'1ST PLACE':rank===2?'2ND PLACE':'3RD PLACE'}</div>
+        <strong class="globalPodiumStudent">${escHtml(row.display_name||'Student')}</strong>
+        <span class="globalPodiumSchool">${escHtml(row.school_name||'Participating school')}</span>
+        <strong class="globalPodiumScore">${score}<small>/100</small></strong>
+        <span class="globalPodiumReaction">${reaction!==null&&Number.isFinite(reaction)?`Avg. reaction ${reaction.toFixed(2)}s`:'Reaction time unavailable'}</span>
+      </article>`;
+    }).join('');
+    if(updated)updated.textContent='Updated just now';
+  }catch(error){
+    console.warn('Global monthly leaderboard could not be loaded:',error);
+    host.innerHTML='<div class="globalPodiumEmpty"><strong>Global champions are being updated.</strong><span>Please check again shortly.</span></div>';
+    if(updated)updated.textContent='Leaderboard temporarily unavailable';
+  }
+}
+
 async function loadTopScorers(){
   const host=$('leaderboardContent'),updated=$('leaderboardUpdated');
   const monthLabel=$('leaderboardMonth');
@@ -361,6 +400,7 @@ function changeSchool(){
   safeValue('schoolAccessCode','');safeValue('name','');safeValue('phone','');setGateMessage('');
   show('examScreen',false);show('resultScreen',false);show('startScreen',false);show('schoolGate',true);
   document.body.classList.remove('home-active','exam-active','result-active');
+  loadGlobalMonthlyTopThree();
 }
 async function begin(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}
   try{const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:schoolAccessCode});if(error)throw error;const status=Array.isArray(data)?data[0]:data;if(status?.status==='disabled'||!(status?.school?.id||status?.id)){changeSchool();setGateMessage(status?.status==='disabled'?'HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.':'SCHOOL ACCESS COULD NOT BE VERIFIED. PLEASE CONTACT THE PROVIDER.',true);return}}
@@ -540,5 +580,5 @@ window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;show('ins
 bind('installAppBtn','click',async()=>{if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch{}deferredInstallPrompt=null;return}showInstallHelp()});
 bind('installHelpClose','click',()=>show('installHelpModal',false));bind('installHelpOk','click',()=>show('installHelpModal',false));
 if(!isStandalone())show('installAppCard',true);
-setupConsoleFeedback();setupHomeMedia();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);document.getElementById('loadingScreen')?.remove();bootSchoolSession();
+setupConsoleFeedback();setupHomeMedia();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);document.getElementById('loadingScreen')?.remove();loadGlobalMonthlyTopThree();bootSchoolSession();setInterval(()=>{if(!$('schoolGate')?.hidden)loadGlobalMonthlyTopThree()},5*60*1000);
 })();
