@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#07131d">
+<title>School Statistics | Hazard Perception Test</title>
+<link rel="stylesheet" href="school-stats.css?v=86">
+<script src="hpt-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<main class="statsPage">
+  <header class="statsHeader">
+    <div class="statsMark">HPT</div>
+    <div class="statsBrand"><strong>HAZARD PERCEPTION TEST</strong><span>SCHOOL PERFORMANCE OVERVIEW</span></div>
+    <button id="refreshStats" type="button">↻ Refresh</button>
+  </header>
+  <section class="statsIntro">
+    <div class="eyebrow">ALL-TIME SCHOOL STATISTICS</div>
+    <h1 id="schoolName">Loading school statistics…</h1>
+    <p>Lifetime totals across all completed examinations. These figures are not limited to a month or reporting period.</p>
+  </section>
+  <section class="statsGrid" aria-live="polite">
+    <article class="statCard"><span>REGISTERED STUDENTS</span><strong id="registeredStudents">—</strong><small>Unique mobile numbers</small></article>
+    <article class="statCard"><span>TOTAL ATTEMPTS</span><strong id="totalAttempts">—</strong><small>All completed examinations</small></article>
+    <article class="statCard passed"><span>PASSED</span><strong id="passedAttempts">—</strong><small>Score of 60 or above</small></article>
+    <article class="statCard failed"><span>FAILED</span><strong id="failedAttempts">—</strong><small>Score below 60</small></article>
+  </section>
+  <div class="statsFooter"><span id="statsStatus" role="status">Verifying school access…</span><span>Lifetime statistics · School-specific</span></div>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let accessCode = '';
+  const setStatus = (text, bad=false) => {
+    $('statsStatus').textContent = text;
+    $('statsStatus').className = bad ? 'bad' : '';
+  };
+  async function loadStats() {
+    if (!accessCode) {
+      $('schoolName').textContent = 'School access not found';
+      setStatus('Open this page using the School Stats button in your school portal.', true);
+      return;
+    }
+    $('refreshStats').disabled = true;
+    setStatus('Loading lifetime statistics…');
+    try {
+      const C = window.RAJU_HPT_CONFIG;
+      if (!window.supabase?.createClient || !C) throw new Error('Statistics service is not configured.');
+      const sb = window.supabase.createClient(C.supabaseUrl, C.supabaseAnonKey);
+      const {data, error} = await sb.rpc('hpt_school_lifetime_stats', {p_school_access_code: accessCode});
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) {
+        $('schoolName').textContent = 'School access is disabled or invalid';
+        ['registeredStudents','totalAttempts','passedAttempts','failedAttempts'].forEach(id => $(id).textContent = '—');
+        setStatus('Hazard Perception Test access is disabled. Please contact the provider.', true);
+        return;
+      }
+      $('schoolName').textContent = row.school_name || 'Driving School';
+      $('registeredStudents').textContent = Number(row.registered_students || 0).toLocaleString('en-IN');
+      $('totalAttempts').textContent = Number(row.total_attempts || 0).toLocaleString('en-IN');
+      $('passedAttempts').textContent = Number(row.passed_attempts || 0).toLocaleString('en-IN');
+      $('failedAttempts').textContent = Number(row.failed_attempts || 0).toLocaleString('en-IN');
+      setStatus('Updated just now');
+    } catch (e) {
+      $('schoolName').textContent = 'Statistics unavailable';
+      setStatus(e.message || 'Could not load school statistics.', true);
+    } finally {
+      $('refreshStats').disabled = false;
+    }
+  }
+  const fragment = new URLSearchParams(location.hash.replace(/^#/, ''));
+  accessCode = fragment.get('school') || '';
+  // Remove the access code from the address bar after reading it.
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  $('refreshStats').addEventListener('click', loadStats);
+  loadStats();
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const C=window.RAJU_HPT_CONFIG; const sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey); const $=id=>document.getElementById(id);
-let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',editingGitHubFilePath='',schoolDirectory=[];
+let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',editingGitHubFilePath='',schoolDirectory=[],selectedResultsSchoolId=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>{s=Math.max(0,Number(s)||0);return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}.${Math.floor((s%1)*10)}`};
 const notice=(t,bad=false)=>{const e=$('notice');e.hidden=false;e.textContent=t;e.className='notice '+(bad?'bad':'good');clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,6000)};
@@ -28,7 +28,85 @@ async function loadResults(){
   results=all.map(r=>({...r,hpt_schools:schoolById.get(r.school_id)||null}));
   populateSchoolFilter();
   if(schoolError)notice(`Results loaded, but school details could not be loaded: ${schoolError.message}`,true);
+  if(selectedResultsSchoolId && schoolDirectory.some(s=>String(s.id)===String(selectedResultsSchoolId))){
+    openSchoolResults(selectedResultsSchoolId);
+  }else{
+    selectedResultsSchoolId=null;
+    renderSchoolOverview();
+  }
+}
+function resultStudentKey(r){
+  const phone=String(r.phone||'').replace(/\D/g,'');
+  return phone||String(r.candidate_name||'').trim().toLowerCase()||String(r.id);
+}
+function schoolResultSummary(schoolId){
+  const rows=results.filter(r=>String(r.school_id||'')===String(schoolId));
+  const students=new Set(rows.map(resultStudentKey));
+  const passed=rows.filter(isPassed).length;
+  return {rows,students:students.size,attempts:rows.length,passed,failed:rows.length-passed};
+}
+function renderSchoolOverview(){
+  selectedResultsSchoolId=null;
+  const directory=$('schoolResultsDirectory'),detail=$('schoolResultsDetail');
+  if(directory)directory.hidden=false;
+  if(detail)detail.hidden=true;
+  if($('backSchoolOverview'))$('backSchoolOverview').hidden=true;
+  if($('exportCsv'))$('exportCsv').hidden=true;
+  if($('resultsHeading'))$('resultsHeading').textContent='School Performance Overview';
+  if($('resultsDescription'))$('resultsDescription').textContent='Each card shows lifetime totals. Open a school to see its students and examination records.';
+  const cards=schoolDirectory.map(s=>{
+    const sum=schoolResultSummary(s.id);
+    return `<article class="schoolResultCard">
+      <div class="schoolResultCardHead">
+        <div class="schoolResultAvatar">${s.logo_url?`<img src="${esc(s.logo_url)}" alt="">`:`<span>${esc(String(s.school_name||'S').trim().slice(0,1).toUpperCase())}</span>`}</div>
+        <div class="schoolResultName"><h3>${esc(s.school_name)}</h3><p>${esc(s.location||'Location not set')}</p></div>
+        <span class="schoolResultStatus ${s.active?'on':'off'}">${s.active?'ACTIVE':'DISABLED'}</span>
+      </div>
+      <div class="schoolResultMetrics">
+        <div><strong>${sum.students.toLocaleString('en-IN')}</strong><small>STUDENTS</small></div>
+        <div><strong>${sum.attempts.toLocaleString('en-IN')}</strong><small>ATTEMPTS</small></div>
+        <div class="good"><strong>${sum.passed.toLocaleString('en-IN')}</strong><small>PASSED</small></div>
+        <div class="bad"><strong>${sum.failed.toLocaleString('en-IN')}</strong><small>FAILED</small></div>
+      </div>
+      <button class="btn schoolResultOpen" type="button" data-open-school-results="${esc(s.id)}">VIEW STUDENTS & RESULTS <span>→</span></button>
+    </article>`;
+  }).join('');
+  const legacy=results.filter(r=>!r.school_id);
+  const legacyCard=legacy.length?(()=>{
+    const students=new Set(legacy.map(resultStudentKey)),passed=legacy.filter(isPassed).length;
+    return `<article class="schoolResultCard legacy">
+      <div class="schoolResultCardHead"><div class="schoolResultAvatar">L</div><div class="schoolResultName"><h3>Legacy / Unassigned</h3><p>Records created before multi-school assignment</p></div><span class="schoolResultStatus off">LEGACY</span></div>
+      <div class="schoolResultMetrics"><div><strong>${students.size}</strong><small>STUDENTS</small></div><div><strong>${legacy.length}</strong><small>ATTEMPTS</small></div><div class="good"><strong>${passed}</strong><small>PASSED</small></div><div class="bad"><strong>${legacy.length-passed}</strong><small>FAILED</small></div></div>
+      <button class="btn schoolResultOpen" type="button" data-open-school-results="legacy">VIEW STUDENTS & RESULTS <span>→</span></button>
+    </article>`;
+  })():'';
+  if(directory){
+    directory.innerHTML=(cards+legacyCard)||'<div class="empty">No registered schools found. Add schools from the Driving Schools tab.</div>';
+    directory.querySelectorAll('[data-open-school-results]').forEach(b=>b.onclick=()=>openSchoolResults(b.dataset.openSchoolResults));
+  }
+}
+function openSchoolResults(id){
+  selectedResultsSchoolId=String(id);
+  const school=id==='legacy'?null:schoolDirectory.find(s=>String(s.id)===String(id));
+  if(id!=='legacy'&&!school){notice('The selected school could not be found.',true);renderSchoolOverview();return}
+  const directory=$('schoolResultsDirectory'),detail=$('schoolResultsDetail');
+  if(directory)directory.hidden=true;
+  if(detail)detail.hidden=false;
+  if($('backSchoolOverview'))$('backSchoolOverview').hidden=false;
+  if($('exportCsv'))$('exportCsv').hidden=false;
+  if($('resultsHeading'))$('resultsHeading').textContent=school?`${school.school_name} — Students & Results`:'Legacy / Unassigned — Students & Results';
+  if($('resultsDescription'))$('resultsDescription').textContent='This view contains only the selected school’s student records, attempts, reports and certificate actions.';
+  const select=$('schoolResultsFilter');
+  if(select){select.value=id==='legacy'?'legacy':String(id);select.disabled=true}
   renderResults();
+}
+function closeSchoolResults(){
+  selectedResultsSchoolId=null;
+  if($('schoolResultsFilter')){$('schoolResultsFilter').disabled=false;$('schoolResultsFilter').value='all'}
+  if($('searchResults'))$('searchResults').value='';
+  if($('resultFilter'))$('resultFilter').value='all';
+  if($('resultPeriod'))$('resultPeriod').value='all';
+  renderSchoolOverview();
 }
 function populateSchoolFilter(){
   const el=$('schoolResultsFilter');if(!el)return;
@@ -47,7 +125,7 @@ function periodStart(period){
 }
 function periodEnd(period){const now=new Date();if(period==='last_month')return new Date(now.getFullYear(),now.getMonth(),1);return new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)}
 function filteredResults(){
-  const q=$('searchResults')?.value.trim().toLowerCase()||'',f=$('resultFilter')?.value||'all',sid=$('schoolResultsFilter')?.value||'all',period=$('resultPeriod')?.value||'all';
+  const q=$('searchResults')?.value.trim().toLowerCase()||'',f=$('resultFilter')?.value||'all',sid=selectedResultsSchoolId||$('schoolResultsFilter')?.value||'all',period=$('resultPeriod')?.value||'all';
   const start=periodStart(period),end=periodEnd(period);
   return results.filter(r=>{
     if(q&&!`${r.candidate_name} ${r.phone}`.toLowerCase().includes(q))return false;
@@ -264,7 +342,7 @@ const schoolName=String(school.school_name||'Driving School').toUpperCase();cons
 doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is awarded to',W/2,94,{align:'center'});doc.setTextColor(25,38,51);doc.setFont('helvetica','bold');doc.setFontSize(27);doc.text(String(r.candidate_name||'Candidate'),W/2,112,{align:'center'});doc.setDrawColor(180,188,195);doc.setLineWidth(.35);doc.line(70,118,227,118);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the '+(school.school_name||'Driving School')+' Hazard Perception Test',W/2,131,{align:'center',maxWidth:230});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`SCORE: ${Number(r.total_score||0)} / 100`,W/2,149,{align:'center'});doc.setTextColor(35,126,78);doc.setFontSize(16);doc.text('PASS',W/2,160,{align:'center'});const d=new Date(r.completed_at||r.started_at);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Date: ${d.toLocaleDateString('en-IN')}`,45,181);doc.text(`Certificate No: HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(r.id).slice(0,8).toUpperCase()}`,W-45,181,{align:'right'});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text([schoolName,schoolLocation,school.contact_number].filter(Boolean).join(' • ').slice(0,120),W/2,191,{align:'center',maxWidth:250});doc.save(`${String(school.school_name||'Driving-School').replace(/[^a-z0-9]+/gi,'-')}-HPT-Certificate-${String(r.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`);notice(`Certificate downloaded for ${r.candidate_name}.`)}catch(e){console.error(e);notice('Could not generate the certificate.',true)}finally{if(btn){btn.disabled=false;btn.textContent='PRINT'}}}
 
 function openRequestedAdminTab(){const requested=new URLSearchParams(window.location.search).get('tab');if(requested)document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===requested)t.click()})}
-$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportCsv').onclick=exportCsv;$('exportPerformance').onclick=exportPerformance;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id&&$('schoolResultsFilter')){$('schoolResultsFilter').value=id;document.querySelector('.tab[data-tab=results]')?.click();renderResults();}});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
+$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportCsv').onclick=exportCsv;$('exportPerformance').onclick=exportPerformance;$('backSchoolOverview').onclick=closeSchoolResults;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
 let resultsPoll=null;
 function startResultsPolling(){clearInterval(resultsPoll);resultsPoll=setInterval(async()=>{if(document.hidden||$('dashboard').hidden)return;try{await loadResults();updateStats()}catch(e){console.error('HPT results refresh failed',e)}},5000)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden)loadResults()});

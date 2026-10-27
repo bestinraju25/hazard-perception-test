@@ -154,3 +154,47 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .schoolItemActions .small{white-space:nowrap}
 @media(max-width:1050px){.resultsFilters{grid-template-columns:repeat(3,minmax(0,1fr))}.resultsFilters input{grid-column:span 2}}
 @media(max-width:700px){.resultsFilters{grid-template-columns:1fr 1fr}.resultsFilters input{grid-column:1/-1}.resultsFilters button{grid-column:1/-1}.providerMark{width:46px;height:42px;font-size:18px}.login-provider-mark{width:70px;height:62px}}
+
+
+/* V86 — school-card-first provider results and school lifetime statistics button */
+.resultsHeadActions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.schoolResultsDirectory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:8px}
+.schoolResultCard{min-width:0;padding:17px;border:1px solid #29485b;border-radius:16px;background:linear-gradient(145deg,#102634,#07151f);box-shadow:0 12px 30px #0002}
+.schoolResultCardHead{display:flex;align-items:center;gap:11px;min-width:0}
+.schoolResultAvatar{width:48px;height:48px;flex:0 0 48px;border-radius:12px;border:1px solid #345367;background:#0a1b27;display:grid;place-items:center;color:var(--yellow);font-size:19px;font-weight:1000;overflow:hidden}
+.schoolResultAvatar img{width:100%;height:100%;object-fit:contain}
+.schoolResultName{min-width:0;flex:1}
+.schoolResultName h3{font-size:16px;line-height:1.2;margin:0;overflow-wrap:anywhere}
+.schoolResultName p{font-size:11px;color:#8da5b5;margin:4px 0 0;overflow-wrap:anywhere}
+.schoolResultStatus{padding:5px 8px;border-radius:20px;font-size:9px;font-weight:1000;letter-spacing:.8px;white-space:nowrap;border:1px solid #294d3a;color:#73e5a2;background:#0d2a1c}
+.schoolResultStatus.off{border-color:#683340;color:#ff8998;background:#29121a}
+.schoolResultMetrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:15px 0 13px}
+.schoolResultMetrics>div{min-width:0;padding:10px 7px;border:1px solid #203c4d;border-radius:10px;background:#071722;text-align:center}
+.schoolResultMetrics strong{display:block;color:#ffc629;font-size:25px;line-height:1.1;font-weight:1000}
+.schoolResultMetrics small{display:block;margin-top:5px;color:#8199a8;font-size:8px;font-weight:900;letter-spacing:.8px}
+.schoolResultMetrics .good strong{color:#4ade91}
+.schoolResultMetrics .bad strong{color:#ff7889}
+.schoolResultOpen{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px!important;background:#132d3f!important;border-color:#35566c!important;color:#f5f8fa!important}
+.schoolResultOpen:hover{border-color:#ffc629!important;color:#ffc629!important}
+.schoolResultCard.legacy{border-style:dashed}
+.resultsScopeCount{width:100%;color:#83a3b7}
+#schoolResultsDetail .filters select:disabled{opacity:.72;cursor:not-allowed}
+#schoolResultsDetail[hidden],#schoolResultsDirectory[hidden]{display:none!important}
+@media(max-width:900px){.schoolResultsDirectory{grid-template-columns:1fr}}
+@media(max-width:520px){
+  .resultsHeadActions{width:100%;justify-content:stretch}
+  .resultsHeadActions .btn{flex:1}
+  .schoolResultCard{padding:14px}
+  .schoolResultMetrics{gap:5px}
+  .schoolResultMetrics strong{font-size:21px}
+  .schoolResultMetrics small{font-size:7px;letter-spacing:.3px}
+  .schoolResultName h3{font-size:14px}
+}
+
+/* Student portal action for lifetime school statistics */
+.homeTools .schoolStatsTool{border-color:#3b654e;color:#8af0b1}
+.homeTools .schoolStatsTool:hover{border-color:#58ca88;background:#102c20;color:#a6ffc5}
+@media(max-width:700px){
+  .homeTools .schoolStatsTool{width:39px;min-width:39px;padding:0;justify-content:center}
+  .homeTools .schoolStatsTool span:not(.toolIcon){display:none}
+}

@@ -461,6 +461,14 @@ bind('whatsappInquiryBtn','click',e=>{
   const message=`Hello, I would like to enquire about the Hazard Perception Test for my driving school.\n\nDriving School Name: ${name}\nContact Number: ${contact}\nLocation: ${location}\n\nPlease share the registration and implementation details.`;
   e.currentTarget.href=`https://wa.me/918943764734?text=${encodeURIComponent(message)}`;
 });
+bind('schoolStatsBtn','click',()=>{
+  if(!activeSchool?.id||!schoolAccessCode){toast('Enter your school access code first.',true);return}
+  const statsWindow=window.open('about:blank','_blank');
+  if(!statsWindow){toast('Please allow pop-ups to open School Statistics.',true);return}
+  const target=new URL('school-stats.html',window.location.href);
+  target.hash='school='+encodeURIComponent(schoolAccessCode);
+  statsWindow.location.replace(target.href);
+});
 bind('exitSchoolBtn','click',()=>{
   const schoolName=activeSchool?.school_name||'this driving school';
   if(!confirm(`Exit ${schoolName} and return to the school access screen?`))return;

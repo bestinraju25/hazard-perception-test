@@ -4,3 +4,5 @@ Disallow: /admin.html
 Disallow: /admin.html?
 
 Sitemap: https://www.hazardperceptiontest.co.in/sitemap.xml
+
+Disallow: /school-stats.html

@@ -32,7 +32,7 @@
       <div class="schoolItemInfo"><h4>${esc(s.school_name)} <span class="schoolStatus ${s.active?'on':'off'}">● ${s.active?'ACTIVE':'DISABLED'}</span></h4>
       <p>${esc(s.location||'Location not set')} · ${esc(s.contact_number||'No contact')}</p>
       <p>ACCESS CODE <span class="schoolCodeChip">${esc(s.access_code)}</span></p></div>
-      <div class="schoolItemActions"><button type="button" class="small" data-school-results="${esc(s.id)}">REPORTS</button><button type="button" class="small" data-school-edit="${esc(s.id)}">EDIT</button><button type="button" class="small ${s.active?'danger-outline':''}" data-school-toggle="${esc(s.id)}">${s.active?'DISABLE':'ENABLE'}</button></div>
+      <div class="schoolItemActions"><button type="button" class="small" data-school-results="${esc(s.id)}">VIEW STUDENTS</button><button type="button" class="small" data-school-edit="${esc(s.id)}">EDIT</button><button type="button" class="small ${s.active?'danger-outline':''}" data-school-toggle="${esc(s.id)}">${s.active?'DISABLE':'ENABLE'}</button></div>
     </article>`).join('')||'<div class="empty">No schools registered yet. Add the first school using the form.</div>';
     document.querySelectorAll('[data-school-edit]').forEach(b=>b.onclick=()=>editSchool(b.dataset.schoolEdit));
     document.querySelectorAll('[data-school-results]').forEach(b=>b.onclick=()=>window.dispatchEvent(new CustomEvent('hpt:filter-school',{detail:{schoolId:b.dataset.schoolResults}})));
