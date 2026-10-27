@@ -51,7 +51,7 @@ function renderSchoolOverview(){
   if(directory)directory.hidden=false;
   if(detail)detail.hidden=true;
   if($('backSchoolOverview'))$('backSchoolOverview').hidden=true;
-  if($('exportCsv'))$('exportCsv').hidden=true;
+  if($('exportStudentPdf'))$('exportStudentPdf').hidden=true;
   if($('resultsHeading'))$('resultsHeading').textContent='School Performance Overview';
   if($('resultsDescription'))$('resultsDescription').textContent='Each card shows lifetime totals. Open a school to see its students and examination records.';
   const cards=schoolDirectory.map(s=>{
@@ -93,7 +93,7 @@ function openSchoolResults(id){
   if(directory)directory.hidden=true;
   if(detail)detail.hidden=false;
   if($('backSchoolOverview'))$('backSchoolOverview').hidden=false;
-  if($('exportCsv'))$('exportCsv').hidden=false;
+  if($('exportStudentPdf'))$('exportStudentPdf').hidden=false;
   if($('resultsHeading'))$('resultsHeading').textContent=school?`${school.school_name} — Students & Results`:'Legacy / Unassigned — Students & Results';
   if($('resultsDescription'))$('resultsDescription').textContent='This view contains only the selected school’s student records, attempts, reports and certificate actions.';
   const select=$('schoolResultsFilter');
@@ -147,33 +147,201 @@ function renderResults(){
   document.querySelectorAll('[data-del-attempt]').forEach(b=>b.onclick=()=>deleteAttempt(b.dataset.delAttempt));
   const count=$('resultsScopeCount');if(count)count.textContent=`${rows.length} attempts in current view`;updateStats();
 }
-function csvDownload(filename,rows){
-  const safe=v=>{let s=String(v??'');if(/^[=+@\-\t\r]/.test(s))s="'"+s;return `"${s.replaceAll('"','""')}"`};
-  const csv=rows.map(row=>row.map(safe).join(',')).join('\r\n');
-  const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
-  const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+function pdfSafeFilePart(value){
+  return String(value||'school').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'school';
 }
-function exportCsv(){
-  const rows=filteredResults();const school=$('schoolResultsFilter')?.selectedOptions?.[0]?.textContent||'all-schools';
-  const lines=[['Date','School','Candidate','Phone','Score','Status'],...rows.map(r=>[new Date(r.completed_at||r.started_at).toLocaleString('en-IN'),r.hpt_schools?.school_name||'Legacy / unknown',r.candidate_name,r.phone,r.total_score,isPassed(r)?'PASS':'NOT PASSED'])];
-  csvDownload(`hpt-student-results-${school.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.csv`,lines);
+function pdfFmtDate(value,withTime=true){
+  if(!value)return '—';
+  const d=new Date(value);if(Number.isNaN(d.getTime()))return '—';
+  return d.toLocaleString('en-IN',withTime?{dateStyle:'medium',timeStyle:'short'}:{dateStyle:'medium'});
 }
-function exportPerformance(){
-  const rows=filteredResults(),grain=$('reportGranularity')?.value||'week',groups=new Map();
+function pdfSelectedSchool(){
+  if(selectedResultsSchoolId==='legacy')return {school_name:'Legacy / Unassigned',logo_url:null};
+  return schoolDirectory.find(s=>String(s.id)===String(selectedResultsSchoolId))||null;
+}
+function pdfLoadImage(url){
+  return new Promise(resolve=>{
+    if(!url){resolve(null);return}
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      try{
+        const canvas=document.createElement('canvas');
+        canvas.width=img.naturalWidth||img.width;canvas.height=img.naturalHeight||img.height;
+        const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
+        resolve({data:canvas.toDataURL('image/png'),format:'PNG'});
+      }catch{resolve(null)}
+    };
+    img.onerror=()=>resolve(null);
+    img.src=url;
+  });
+}
+function pdfMake(){
+  const JsPdf=window.jspdf?.jsPDF;
+  if(!JsPdf){notice('PDF generator is not available. Refresh the admin page and try again.',true);return null}
+  return new JsPdf({orientation:'landscape',unit:'mm',format:'a4',compress:true});
+}
+async function pdfBrandHeader(doc,title,subtitle,school){
+  const W=doc.internal.pageSize.getWidth();
+  doc.setFillColor(5,15,24);doc.rect(0,0,W,42,'F');
+  doc.setFillColor(255,196,0);doc.rect(0,41,W,1.4,'F');
+  const logo=await pdfLoadImage(school?.logo_url);
+  if(logo){
+    try{doc.addImage(logo.data,logo.format,13,8,25,25,undefined,'FAST')}catch{}
+  }else{
+    doc.setFillColor(255,196,0);doc.roundedRect(13,9,25,23,3,3,'F');
+    doc.setTextColor(6,17,25);doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text('HPT',25.5,23.5,{align:'center'});
+  }
+  const x=46;
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);
+  doc.text(String(school?.school_name||'HAZARD PERCEPTION TEST').toUpperCase().slice(0,70),x,15);
+  doc.setTextColor(255,199,35);doc.setFontSize(8);doc.text('HAZARD PERCEPTION TEST  •  SCHOOL PERFORMANCE REPORT',x,22);
+  doc.setTextColor(235,241,246);doc.setFontSize(13);doc.text(title,x,32);
+  doc.setTextColor(182,198,210);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(subtitle||'',x+Math.min(150,doc.getTextWidth(title)+6),32);
+  doc.setTextColor(135,155,170);doc.setFontSize(7);doc.text(`Generated ${new Date().toLocaleString('en-IN')}`,W-13,36,{align:'right'});
+}
+function pdfKpiCards(doc,items,y=50){
+  const W=doc.internal.pageSize.getWidth(),margin=13,gap=5,totalW=W-margin*2,cardW=(totalW-gap*(items.length-1))/items.length;
+  items.forEach((it,i)=>{
+    const x=margin+i*(cardW+gap);
+    doc.setFillColor(239,244,247);doc.setDrawColor(220,228,234);doc.roundedRect(x,y,cardW,20,2.5,2.5,'FD');
+    doc.setTextColor(91,111,126);doc.setFont('helvetica','bold');doc.setFontSize(6.6);doc.text(String(it.label).toUpperCase(),x+4,y+6);
+    doc.setTextColor(13,31,45);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(String(it.value),x+4,y+15.5);
+  });
+}
+function pdfFooter(doc,pageNo,totalPages){
+  const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+  doc.setDrawColor(221,228,233);doc.line(13,H-11,W-13,H-11);
+  doc.setTextColor(111,128,141);doc.setFont('helvetica','normal');doc.setFontSize(7);
+  doc.text('Confidential school performance record • Generated by Hazard Perception Test',13,H-6);
+  doc.text(`Page ${pageNo} of ${totalPages}`,W-13,H-6,{align:'right'});
+}
+function pdfDrawTableHeader(doc,columns,y){
+  doc.setFillColor(12,37,53);doc.rect(13,y,doc.internal.pageSize.getWidth()-26,9,'F');
+  let x=16;doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
+  columns.forEach(col=>{doc.text(col.label,x,y+6);x+=col.width});
+  return y+9;
+}
+function pdfTextCell(doc,text,x,y,width,fontSize=7,color=[36,52,65],maxLines=2){
+  doc.setTextColor(...color);doc.setFont('helvetica','normal');doc.setFontSize(fontSize);
+  const lines=doc.splitTextToSize(String(text??'—'),Math.max(8,width-3)).slice(0,maxLines);
+  doc.text(lines,x,y+4);
+}
+async function exportStudentPdf(){
+  const rows=filteredResults();
+  if(!rows.length){notice('There are no student records in the current view to export.',true);return}
+  const school=pdfSelectedSchool(),doc=pdfMake();if(!doc)return;
+  const schoolName=school?.school_name||'All Schools';
+  const passed=rows.filter(isPassed).length,failed=rows.length-passed;
+  const avg=rows.reduce((sum,r)=>sum+(Number(r.total_score)||0),0)/rows.length;
+  await pdfBrandHeader(doc,'Student Examination Records',`${rows.length} records • Current filters applied`,school);
+  pdfKpiCards(doc,[
+    {label:'Completed attempts',value:rows.length},
+    {label:'Passed',value:passed},
+    {label:'Failed',value:failed},
+    {label:'Average score',value:`${avg.toFixed(1)} / 100`}
+  ],49);
+  doc.setTextColor(52,72,86);doc.setFont('helvetica','bold');doc.setFontSize(8);
+  doc.text(`School: ${schoolName}`,13,76);
+  doc.setFont('helvetica','normal');doc.setTextColor(105,121,134);
+  doc.text(`Date filter: ${$('resultPeriod')?.selectedOptions?.[0]?.textContent||'All dates'}   •   Result filter: ${$('resultFilter')?.selectedOptions?.[0]?.textContent||'All results'}`,13,81);
+  const cols=[
+    {label:'DATE / TIME',width:40},
+    {label:'CANDIDATE NAME',width:58},
+    {label:'MOBILE NUMBER',width:40},
+    {label:'SCORE',width:25},
+    {label:'RESULT',width:30}
+  ];
+  let y=pdfDrawTableHeader(doc,cols,87);
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i],height=12;
+    if(y+height>doc.internal.pageSize.getHeight()-17){
+      doc.addPage();
+      await pdfBrandHeader(doc,'Student Examination Records — continued',schoolName,school);
+      y=pdfDrawTableHeader(doc,cols,49);
+    }
+    if(i%2===0){doc.setFillColor(244,247,249);doc.rect(13,y,doc.internal.pageSize.getWidth()-26,height,'F')}
+    let x=16;
+    pdfTextCell(doc,pdfFmtDate(r.completed_at||r.started_at),x,y,cols[0].width,6.5);x+=cols[0].width;
+    pdfTextCell(doc,r.candidate_name,x,y,cols[1].width,7);x+=cols[1].width;
+    pdfTextCell(doc,r.phone,x,y,cols[2].width,7);x+=cols[2].width;
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(17,39,55);doc.text(`${Number(r.total_score)||0} / 100`,x,y+7);x+=cols[3].width;
+    const good=isPassed(r);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...(good?[19,139,86]:[207,62,78]));doc.text(good?'PASSED':'NOT PASSED',x,y+7);
+    doc.setDrawColor(229,234,238);doc.line(13,y+height,doc.internal.pageSize.getWidth()-13,y+height);
+    y+=height;
+  }
+  const total=doc.getNumberOfPages();
+  for(let p=1;p<=total;p++){doc.setPage(p);pdfFooter(doc,p,total)}
+  doc.save(`HPT-student-records-${pdfSafeFilePart(schoolName)}.pdf`);
+  notice('Student examination PDF downloaded.');
+}
+function buildPerformanceGroups(rows,grain){
+  const groups=new Map();
   rows.forEach(r=>{
-    const d=new Date(r.completed_at||r.started_at);let key,label;
+    const d=new Date(r.completed_at||r.started_at);if(Number.isNaN(d.getTime()))return;
+    let key,label;
     if(grain==='month'){key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;label=d.toLocaleDateString('en-IN',{month:'long',year:'numeric'});}
-    else {const monday=new Date(d.getFullYear(),d.getMonth(),d.getDate());monday.setDate(monday.getDate()-((monday.getDay()+6)%7));key=monday.toISOString().slice(0,10);label=`Week of ${monday.toLocaleDateString('en-IN')}`;}
+    else {const monday=new Date(d.getFullYear(),d.getMonth(),d.getDate());monday.setDate(monday.getDate()-((monday.getDay()+6)%7));key=`${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;label=`Week of ${monday.toLocaleDateString('en-IN')}`;}
     if(!groups.has(key))groups.set(key,{label,rows:[]});groups.get(key).rows.push(r);
   });
-  const lines=[['Period','School','Attempts','Unique Students','Passed','Not Passed','Pass Rate %','Average Score','Highest Score']];
-  const schoolName=$('schoolResultsFilter')?.selectedOptions?.[0]?.textContent||'All schools';
-  [...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([,g])=>{
-    const rs=g.rows,passed=rs.filter(isPassed).length,unique=new Set(rs.map(r=>String(r.phone||r.candidate_name).replace(/\D/g,'')||r.candidate_name));
-    const scores=rs.map(r=>Number(r.total_score)||0);const avg=scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:0;
-    lines.push([g.label,schoolName,rs.length,unique.size,passed,rs.length-passed,rs.length?(passed/rs.length*100).toFixed(1):'0.0',avg.toFixed(1),Math.max(0,...scores)]);
+  return [...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([,g])=>{
+    const rs=g.rows,passed=rs.filter(isPassed).length,unique=new Set(rs.map(r=>String(r.phone||r.candidate_name).replace(/\D/g,'')||String(r.candidate_name||'').toLowerCase()));
+    const scores=rs.map(r=>Number(r.total_score)||0);
+    return {label:g.label,attempts:rs.length,students:unique.size,passed,failed:rs.length-passed,rate:rs.length?passed/rs.length*100:0,average:scores.length?scores.reduce((x,y)=>x+y,0)/scores.length:0,highest:Math.max(0,...scores)};
   });
-  csvDownload(`hpt-${grain}-performance-report.csv`,lines);
+}
+async function exportPerformancePdf(){
+  const rows=filteredResults();if(!rows.length){notice('There are no records in the current view to report.',true);return}
+  const grain=$('reportGranularity')?.value||'week',groups=buildPerformanceGroups(rows,grain);
+  const school=pdfSelectedSchool(),doc=pdfMake();if(!doc)return;
+  const schoolName=school?.school_name||'All Schools',passed=rows.filter(isPassed).length,failed=rows.length-passed;
+  const average=rows.reduce((sum,r)=>sum+(Number(r.total_score)||0),0)/rows.length;
+  await pdfBrandHeader(doc,`${grain==='month'?'Monthly':'Weekly'} Performance Report`,`${groups.length} reporting periods`,school);
+  pdfKpiCards(doc,[
+    {label:'Total attempts',value:rows.length},
+    {label:'Unique students',value:new Set(rows.map(resultStudentKey)).size},
+    {label:'Pass rate',value:`${(passed/rows.length*100).toFixed(1)}%`},
+    {label:'Average score',value:`${average.toFixed(1)} / 100`}
+  ],49);
+  doc.setTextColor(52,72,86);doc.setFont('helvetica','bold');doc.setFontSize(8);
+  doc.text(`School: ${schoolName}`,13,76);
+  doc.setFont('helvetica','normal');doc.setTextColor(105,121,134);doc.setFontSize(7);
+  doc.text(`Reporting: ${grain==='month'?'Calendar month':'Monday-start week'} • Based on the filters selected in the manager`,13,81);
+
+  // Simple in-document chart: attempts per reporting period with passed portion highlighted.
+  const chartX=13,chartY=91,chartW=doc.internal.pageSize.getWidth()-26,chartH=42;
+  doc.setFillColor(243,247,249);doc.roundedRect(chartX,chartY,chartW,chartH,2,2,'F');
+  doc.setTextColor(67,88,103);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text('ATTEMPTS BY PERIOD  •  GREEN = PASSED',chartX+5,chartY+7);
+  const maxAttempts=Math.max(1,...groups.map(g=>g.attempts)),barMax=chartH-17;
+  const shown=groups.slice(-Math.min(12,groups.length)),slotW=(chartW-12)/Math.max(1,shown.length),barW=Math.max(4,Math.min(13,slotW*.5));
+  shown.forEach((g,i)=>{
+    const x=chartX+7+i*slotW+(slotW-barW)/2,allH=(g.attempts/maxAttempts)*barMax,passH=(g.passed/maxAttempts)*barMax;
+    doc.setFillColor(215,224,230);doc.rect(x,chartY+chartH-5-allH,barW,allH,'F');
+    doc.setFillColor(31,166,111);doc.rect(x,chartY+chartH-5-passH,barW,passH,'F');
+  });
+
+  const cols=[
+    {label:'PERIOD',width:48},{label:'ATTEMPTS',width:27},{label:'STUDENTS',width:27},
+    {label:'PASSED',width:24},{label:'FAILED',width:24},{label:'PASS RATE',width:28},
+    {label:'AVG SCORE',width:31},{label:'HIGHEST',width:27}
+  ];
+  let y=pdfDrawTableHeader(doc,cols,140);
+  for(let i=0;i<groups.length;i++){
+    const g=groups[i];
+    if(y+11>doc.internal.pageSize.getHeight()-17){
+      doc.addPage();
+      await pdfBrandHeader(doc,'Performance Report — continued',schoolName,school);
+      y=pdfDrawTableHeader(doc,cols,49);
+    }
+    if(i%2===0){doc.setFillColor(244,247,249);doc.rect(13,y,doc.internal.pageSize.getWidth()-26,11,'F')}
+    const vals=[g.label,g.attempts,g.students,g.passed,g.failed,`${g.rate.toFixed(1)}%`,g.average.toFixed(1),g.highest];
+    let x=16;vals.forEach((v,j)=>{pdfTextCell(doc,v,x,y,cols[j].width,6.8,[36,52,65],1);x+=cols[j].width});
+    doc.setDrawColor(229,234,238);doc.line(13,y+11,doc.internal.pageSize.getWidth()-13,y+11);y+=11;
+  }
+  const total=doc.getNumberOfPages();
+  for(let p=1;p<=total;p++){doc.setPage(p);pdfFooter(doc,p,total)}
+  doc.save(`HPT-${grain}-performance-${pdfSafeFilePart(schoolName)}.pdf`);
+  notice('Performance report PDF downloaded.');
 }
 async function deleteAttempt(id){const r=results.find(x=>x.id===id);if(!r||!confirm(`Delete the complete examination record for ${r.candidate_name}? This cannot be undone.`))return;const {error}=await sb.from('hpt_responses').delete().eq('attempt_id',id);if(error){notice(error.message,true);return}const {error:e2}=await sb.from('hpt_attempts').delete().eq('id',id);if(e2){notice(e2.message,true);return}await loadResults();updateStats();notice('Examination record deleted.')}
 async function showDetail(id){if(!(await guard()))return;const r=results.find(x=>x.id===id);if(!r)return;const {data:rs,error}=await sb.from('hpt_responses').select('response_no,click_time_seconds,hazard_no,awarded_marks,video_id').eq('attempt_id',id).order('response_no');if(error){notice(error.message,true);return}$('detailTitle').textContent=r.candidate_name;$('detailMeta').textContent=`${r.hpt_schools?.school_name||'Legacy / unknown'} • ${r.phone} • ${new Date(r.started_at).toLocaleString('en-IN')} • ${isPassed(r)?'PASS':'NOT PASSED'} • ${r.total_score}/100`;$('detailBody').innerHTML=`<div class="detail-clip"><span>Responses</span><b>${rs?.length||0}</b></div><div class="detail-clip"><span>Randomized order</span><b>${(r.clip_order||[]).map(esc).join(' → ')||'—'}</b></div>`+(rs||[]).map(x=>`<div class="detail-clip"><span>Response ${x.response_no} • ${Number(x.click_time_seconds).toFixed(1)}s • Hazard ${x.hazard_no||'—'}</span><b>+${x.awarded_marks}</b></div>`).join('');$('detailModal').hidden=false}
@@ -342,7 +510,7 @@ const schoolName=String(school.school_name||'Driving School').toUpperCase();cons
 doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is awarded to',W/2,94,{align:'center'});doc.setTextColor(25,38,51);doc.setFont('helvetica','bold');doc.setFontSize(27);doc.text(String(r.candidate_name||'Candidate'),W/2,112,{align:'center'});doc.setDrawColor(180,188,195);doc.setLineWidth(.35);doc.line(70,118,227,118);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the '+(school.school_name||'Driving School')+' Hazard Perception Test',W/2,131,{align:'center',maxWidth:230});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`SCORE: ${Number(r.total_score||0)} / 100`,W/2,149,{align:'center'});doc.setTextColor(35,126,78);doc.setFontSize(16);doc.text('PASS',W/2,160,{align:'center'});const d=new Date(r.completed_at||r.started_at);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Date: ${d.toLocaleDateString('en-IN')}`,45,181);doc.text(`Certificate No: HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(r.id).slice(0,8).toUpperCase()}`,W-45,181,{align:'right'});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text([schoolName,schoolLocation,school.contact_number].filter(Boolean).join(' • ').slice(0,120),W/2,191,{align:'center',maxWidth:250});doc.save(`${String(school.school_name||'Driving-School').replace(/[^a-z0-9]+/gi,'-')}-HPT-Certificate-${String(r.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`);notice(`Certificate downloaded for ${r.candidate_name}.`)}catch(e){console.error(e);notice('Could not generate the certificate.',true)}finally{if(btn){btn.disabled=false;btn.textContent='PRINT'}}}
 
 function openRequestedAdminTab(){const requested=new URLSearchParams(window.location.search).get('tab');if(requested)document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===requested)t.click()})}
-$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportCsv').onclick=exportCsv;$('exportPerformance').onclick=exportPerformance;$('backSchoolOverview').onclick=closeSchoolResults;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
+$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
 let resultsPoll=null;
 function startResultsPolling(){clearInterval(resultsPoll);resultsPoll=setInterval(async()=>{if(document.hidden||$('dashboard').hidden)return;try{await loadResults();updateStats()}catch(e){console.error('HPT results refresh failed',e)}},5000)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden)loadResults()});

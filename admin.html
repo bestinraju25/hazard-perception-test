@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Hazard Perception Test | Provider Control Centre</title><link rel="stylesheet" href="admin.css?v=27"><script src="hpt-config.js?v=63"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script><script src="hpt-report.js?v=51"></script><meta name="theme-color" content="#050a0f"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest"></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Hazard Perception Test | Provider Control Centre</title><link rel="stylesheet" href="admin.css?v=28"><script src="hpt-config.js?v=63"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script><script src="hpt-report.js?v=51"></script><meta name="theme-color" content="#050a0f"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest"></head><body>
 <div class="app">
 <header class="topbar"><div class="brand"><div class="providerMark" aria-hidden="true">HPT</div><div><b>HAZARD PERCEPTION TEST</b><span>PROVIDER CONTROL CENTRE</span></div></div><div id="adminIdentity" hidden></div><div class="actions"><a class="btn ghost" href="./">Candidate Test</a><button id="logoutBtn" class="btn ghost" hidden>Log out</button></div></header>
 <section id="login" class="login"><div class="login-card"><div class="login-provider-mark" aria-hidden="true">HPT</div><div class="eyebrow">SECURE PROVIDER ACCESS</div><h1>HPT Control Centre</h1><p>Sign in with an authorised provider administrator account to manage schools, examinations, videos and reports.</p><label>Email<input id="email" type="email" autocomplete="username" placeholder="Admin email"></label><label>Password<input id="password" type="password" autocomplete="current-password" placeholder="Password"></label><button id="loginBtn" class="btn primary wide">SIGN IN →</button><div id="loginMsg" class="message"></div></div></section>
@@ -15,7 +15,7 @@
     </div>
     <div class="resultsHeadActions">
       <button id="backSchoolOverview" class="btn ghost" type="button" hidden>← ALL SCHOOLS</button>
-      <button id="exportCsv" class="btn ghost" hidden>↓ Export Student CSV</button>
+      <button id="exportStudentPdf" class="btn ghost" type="button" hidden>↓ Download Student PDF</button>
     </div>
   </div>
   <div id="schoolResultsDirectory" class="schoolResultsDirectory" aria-label="Schools and their examination summaries"></div>
@@ -26,7 +26,7 @@
       <select id="resultFilter"><option value="all">All results</option><option value="pass">Passed</option><option value="fail">Not passed</option></select>
       <select id="resultPeriod"><option value="all">All dates</option><option value="week">This week</option><option value="month">This month</option><option value="last_month">Last month</option><option value="30d">Last 30 days</option></select>
       <select id="reportGranularity" aria-label="Performance report grouping"><option value="week">Weekly report</option><option value="month">Monthly report</option></select>
-      <button id="exportPerformance" class="btn ghost" type="button">↓ Performance Report</button>
+      <button id="exportPerformancePdf" class="btn ghost" type="button">↓ Download Performance PDF</button>
       <small id="resultsScopeCount" class="resultsScopeCount">All attempts</small>
     </div>
     <div id="mobileResults" class="mobile-results"></div>

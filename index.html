@@ -29,7 +29,7 @@
 <meta name="twitter:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
 <link rel="icon" href="school-placeholder.svg" type="image/svg+xml">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=87">
+<link rel="stylesheet" href="style.css?v=88">
 <script src="hpt-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -205,7 +205,45 @@
 <div class="bottomHud"><div class="hint">💡 Look ahead, to the sides and behind.</div><button id="skipBtn" class="skip">SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
 </div></section>
 <section id="resultScreen" class="panel result" hidden><img id="resultSchoolLogo" src="school-placeholder.svg" class="resultLogo" alt="Driving school logo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="viewFullReportBtn" class="secondary">VIEW FULL REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
-</main><div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>MY HPT ATTEMPTS</h3><p class="attemptIntro">Enter the mobile number used for your examination to view your previous attempts.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW</button></div><div id="attemptMsg" class="attemptMsg"></div><div id="attemptList" class="attemptList"><div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div></div><div class="attemptPrivacy">Only examination records matching the entered mobile number are shown.</div></div></div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div class="modal fade report-modal" id="fullReportModal" tabindex="-1" aria-labelledby="fullReportTitle" aria-hidden="true">
+</main><div id="schoolStatsModal" class="schoolStatsModal" hidden role="dialog" aria-modal="true" aria-labelledby="schoolStatsTitle">
+  <div class="schoolStatsBackdrop" data-stats-close></div>
+  <section class="schoolStatsDialog">
+    <header class="schoolStatsDialogHead">
+      <div class="schoolStatsIdentity">
+        <img id="schoolStatsLogo" src="school-placeholder.svg" alt="Driving school logo">
+        <div><div class="eyebrow">SCHOOL PERFORMANCE</div><h2 id="schoolStatsTitle">Lifetime Statistics</h2><p id="schoolStatsSchoolName">Your driving school</p></div>
+      </div>
+      <div class="schoolStatsHeadActions">
+        <button id="schoolStatsRefresh" type="button" title="Refresh statistics">↻</button>
+        <button id="schoolStatsClose" type="button" title="Close statistics" aria-label="Close statistics">×</button>
+      </div>
+    </header>
+    <div class="schoolStatsDialogBody">
+      <div class="schoolStatsLifetimeNote"><span>●</span> ALL-TIME RESULTS <small>Not limited to a month</small></div>
+      <div class="schoolStatsKpis">
+        <article><span>REGISTERED STUDENTS</span><strong id="schoolStatsRegistered">—</strong><small>Unique mobile numbers</small></article>
+        <article><span>TOTAL ATTEMPTS</span><strong id="schoolStatsAttempts">—</strong><small>Completed examinations</small></article>
+        <article class="isPassed"><span>PASSED</span><strong id="schoolStatsPassed">—</strong><small>60 marks or above</small></article>
+        <article class="isFailed"><span>FAILED</span><strong id="schoolStatsFailed">—</strong><small>Below 60 marks</small></article>
+      </div>
+      <div class="schoolStatsVisuals">
+        <article class="schoolStatsPanel schoolStatsPassPanel">
+          <div class="schoolStatsPanelTitle"><div><span class="eyebrow">OVERALL OUTCOME</span><h3>Pass rate</h3></div><strong id="schoolStatsPassRate">—%</strong></div>
+          <div class="schoolStatsRing" id="schoolStatsRing"><div><strong id="schoolStatsRingValue">—%</strong><small>PASS RATE</small></div></div>
+          <p id="schoolStatsOutcomeNote">Pass and fail distribution across all completed attempts.</p>
+        </article>
+        <article class="schoolStatsPanel">
+          <div class="schoolStatsPanelTitle"><div><span class="eyebrow">RESULT DISTRIBUTION</span><h3>Passed vs failed</h3></div></div>
+          <div class="schoolStatsBarRow"><div><span>Passed</span><strong id="schoolStatsPassedBarValue">—</strong></div><div class="schoolStatsBarTrack"><i id="schoolStatsPassedBar"></i></div></div>
+          <div class="schoolStatsBarRow"><div><span>Failed</span><strong id="schoolStatsFailedBarValue">—</strong></div><div class="schoolStatsBarTrack"><i id="schoolStatsFailedBar"></i></div></div>
+          <div class="schoolStatsMiniSummary"><div><small>AVERAGE SCORE</small><b id="schoolStatsAverage">— / 100</b></div><div><small>THIS MONTH</small><b id="schoolStatsThisMonth">— attempts</b></div></div>
+        </article>
+      </div>
+      <footer class="schoolStatsDialogFoot"><span id="schoolStatsStatus" role="status">Loading your school's statistics…</span><span>Only your school's aggregate results are shown.</span></footer>
+    </div>
+  </section>
+</div>
+<div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>MY HPT ATTEMPTS</h3><p class="attemptIntro">Enter the mobile number used for your examination to view your previous attempts.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW</button></div><div id="attemptMsg" class="attemptMsg"></div><div id="attemptList" class="attemptList"><div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div></div><div class="attemptPrivacy">Only examination records matching the entered mobile number are shown.</div></div></div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div class="modal fade report-modal" id="fullReportModal" tabindex="-1" aria-labelledby="fullReportTitle" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
     <div class="modal-header report-modal-header"><div><div class="report-modal-kicker">HAZARD PERCEPTION TEST</div><h2 class="modal-title" id="fullReportTitle">Full examination report</h2><div id="reportCandidateMeta" class="report-candidate-meta"></div></div><button type="button" class="btn-close btn-close-white" id="closeFullReportBtn" data-bs-dismiss="modal" aria-label="Close"></button></div>
     <div class="modal-body"><div id="reportSummary" class="report-summary-strip"></div>
@@ -216,4 +254,4 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=87"></script></body></html>
+<script src="app.js?v=88"></script></body></html>

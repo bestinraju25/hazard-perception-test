@@ -2279,3 +2279,84 @@ button:focus-visible, a:focus-visible, input:focus-visible {
  .globalPodiumSchool{font-size:8px}
  .globalPodiumScore{font-size:22px}
 }
+
+
+/* V88 — in-page school statistics modal (keeps the student inside fullscreen). */
+.schoolStatsModal[hidden]{display:none!important}
+.schoolStatsModal{
+  position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;
+  padding:clamp(10px,3vw,28px);isolation:isolate;
+}
+.schoolStatsBackdrop{position:absolute;inset:0;background:rgba(1,6,10,.82);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.schoolStatsDialog{
+  position:relative;z-index:1;width:min(920px,100%);max-height:min(92dvh,900px);overflow:auto;
+  border:1px solid #355368;border-radius:22px;
+  background:linear-gradient(150deg,#102635 0%,#07131d 68%,#050b11 100%);
+  box-shadow:0 28px 100px #000b;color:#f2f6f9;
+  animation:schoolStatsEnter .18s ease-out;
+}
+@keyframes schoolStatsEnter{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+.schoolStatsDialogHead{
+  position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:15px;
+  padding:17px 21px;border-bottom:1px solid #294252;background:rgba(5,14,22,.96);backdrop-filter:blur(14px)
+}
+.schoolStatsIdentity{display:flex;align-items:center;gap:13px;min-width:0}
+.schoolStatsIdentity img{width:62px;height:54px;flex:0 0 62px;object-fit:contain;border-radius:8px}
+.schoolStatsIdentity .eyebrow{font-size:9px;letter-spacing:2px;color:#ffc629;font-weight:900}
+.schoolStatsIdentity h2{font-size:clamp(20px,3vw,27px);font-weight:950;line-height:1.12;margin:4px 0}
+.schoolStatsIdentity p{margin:0;color:#91a9b8;font-size:12px;overflow-wrap:anywhere}
+.schoolStatsHeadActions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.schoolStatsHeadActions button{width:38px;height:38px;border:1px solid #36556a;border-radius:10px;background:#102a3b;color:#edf5fa;font-size:22px;cursor:pointer}
+.schoolStatsHeadActions button:hover{border-color:#ffc629;color:#ffc629}
+.schoolStatsDialogBody{padding:20px 21px 17px}
+.schoolStatsLifetimeNote{display:flex;align-items:center;gap:8px;margin-bottom:14px;color:#83e9ad;font-size:10px;font-weight:950;letter-spacing:1.7px}
+.schoolStatsLifetimeNote>span{font-size:9px;color:#42e58c}
+.schoolStatsLifetimeNote small{margin-left:auto;color:#8299a9;font-weight:600;letter-spacing:.2px;font-size:10px}
+.schoolStatsKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.schoolStatsKpis article{min-width:0;padding:14px 15px;border:1px solid #2b495d;border-radius:13px;background:linear-gradient(150deg,#112b3c,#081722)}
+.schoolStatsKpis article>span{display:block;min-height:25px;color:#91aabc;font-size:9px;font-weight:950;letter-spacing:1px;line-height:1.35}
+.schoolStatsKpis article strong{display:block;margin:7px 0;color:#ffc629;font-size:clamp(25px,4vw,36px);font-weight:1000;line-height:1}
+.schoolStatsKpis article small{color:#718b9b;font-size:10px}
+.schoolStatsKpis article.isPassed strong{color:#45df98}
+.schoolStatsKpis article.isFailed strong{color:#ff7888}
+.schoolStatsVisuals{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:12px;margin-top:13px}
+.schoolStatsPanel{min-width:0;padding:17px;border:1px solid #2a4659;border-radius:15px;background:rgba(5,17,26,.72)}
+.schoolStatsPanelTitle{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.schoolStatsPanelTitle .eyebrow{font-size:8px;letter-spacing:1.6px;color:#f3c645;font-weight:900}
+.schoolStatsPanelTitle h3{font-size:17px;font-weight:900;margin:4px 0 0}
+.schoolStatsPanelTitle>strong{font-size:22px;color:#55e29b}
+.schoolStatsRing{width:148px;height:148px;margin:16px auto 10px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(#35d98b 0%,#ff7181 0);position:relative}
+.schoolStatsRing:before{content:"";position:absolute;inset:11px;border-radius:50%;background:#091823;border:1px solid #263f50}
+.schoolStatsRing>div{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.schoolStatsRing strong{font-size:29px;font-weight:1000;color:#f5f8fb;line-height:1}
+.schoolStatsRing small{font-size:8px;letter-spacing:1.5px;color:#8ca5b5;font-weight:900}
+.schoolStatsPassPanel>p{margin:0;color:#91a8b7;font-size:11px;line-height:1.5;text-align:center}
+.schoolStatsBarRow{margin-top:23px}
+.schoolStatsBarRow>div:first-child{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;color:#dbe5eb;font-size:12px}
+.schoolStatsBarRow>div:first-child strong{font-size:13px;color:#f5f8fb}
+.schoolStatsBarTrack{height:13px;border-radius:20px;background:#1b2d3a;overflow:hidden;border:1px solid #2b4557}
+.schoolStatsBarTrack i{display:block;width:0;height:100%;border-radius:20px;transition:width .35s ease}
+#schoolStatsPassedBar{background:linear-gradient(90deg,#14975e,#49e39a)}
+#schoolStatsFailedBar{background:linear-gradient(90deg,#bd4053,#ff8996)}
+.schoolStatsMiniSummary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:25px}
+.schoolStatsMiniSummary>div{padding:11px;border-radius:10px;border:1px solid #253f51;background:#0a1a26}
+.schoolStatsMiniSummary small{display:block;font-size:8px;color:#8199a9;font-weight:900;letter-spacing:1px}
+.schoolStatsMiniSummary b{display:block;margin-top:5px;font-size:14px;color:#ffc629}
+.schoolStatsDialogFoot{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #213746;margin-top:16px;padding-top:13px;color:#8197a6;font-size:10px}
+#schoolStatsStatus{color:#6fe4a0}
+body.school-stats-open{overflow:hidden}
+@media(max-width:680px){
+  .schoolStatsModal{padding:0;align-items:stretch}
+  .schoolStatsDialog{width:100%;max-height:100dvh;min-height:100dvh;border-radius:0;border-left:0;border-right:0}
+  .schoolStatsDialogHead{padding:13px 14px}
+  .schoolStatsIdentity img{width:50px;height:45px;flex-basis:50px}
+  .schoolStatsIdentity h2{font-size:19px}
+  .schoolStatsDialogBody{padding:15px 13px calc(17px + env(safe-area-inset-bottom,0px))}
+  .schoolStatsKpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .schoolStatsKpis article{padding:12px}
+  .schoolStatsVisuals{grid-template-columns:1fr}
+  .schoolStatsRing{width:126px;height:126px}
+  .schoolStatsRing strong{font-size:25px}
+  .schoolStatsDialogFoot{flex-direction:column;gap:6px}
+}

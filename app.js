@@ -393,6 +393,7 @@ async function bootSchoolSession(){
   }catch(e){console.warn('Could not restore the school session',e)}
 }
 function changeSchool(){
+  if(!$('schoolStatsModal')?.hidden)closeSchoolStatsModal();
   // Return safely to the access-code gate and discard only the incomplete in-memory exam.
   clearTimeout(timer);running=false;finishing=false;responseLocked=false;pos=0;order=[];scores=[];responses=[];
   try{if(video){video.pause();video.removeAttribute('src');video.load()}}catch(e){console.warn('Could not reset the video element while changing school.',e)}
@@ -501,14 +502,60 @@ bind('whatsappInquiryBtn','click',e=>{
   const message=`Hello, I would like to enquire about the Hazard Perception Test for my driving school.\n\nDriving School Name: ${name}\nContact Number: ${contact}\nLocation: ${location}\n\nPlease share the registration and implementation details.`;
   e.currentTarget.href=`https://wa.me/918943764734?text=${encodeURIComponent(message)}`;
 });
-bind('schoolStatsBtn','click',()=>{
+async function loadSchoolStatsModal(){
+  const status=$('schoolStatsStatus');
+  if(!activeSchool?.id||!schoolAccessCode){if(status)status.textContent='Please sign in with your school access code.';return}
+  if(status)status.textContent='Refreshing lifetime statistics…';
+  try{
+    const sb=await supabase();if(!sb)throw new Error('Statistics service is unavailable.');
+    const {data,error}=await sb.rpc('hpt_school_dashboard_stats',{p_school_access_code:schoolAccessCode});
+    if(error)throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(!row)throw new Error('School access is disabled or invalid. Please contact the provider.');
+    const students=Number(row.registered_students)||0,attempts=Number(row.total_attempts)||0;
+    const passed=Number(row.passed_attempts)||0,failed=Number(row.failed_attempts)||0;
+    const rate=attempts?Math.round(passed/attempts*1000)/10:0;
+    safeText('schoolStatsSchoolName',row.school_name||activeSchool.school_name||'Your driving school');
+    safeText('schoolStatsRegistered',students.toLocaleString('en-IN'));
+    safeText('schoolStatsAttempts',attempts.toLocaleString('en-IN'));
+    safeText('schoolStatsPassed',passed.toLocaleString('en-IN'));
+    safeText('schoolStatsFailed',failed.toLocaleString('en-IN'));
+    safeText('schoolStatsAverage',`${Number(row.average_score||0).toFixed(1)} / 100`);
+    safeText('schoolStatsThisMonth',`${Number(row.attempts_this_month||0).toLocaleString('en-IN')} attempts`);
+    safeText('schoolStatsPassRate',`${rate.toFixed(1)}%`);
+    safeText('schoolStatsRingValue',`${rate.toFixed(1)}%`);
+    safeText('schoolStatsPassedBarValue',passed.toLocaleString('en-IN'));
+    safeText('schoolStatsFailedBarValue',failed.toLocaleString('en-IN'));
+    safeText('schoolStatsOutcomeNote',`${passed.toLocaleString('en-IN')} passed and ${failed.toLocaleString('en-IN')} did not pass across ${attempts.toLocaleString('en-IN')} completed examinations.`);
+    const ring=$('schoolStatsRing');if(ring)ring.style.background=`conic-gradient(#35d98b ${rate}%, #ff7181 ${rate}% 100%)`;
+    const max=Math.max(1,passed,failed);
+    const pb=$('schoolStatsPassedBar'),fb=$('schoolStatsFailedBar');
+    if(pb)pb.style.width=`${passed/max*100}%`;
+    if(fb)fb.style.width=`${failed/max*100}%`;
+    const logo=$('schoolStatsLogo'),source=$('headerSchoolLogo');
+    if(logo&&source){logo.src=source.src;logo.alt=`${row.school_name||'School'} logo`}
+    if(status)status.textContent=`Updated ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
+  }catch(e){
+    if(status)status.textContent=e.message||'Could not load statistics. Please try again.';
+  }
+}
+function openSchoolStatsModal(){
   if(!activeSchool?.id||!schoolAccessCode){toast('Enter your school access code first.',true);return}
-  const statsWindow=window.open('about:blank','_blank');
-  if(!statsWindow){toast('Please allow pop-ups to open School Statistics.',true);return}
-  const target=new URL('school-stats.html',window.location.href);
-  target.hash='school='+encodeURIComponent(schoolAccessCode);
-  statsWindow.location.replace(target.href);
-});
+  const modal=$('schoolStatsModal');if(!modal)return;
+  modal.hidden=false;document.body.classList.add('school-stats-open');
+  loadSchoolStatsModal();
+  $('schoolStatsClose')?.focus();
+}
+function closeSchoolStatsModal(){
+  const modal=$('schoolStatsModal');if(!modal)return;
+  modal.hidden=true;document.body.classList.remove('school-stats-open');
+  $('schoolStatsBtn')?.focus();
+}
+bind('schoolStatsBtn','click',openSchoolStatsModal);
+bind('schoolStatsClose','click',closeSchoolStatsModal);
+bind('schoolStatsRefresh','click',loadSchoolStatsModal);
+bind('schoolStatsModal','click',e=>{if(e.target=== $('schoolStatsModal')||e.target?.hasAttribute('data-stats-close'))closeSchoolStatsModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('schoolStatsModal')?.hidden)closeSchoolStatsModal()});
 bind('exitSchoolBtn','click',()=>{
   const schoolName=activeSchool?.school_name||'this driving school';
   if(!confirm(`Exit ${schoolName} and return to the school access screen?`))return;
