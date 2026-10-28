@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/heyauto/:path*", "destination": "https://hey-auto.pages.dev/heyauto/:path*", "permanent": true },
+    { "source": "/:path*", "destination": "https://hey-auto.pages.dev/heyauto/", "permanent": true }
+  ]
+}
