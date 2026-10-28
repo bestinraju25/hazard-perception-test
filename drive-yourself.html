@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#07111b">
+<title>Drive Yourself | Hazard Perception Practice Game</title>
+<link rel="stylesheet" href="drive-yourself.css?v=89">
+<script src="hpt-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Three.js classic build; the hosted game uses WebGL when supported. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.159.0/three.min.js"></script>
+<script src="drive-yourself-scenarios.js?v=89"></script>
+<script src="drive-yourself-3d.js?v=89"></script>
+</head>
+<body>
+<div class="app-shell">
+  <header class="game-header">
+    <a class="back-link" href="index.html" aria-label="Back to school portal">← <span>School Portal</span></a>
+    <div class="brand-lockup"><span class="brand-mark">HPT</span><div><strong>DRIVE YOURSELF</strong><small>HAZARD PERCEPTION PRACTICE</small></div></div>
+    <div class="school-chip" id="schoolChip"><img id="gameSchoolLogo" alt="" hidden><span id="gameSchoolName">Verifying school…</span></div>
+  </header>
+
+  <main>
+    <section id="gameAccessRequired" class="setup-layout" hidden><div class="setup-copy"><div class="eyebrow">SCHOOL PORTAL ACCESS</div><h1>Open the game<br><em>from your school portal.</em></h1><p>Use the PLAY GAME button after signing in with your school access code, then enter the separate game code 1001.</p><a class="secondary-btn" href="index.html">BACK TO SCHOOL PORTAL</a></div></section>
+    <section id="setupScreen" class="setup-layout">
+      <div class="setup-copy">
+        <div class="eyebrow"><i></i> PRACTICE SIMULATOR · NOT AN OFFICIAL EXAM</div>
+        <h1>Take the wheel.<br><em>Spot the hazard.</em></h1>
+        <p>Drive a modeled learner car through a continuously generated Kerala road environment. Hold the forward arrow to move, follow the road as it bends automatically, and mark each developing hazard with BRAKE.</p>
+        <div class="feature-pills"><span>10 LIVE HAZARDS</span><span>REAL-TIME 3D WORLD</span><span>REACTION SCORING</span><span>NO PRE-RECORDED VIDEO</span></div>
+        <div class="instructions-card">
+          <div class="instruction"><b>↑</b><div><strong>Laptop / Desktop</strong><small>Hold the UP ARROW to drive. The road bends automatically. Press SPACE to mark a developing hazard. C changes camera.</small></div></div>
+          <div class="instruction"><span class="go-mini">HOLD ↑</span><div><strong>Mobile / Tablet</strong><small>Press and hold DRIVE to move. The car follows the road automatically. Tap BRAKE when you spot a hazard.</small></div></div>
+        </div>
+      </div>
+      <form id="identityForm" class="identity-card">
+        <div class="card-kicker">SCHOOL PRACTICE SESSION</div>
+        <h2>Driver details</h2>
+        <p class="muted">Your session will be linked to your selected driving school.</p>
+        <div id="accessCodeWrap" class="field" hidden>
+          <label for="accessCode">School access code</label>
+          <input id="accessCode" type="text" autocomplete="off" placeholder="Enter school access code">
+        </div>
+        <div class="field">
+          <label for="studentName">Student name</label>
+          <input id="studentName" type="text" maxlength="80" autocomplete="name" placeholder="Enter your full name" required>
+        </div>
+        <div class="field">
+          <label for="studentPhone">Mobile number</label>
+          <input id="studentPhone" type="tel" inputmode="tel" maxlength="18" autocomplete="tel" placeholder="Enter mobile number" required>
+        </div>
+        <div id="schoolStatus" class="school-status" role="status">Checking your school access…</div>
+        <button id="startGameBtn" class="primary-btn" type="submit" disabled>START DRIVING <span>→</span></button>
+        <small class="privacy-note">Practice mode only. Game scores are not added to official examination records or leaderboards.</small>
+      </form>
+    </section>
+
+    <section id="gameScreen" class="game-layout" hidden>
+      <div class="game-topline">
+        <div class="mission-info"><span class="eyebrow">PRACTICE DRIVE</span><strong id="missionCount">HAZARD 1 / 10</strong><small id="missionCategory">ROAD SCENARIO</small></div>
+        <div class="game-score"><small>SESSION SCORE</small><strong id="sessionScore">00</strong><span>/ 100</span></div>
+        <div class="speed-readout"><strong id="speedValue">0</strong><small>KM/H</small></div>
+      </div>
+      <div class="simulator-frame">
+        <canvas id="roadCanvas" aria-label="Live 3D hazard perception driving simulator scene"></canvas>
+        <div class="canvas-vignette"></div>
+        <div class="scene-label" id="sceneLabel">RESIDENTIAL ROAD</div>
+        <div class="graphics-notice" id="graphicsNotice" hidden>REAL-TIME 3D GRAPHICS REQUIRED</div>
+        <div class="hazard-alert" id="hazardAlert"><span class="alert-dot"></span> DEVELOPING HAZARD — BRAKE NOW</div>
+        <div class="drive-hint" id="driveHint">GET READY — HOLD THE UP ARROW TO MOVE</div>
+        <button id="viewModeBtn" class="view-mode-btn" type="button" aria-label="Change camera view">CHASE VIEW · C</button>
+        <div class="drive-touch-controls" id="driveTouchControls" aria-label="Driving controls">
+          <button id="accelerateButton" class="accelerate-control" type="button" aria-label="Hold to drive forward"><span>↑</span><strong>HOLD TO DRIVE</strong><small>RELEASE TO SLOW</small></button>
+        </div>
+        <div class="sim-bottom">
+          <div class="distance-meter"><span id="distanceText">0 m</span><div><i id="distanceFill"></i></div></div>
+          <button id="goButton" class="go-button brake-button" type="button"><span>BRAKE</span><small>MARK HAZARD · NOT A REAL STOP</small></button>
+          <div class="reaction-meter"><span>REACTION WINDOW</span><b id="reactionText">WAITING</b><div><i id="reactionFill"></i></div></div>
+        </div>
+        <div id="responseToast" class="response-toast" aria-live="polite"></div>
+        <div id="countdownOverlay" class="countdown-overlay" hidden><span id="countdownNumber">3</span><small>GET READY</small></div>
+        <div id="gamePauseOverlay" class="pause-overlay" hidden><strong>DRIVE PAUSED</strong><span>The next road section will begin automatically.</span></div>
+      </div>
+      <div class="game-controls-note"><span>HOLD ↑ TO DRIVE · RELEASE TO SLOW · SPACE TO MARK HAZARD · C CAMERA</span><span>MOBILE: HOLD DRIVE · TAP BRAKE TO MARK</span><button id="quitGameBtn" type="button">EXIT PRACTICE</button></div>
+    </section>
+
+    <section id="finalScreen" class="final-screen" hidden>
+      <div class="final-emblem">🏁</div>
+      <div class="eyebrow">PRACTICE DRIVE COMPLETED</div>
+      <h1>Good driving, <span id="finishName">Driver</span>!</h1>
+      <div class="final-score"><strong id="finalScore">0</strong><span>/ 100</span></div>
+      <p id="finalSummary">Your practice performance</p>
+      <div class="badge-grid" id="gameBadges"></div>
+      <div class="mission-review" id="missionReview"></div>
+      <div class="final-actions"><button id="playAgainBtn" class="primary-btn" type="button">DRIVE AGAIN ↻</button><a href="index.html" class="secondary-btn">BACK TO SCHOOL</a></div>
+      <small class="privacy-note">This is a practice-game score. It does not change your official HPT result, certificate, or school leaderboard.</small>
+    </section>
+  </main>
+  <footer class="game-footer"><span>HAZARD PERCEPTION PRACTICE SIMULATOR</span><span id="footerSchool"></span></footer>
+</div>
+<script src="drive-yourself.js?v=89"></script>
+</body>
+</html>

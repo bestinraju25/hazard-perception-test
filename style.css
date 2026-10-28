@@ -2360,3 +2360,37 @@ body.school-stats-open{overflow:hidden}
   .schoolStatsRing strong{font-size:25px}
   .schoolStatsDialogFoot{flex-direction:column;gap:6px}
 }
+
+
+/* DRIVE YOURSELF — school portal launch and game-code gate */
+.homeTool.playGameTool{border-color:rgba(62,221,155,.52);background:linear-gradient(135deg,rgba(30,151,101,.18),rgba(22,55,47,.34));color:#c6ffe6;box-shadow:inset 0 0 0 1px rgba(75,231,165,.08)}
+.homeTool.playGameTool:hover{border-color:#4fe7a5;background:linear-gradient(135deg,rgba(30,151,101,.32),rgba(22,55,47,.48));color:#fff;box-shadow:0 0 20px rgba(38,211,139,.15)}
+.driveGameAccessModal{position:fixed;inset:0;z-index:1500;display:grid;place-items:center;padding:18px}
+.driveGameAccessBackdrop{position:absolute;inset:0;background:rgba(0,7,12,.82);backdrop-filter:blur(12px)}
+.driveGameAccessCard{position:relative;width:min(100%,430px);padding:30px;border:1px solid rgba(107,230,181,.28);border-radius:25px;background:radial-gradient(circle at 12% 0%,rgba(36,130,99,.25),transparent 42%),linear-gradient(155deg,#122a34,#07131d 72%);box-shadow:0 28px 100px rgba(0,0,0,.6);color:#f2f8f7;text-align:center}
+.driveGameAccessClose{position:absolute;right:14px;top:12px;width:34px;height:34px;border:1px solid #ffffff24;border-radius:50%;background:#ffffff09;color:#d6e3e6;font-size:23px;cursor:pointer}
+.driveGameAccessIcon{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:19px;background:linear-gradient(145deg,#20a76d,#0a513a);font-size:30px;box-shadow:0 10px 32px #12a46b42}
+.driveGameAccessEyebrow{color:#63ddb0;font-size:9px;font-weight:900;letter-spacing:2.2px}
+.driveGameAccessCard h2{margin:8px 0;font-size:30px;letter-spacing:-.8px}
+.driveGameAccessCard p{margin:0 auto 20px;max-width:310px;color:#9eb4be;font-size:13px;line-height:1.55}
+.driveGameAccessCard label{display:block;text-align:left;color:#8ca8b2;font-size:9px;font-weight:900;letter-spacing:1.5px;margin:0 0 7px}
+.driveGameAccessCard input{width:100%;height:51px;padding:0 16px;border:1px solid #315363;border-radius:13px;background:#071722;color:#fff;font-size:19px;letter-spacing:5px;text-align:center;outline:none}
+.driveGameAccessCard input:focus{border-color:#4be0a1;box-shadow:0 0 0 3px #4be0a122}
+.driveGameAccessMessage{min-height:22px;padding:7px 0 0;color:#f0c55b;font-size:11px;font-weight:800}
+.driveGameAccessMessage.bad{color:#ff8890}
+.driveGameAccessCard>button#driveGameAccessSubmit{width:100%;height:49px;margin-top:8px;border:0;border-radius:13px;background:linear-gradient(100deg,#2bc681,#137f55);color:#fff;font-size:11px;font-weight:950;letter-spacing:1px;cursor:pointer;box-shadow:0 9px 28px #16865335}
+.driveGameAccessCard>button#driveGameAccessSubmit span{float:right;margin-right:14px;font-size:18px;line-height:11px}
+.driveGameAccessCard>small{display:block;margin-top:14px;color:#8299a5;font-size:9px;line-height:1.4}
+@media(max-width:620px){.driveGameAccessCard{padding:26px 20px;border-radius:20px}.homeTool.playGameTool{padding:0 8px;gap:4px}.homeTool.playGameTool .toolIcon{font-size:13px}}
+
+
+/* DRIVE YOURSELF V89 — keep the game launcher explicit on narrow screens. */
+.driveGameAccessModal[hidden]{display:none!important}
+.homeTool.playGameTool:focus-visible,#driveGameAccessSubmit:focus-visible{outline:2px solid #69f0bb;outline-offset:3px}
+@media(max-width:760px){
+  .homeTools .homeTool.playGameTool{width:auto!important;min-width:76px!important;padding:0 7px!important;gap:4px!important;font-size:7px!important;letter-spacing:.35px!important}
+  .homeTools .homeTool.playGameTool span:not(.toolIcon){display:inline!important}
+  .homeTools .homeTool:not(.playGameTool){width:32px!important;min-width:32px!important;padding:0!important}
+  .homeTools .homeTool:not(.playGameTool) span:not(.toolIcon){display:none!important}
+}
+@media(max-width:360px){.homeTools .homeTool.playGameTool{min-width:32px!important;width:32px!important;padding:0!important}.homeTools .homeTool.playGameTool span:not(.toolIcon){display:none!important}}

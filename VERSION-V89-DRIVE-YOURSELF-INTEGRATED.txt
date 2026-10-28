@@ -1,0 +1,45 @@
+HPT V89 — DRIVE YOURSELF 3D PRACTICE GAME INTEGRATION
+Base project: User-uploaded V88 project ZIP
+
+Changes:
+- Added a PLAY GAME button to the authenticated school portal header.
+- Added a separate game access-code prompt. Demo code: 1001.
+- Added a dedicated Drive Yourself game page with original, procedural Three.js 3D scenery and a detailed compact learner car model.
+- Added a 10-hazard practice route, randomly selected from the 50-scenario practice library.
+- Added forward-only drive controls: hold Arrow Up on laptop/desktop or HOLD TO DRIVE on mobile. Release to decelerate.
+- Added BRAKE / MARK HAZARD response. This records the student's reaction and score; it does not apply vehicle braking or pause the route.
+- Road bends are followed automatically; there are no left/right steering controls.
+- Added a chase camera and a driver-seat camera.
+- Added mobile rendering quality limits and a WebGL-required message. The game does not silently substitute a 2D illustrated renderer.
+
+Data and production separation:
+- The game does not use the official HPT video files.
+- The game does not write to hpt_attempts, hpt_responses, official result tables, certificates, school reports, or leaderboards.
+- Student name and mobile number are used only in the current game session; they are not sent to the database by the game.
+- Existing official HPT exam, manager, reporting, and Supabase SQL files are unchanged.
+- No SQL migration or Edge Function deployment is required for this game patch.
+
+Launch and controls:
+1. Sign in to the school portal using the school's existing school access code.
+2. Click PLAY GAME in the portal's top bar.
+3. Enter game access code 1001.
+4. Enter student name and mobile number, then start the practice drive.
+5. Desktop/laptop: hold Arrow Up to move forward; release to slow; press Space to mark a visible hazard; press C to switch camera.
+6. Mobile/tablet: press and hold HOLD TO DRIVE; release to slow; tap BRAKE to mark a visible hazard. Use the on-screen camera button to change views.
+
+Scoring:
+- 10 hazards per session.
+- Maximum 10 points per hazard, 100 points total.
+- Faster responses earn more points; missed hazards score zero.
+- Hazards appear as the vehicle moves and each has a 4.5-second response window.
+
+Technical requirements and limitations:
+- A modern browser with WebGL and hardware acceleration is required.
+- Three.js is loaded from cdnjs; Supabase client and the existing school-verification RPC are used to verify the logged-in school.
+- The scene is an original real-time 3D prototype with custom procedural geometry and generated surface textures. It is not a pre-recorded video and is not yet a photoreal AAA simulator.
+- The demo game code 1001 is checked client-side. It is suitable for a controlled demo, not secure licensing; move the check to a server-side Supabase RPC before treating it as a protected commercial access key.
+
+This is a separate practice-game module and does not change the official HPT scoring rules.
+
+Deployment note:
+The source V88 ZIP did not contain the live repository's /videos/ binary folder. Preserve that folder when updating the current GitHub repository. The game does not reference it.

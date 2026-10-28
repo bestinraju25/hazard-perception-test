@@ -1,0 +1,167 @@
+*{box-sizing:border-box}
+:root{--bg:#06111b;--panel:#0b1d2a;--panel2:#102838;--edge:#29485b;--gold:#f4c542;--text:#f4f7fa;--muted:#91a9b8;--green:#39d98a;--red:#ff7180}
+html,body{margin:0;min-height:100%;background:#040a10;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+body{background:radial-gradient(ellipse at 12% -5%,#17364b 0,transparent 42%),radial-gradient(ellipse at 95% 15%,#252b1d 0,transparent 30%),linear-gradient(140deg,#071521,#03080e 72%);min-height:100dvh}
+button,input{font:inherit}
+button,a{-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+.app-shell{min-height:100dvh;display:flex;flex-direction:column}
+.game-header{height:76px;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,54px);border-bottom:1px solid #ffffff12;background:rgba(4,12,18,.82);backdrop-filter:blur(16px);position:sticky;top:0;z-index:20}
+.back-link{color:#9eb4c2;text-decoration:none;font-size:13px;font-weight:750;white-space:nowrap}
+.back-link:hover{color:#fff}
+.brand-lockup{display:flex;align-items:center;gap:11px;margin:0 auto}
+.brand-mark{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;border:1px solid #a9822766;background:linear-gradient(145deg,#443615,#101b20);color:var(--gold);font-size:13px;font-weight:1000;letter-spacing:1px}
+.brand-lockup div{display:flex;flex-direction:column;gap:3px}
+.brand-lockup strong{font-size:13px;letter-spacing:1.8px}
+.brand-lockup small{font-size:9px;letter-spacing:1.8px;color:var(--gold);font-weight:850}
+.school-chip{max-width:28vw;min-width:0;display:flex;align-items:center;gap:8px;overflow:hidden;padding:6px 11px;border:1px solid #345166;border-radius:30px;background:#102433;color:#b9cfdb;font-size:11px;font-weight:800}.school-chip img{width:25px;height:25px;flex:0 0 25px;object-fit:contain;border-radius:50%;background:#fff;padding:2px}.school-chip span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{width:min(1320px,calc(100% - 36px));margin:0 auto;flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 0 36px}
+.setup-layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(330px,.78fr);align-items:center;gap:clamp(32px,6vw,92px)}
+.setup-copy{padding:12px 0}
+.eyebrow{display:flex;align-items:center;gap:9px;color:var(--gold);font-size:10px;font-weight:950;letter-spacing:2px}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px #39d98a88}
+.setup-copy h1{font-size:clamp(42px,6.2vw,82px);line-height:.98;letter-spacing:-3.8px;margin:22px 0 18px;font-weight:950}
+.setup-copy h1 em{font-style:normal;color:var(--gold)}
+.setup-copy>p{max-width:640px;color:#a9bac6;line-height:1.75;font-size:clamp(15px,1.45vw,18px)}
+.feature-pills{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0}
+.feature-pills span{font-size:9px;letter-spacing:1.1px;font-weight:900;color:#b9cbd5;padding:9px 11px;border:1px solid #345164;border-radius:30px;background:rgba(16,40,56,.58)}
+.instructions-card{max-width:650px;display:grid;gap:10px;margin-top:32px}
+.instruction{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid #2b4758;border-radius:15px;background:linear-gradient(120deg,rgba(17,42,57,.82),rgba(8,22,32,.78));box-shadow:inset 0 1px #ffffff08}
+.instruction>b{width:43px;height:43px;display:grid;place-items:center;border-radius:12px;background:#eac34a1b;color:var(--gold);font-size:12px;letter-spacing:.5px;font-weight:1000}
+.instruction>div{display:flex;flex-direction:column;gap:4px}
+.instruction strong{font-size:13px}
+.instruction small{font-size:11px;color:#91a9b8;line-height:1.45}
+.go-mini{width:58px;height:43px;display:grid;place-items:center;border-radius:12px;background:#bd472f;color:#fff;font-size:10px;letter-spacing:.5px;font-weight:1000;flex:0 0 58px}
+.identity-card{padding:clamp(24px,3vw,38px);border:1px solid #365467;border-radius:24px;background:linear-gradient(145deg,rgba(18,42,57,.94),rgba(6,17,26,.96));box-shadow:0 28px 80px #0006,inset 0 1px #ffffff0b;backdrop-filter:blur(18px)}
+.card-kicker{font-size:9px;color:var(--gold);font-weight:950;letter-spacing:2px}
+.identity-card h2{font-size:28px;letter-spacing:-.7px;margin:9px 0 5px}
+.muted{font-size:12px;color:#8fa7b6;line-height:1.6;margin:0 0 22px}
+.field{display:flex;flex-direction:column;gap:8px;margin:15px 0}
+.field label{font-size:11px;font-weight:850;color:#d3e0e7}
+.field input{width:100%;height:52px;padding:0 15px;border:1px solid #3b596d;border-radius:12px;background:#06131e;color:#fff;outline:none;transition:border .2s,box-shadow .2s}
+.field input::placeholder{color:#637e8f}
+.field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px #f4c54220}
+.school-status{margin:12px 0;padding:11px 12px;border-radius:10px;background:#0d2534;color:#90adbd;font-size:11px;line-height:1.5}
+.school-status.ok{border:1px solid #286747;color:#8ce7b4;background:#0b2c1c}
+.school-status.bad{border:1px solid #75414b;color:#ff9aa5;background:#2d151b}
+.primary-btn,.secondary-btn{min-height:54px;border:0;border-radius:13px;padding:0 18px;display:inline-flex;align-items:center;justify-content:center;gap:14px;font-size:12px;font-weight:1000;letter-spacing:1.2px;text-decoration:none;cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s}
+.primary-btn{width:100%;background:linear-gradient(135deg,#ffd95d,#e9af22);color:#17202a;box-shadow:0 12px 28px #e6b53128}
+.primary-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 17px 34px #e6b53145}
+.primary-btn:disabled{opacity:.4;cursor:not-allowed}
+.primary-btn span{font-size:19px;margin-left:auto}
+.privacy-note{display:block;color:#718c9d;font-size:10px;line-height:1.5;margin-top:16px}
+.game-layout{width:100%}
+.game-topline{display:flex;align-items:center;gap:18px;margin:0 0 13px}
+.mission-info{display:flex;flex-direction:column;gap:3px;margin-right:auto}
+.mission-info .eyebrow{font-size:9px}
+.mission-info strong{font-size:14px;letter-spacing:1px}
+.mission-info small{font-size:9px;color:#8ba3b2;letter-spacing:1.1px}
+.game-score,.speed-readout{display:flex;align-items:baseline;gap:6px;padding:8px 13px;border:1px solid #29495c;background:#102433;border-radius:12px}
+.game-score small,.speed-readout small{font-size:8px;color:#87a0af;letter-spacing:1px;font-weight:900}
+.game-score strong{font-size:22px;color:var(--gold)}
+.game-score span{font-size:10px;color:#819bab}
+.speed-readout strong{font-size:21px;color:#fff}
+.simulator-frame{position:relative;width:100%;height:min(66vh,690px);min-height:410px;overflow:hidden;border:1px solid #375568;border-radius:22px;background:#101d24;box-shadow:0 28px 70px #0008,inset 0 1px #ffffff12}
+#roadCanvas{display:block;width:100%;height:100%;touch-action:none}
+.canvas-vignette{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#07121c55,transparent 22%,transparent 68%,#02070cc9),radial-gradient(ellipse at center,transparent 45%,#02060a70 100%)}
+.scene-label{position:absolute;top:18px;left:20px;color:#f0f5f8;font-size:9px;font-weight:950;letter-spacing:2px;text-shadow:0 2px 7px #000}
+.hazard-alert{position:absolute;top:18px;left:50%;transform:translateX(-50%);padding:10px 15px;border:1px solid #ffc84a88;border-radius:30px;background:#3a2a0bd9;color:#ffdf82;font-size:10px;letter-spacing:1.4px;font-weight:1000;white-space:nowrap;box-shadow:0 0 28px #ffc43a35;opacity:0;transition:opacity .25s}
+.hazard-alert.visible{opacity:1}
+.alert-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ffc542;margin-right:7px;box-shadow:0 0 9px #ffc542}
+.drive-hint{position:absolute;left:50%;top:62px;transform:translateX(-50%);font-size:9px;letter-spacing:1.2px;font-weight:900;color:#ffffffbd;text-shadow:0 2px 8px #000;white-space:nowrap}
+.sim-bottom{position:absolute;inset:auto 18px 17px;display:grid;grid-template-columns:minmax(100px,1fr) minmax(130px,180px) minmax(100px,1fr);gap:16px;align-items:end}
+.distance-meter,.reaction-meter{padding:10px 12px;border:1px solid #ffffff27;border-radius:12px;background:#07131bd9;backdrop-filter:blur(8px)}
+.distance-meter span,.reaction-meter span{display:block;font-size:8px;color:#a7bac5;font-weight:900;letter-spacing:1.2px;margin-bottom:8px}
+.distance-meter>div,.reaction-meter>div{height:4px;border-radius:5px;background:#294252;overflow:hidden}
+.distance-meter i,.reaction-meter i{display:block;width:0;height:100%;background:var(--gold);border-radius:5px;transition:width .12s}
+.reaction-meter b{display:block;font-size:10px;color:#f4d16c;margin-bottom:7px;letter-spacing:1px}
+.reaction-meter i{background:#53dc9a}
+.go-button{height:84px;border:2px solid #ffe1bc;border-radius:50%;background:radial-gradient(circle at 35% 28%,#ffbe65,#d94a32 72%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 8px #e75a3528,0 12px 30px #0008;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;transition:transform .12s,filter .12s}
+.go-button span{font-size:18px;font-weight:1000;letter-spacing:2px}
+.go-button small{font-size:7px;letter-spacing:1px;font-weight:900}
+.go-button.active{transform:scale(.94);filter:brightness(1.18);box-shadow:0 0 0 12px #e75a3545,0 6px 16px #0008}
+.go-button:disabled{opacity:.48;cursor:not-allowed}.brake-button{min-width:150px;letter-spacing:.7px}.brake-button span{font-size:18px}.brake-button small{font-size:7px}
+.game-controls-note{display:flex;align-items:center;gap:18px;color:#728b9a;font-size:9px;letter-spacing:1px;font-weight:850;margin:12px 2px}
+.game-controls-note button{margin-left:auto;border:0;background:none;color:#9bb0bc;font-size:9px;font-weight:900;letter-spacing:1px;cursor:pointer}
+.game-controls-note button:hover{color:#ff8795}
+.feedback-overlay,.countdown-overlay,.pause-overlay{position:absolute;inset:0;display:grid;place-items:center;background:#020910a8;backdrop-filter:blur(9px);z-index:5}
+.feedback-card{width:min(420px,calc(100% - 32px));padding:28px;text-align:center;border:1px solid #526b78;border-radius:22px;background:linear-gradient(145deg,#172f3d,#07131c);box-shadow:0 25px 70px #0009;animation:cardPop .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes cardPop{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.feedback-icon{font-size:34px}.feedback-title{font-size:16px;font-weight:1000;letter-spacing:1.5px;margin:8px 0}
+.feedback-points{font-size:40px;font-weight:1000;color:var(--gold)}
+.feedback-card p{color:#9bb0bc;font-size:12px;line-height:1.55;margin:8px 0 18px}
+.countdown-overlay span{font-size:120px;color:var(--gold);font-weight:1000;text-shadow:0 8px 35px #ffc94055;animation:countPop .75s ease infinite}
+.countdown-overlay small{position:absolute;top:calc(50% + 70px);color:#dce6ec;font-weight:900;letter-spacing:4px;font-size:10px}
+@keyframes countPop{0%{transform:scale(.82);opacity:.6}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:.9}}
+.pause-overlay{background:#02091077;color:#fff;display:flex;flex-direction:column;gap:7px}
+.pause-overlay strong{font-size:20px;letter-spacing:2px}.pause-overlay span{font-size:12px;color:#b4c5cf}
+.final-screen{width:min(820px,100%);margin:0 auto;padding:36px;border:1px solid #41576a;border-radius:25px;background:linear-gradient(145deg,rgba(19,43,57,.97),rgba(5,15,23,.98));box-shadow:0 28px 80px #0007;text-align:center;animation:cardPop .4s ease}
+.final-emblem{font-size:48px;margin-bottom:5px}
+.final-screen h1{font-size:clamp(27px,4.5vw,48px);margin:8px 0}
+.final-screen h1 span{color:var(--gold)}
+.final-score{display:flex;align-items:baseline;justify-content:center;gap:8px;margin:16px 0}
+.final-score strong{font-size:clamp(65px,10vw,105px);line-height:1;color:var(--gold);font-weight:1000}
+.final-score span{color:#8da6b5;font-size:20px}
+.final-screen>p{color:#a7bbc7;font-size:13px}
+.badge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:24px 0}
+.game-badge{padding:16px 12px;border:1px solid #9a792e66;border-radius:15px;background:linear-gradient(140deg,#3a2d1229,#102331)}
+.game-badge span{font-size:25px}.game-badge strong{display:block;font-size:11px;margin-top:8px}.game-badge small{font-size:9px;color:#92a9b7}
+.mission-review{display:grid;gap:7px;text-align:left;margin:22px 0}
+.review-row{display:grid;grid-template-columns:32px minmax(0,1fr) 55px;gap:10px;align-items:center;padding:10px 12px;border:1px solid #263f4f;border-radius:11px;background:#091823}
+.review-row>span{color:var(--gold);font-weight:950}.review-row strong{font-size:11px}.review-row small{display:block;font-size:9px;color:#829aa9;margin-top:4px}.review-row b{text-align:right;color:var(--gold);font-size:14px}
+.final-actions{display:flex;justify-content:center;gap:12px;margin-top:25px}
+.final-actions .primary-btn{width:auto;min-width:180px}
+.secondary-btn{border:1px solid #3b5b70;background:#112b3b;color:#dbe6ec}
+.secondary-btn:hover{background:#1a3d50}
+.game-footer{width:min(1320px,calc(100% - 36px));margin:0 auto;padding:15px 0 20px;display:flex;justify-content:space-between;gap:10px;color:#5f7889;font-size:8px;font-weight:850;letter-spacing:1.3px}
+@media(max-width:900px){main{width:min(100% - 28px,760px);padding:22px 0}.setup-layout{grid-template-columns:1fr;gap:22px}.setup-copy{padding:8px 0 0}.setup-copy h1{font-size:clamp(43px,10vw,68px);margin:13px 0}.setup-copy>p{font-size:14px}.feature-pills{margin:17px 0}.instructions-card{margin-top:16px;grid-template-columns:1fr 1fr}.identity-card{max-width:620px;width:100%;margin:0 auto}}
+@media(max-width:600px){.game-header{height:62px;padding:0 12px;gap:8px}.back-link{font-size:0}.back-link:first-letter{font-size:17px}.brand-lockup{gap:7px}.brand-mark{width:35px;height:35px;border-radius:10px;font-size:11px}.brand-lockup strong{font-size:10px;letter-spacing:1px}.brand-lockup small{font-size:7px;letter-spacing:1px}.school-chip{max-width:32vw;padding:7px 9px;font-size:9px}main{width:calc(100% - 22px);padding:16px 0 22px}.setup-copy h1{font-size:43px;letter-spacing:-2.2px}.setup-copy>p{font-size:13px}.feature-pills span{font-size:8px;padding:7px 8px}.instructions-card{gap:7px}.instruction{padding:10px;gap:8px}.instruction>b,.go-mini{width:34px;height:34px;flex:0 0 34px}.go-mini{font-size:8px;letter-spacing:0}.instruction strong{font-size:11px}.instruction small{font-size:9px}.identity-card{padding:22px 18px;border-radius:19px}.identity-card h2{font-size:24px}.game-topline{gap:7px}.mission-info strong{font-size:11px}.mission-info small{font-size:8px}.game-score,.speed-readout{padding:7px 8px;gap:4px}.game-score small,.speed-readout small{font-size:7px}.game-score strong,.speed-readout strong{font-size:17px}.simulator-frame{height:65dvh;min-height:380px;border-radius:15px}.scene-label{top:12px;left:12px;font-size:7px}.hazard-alert{top:12px;font-size:8px;padding:8px 10px;letter-spacing:.6px}.drive-hint{top:52px;font-size:7px}.sim-bottom{inset:auto 9px 10px;grid-template-columns:1fr 94px 1fr;gap:6px;align-items:end}.distance-meter,.reaction-meter{padding:8px 7px;border-radius:9px}.distance-meter span,.reaction-meter span{font-size:6px;letter-spacing:.5px;margin-bottom:6px}.reaction-meter b{font-size:8px}.go-button{height:82px;width:82px;margin:0 auto}.brake-button{min-width:0;width:88px}.go-button span{font-size:19px}.go-button small{font-size:6px}.game-controls-note{font-size:7px;gap:7px;letter-spacing:.5px}.game-controls-note button{font-size:8px}.feedback-card{padding:22px 17px}.countdown-overlay span{font-size:90px}.final-screen{padding:24px 15px}.badge-grid{grid-template-columns:1fr 1fr}.final-actions{flex-direction:column}.final-actions .primary-btn,.final-actions .secondary-btn{width:100%}.game-footer{font-size:7px;letter-spacing:.5px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* V2 driving controls and camera selector */
+.view-mode-btn{position:absolute;right:18px;top:15px;z-index:4;padding:8px 11px;border:1px solid #dbe8ef55;border-radius:20px;background:#081720cf;color:#e5edf2;font-size:8px;font-weight:950;letter-spacing:1px;cursor:pointer;backdrop-filter:blur(7px)}
+.view-mode-btn:hover{border-color:#f4c542;color:#f4c542}
+.drive-touch-controls{position:absolute;left:18px;right:18px;bottom:112px;z-index:4;display:none;align-items:center;justify-content:space-between;pointer-events:none}
+.steering-pad{display:flex;gap:9px;pointer-events:auto}
+.steering-pad button,.accelerate-control{width:54px;height:54px;border:1px solid #d5e2e988;border-radius:50%;background:#0b1d2bdc;color:#fff;font-size:20px;font-weight:950;box-shadow:0 5px 18px #0008;touch-action:none;user-select:none;-webkit-user-select:none}
+.steering-pad button.active,.accelerate-control.active{transform:scale(.94);filter:brightness(1.25);border-color:#f4c542}
+.accelerate-control{width:auto;min-width:105px;height:48px;padding:0 14px;border-radius:14px;background:linear-gradient(145deg,#1f9e76,#08714f);font-size:9px;letter-spacing:1px}
+@media(max-width:600px){.view-mode-btn{top:10px;right:10px;padding:7px 9px;font-size:7px}.drive-touch-controls{display:flex;left:10px;right:10px;bottom:111px}.steering-pad{gap:6px}.steering-pad button{width:46px;height:46px}.accelerate-control{min-width:88px;height:43px;padding:0 10px;font-size:8px}.drive-hint{max-width:82%;overflow:hidden;text-overflow:ellipsis}.game-controls-note{flex-wrap:wrap}.game-controls-note span:nth-child(2){display:none}}
+@media(min-width:601px){.drive-touch-controls{display:none!important}}
+
+.graphics-notice{position:absolute;right:16px;top:52px;z-index:4;max-width:min(520px,70%);padding:8px 11px;border:1px solid #e7b64a88;border-radius:9px;background:#3a2a0be8;color:#ffdf82;font-size:8px;font-weight:950;letter-spacing:.75px;line-height:1.45;text-align:center;box-shadow:0 5px 18px #0006}
+@media(max-width:600px){.graphics-notice{top:42px;right:8px;max-width:80%;font-size:6px;padding:6px 8px}}
+
+
+/* DRIVE YOURSELF V5 — 10-hazard route controls and upgraded game HUD */
+.drive-touch-controls{position:absolute;left:18px;right:auto;bottom:112px;z-index:4;display:none;align-items:center;justify-content:flex-start;pointer-events:none}
+.accelerate-control{width:124px;min-width:124px;height:70px;padding:7px 10px;border:1px solid rgba(183,247,222,.66);border-radius:17px;background:linear-gradient(145deg,#168b61,#07533f);color:#f3fff9;box-shadow:0 10px 26px rgba(0,0,0,.45),inset 0 1px rgba(255,255,255,.24);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none}
+.accelerate-control span{font-size:23px;line-height:22px;font-weight:1000}
+.accelerate-control strong{font-size:9px;letter-spacing:1px;font-weight:1000}
+.accelerate-control small{font-size:6px;letter-spacing:.8px;font-weight:850;opacity:.78}
+.accelerate-control.active{transform:translateY(2px) scale(.97);filter:brightness(1.22);box-shadow:0 0 0 5px rgba(68,225,163,.16),0 4px 12px rgba(0,0,0,.45)}
+.brake-button{background:radial-gradient(circle at 36% 25%,#ff9a80,#bd2b28 72%);border-color:#ffd3c6;box-shadow:0 0 0 7px #eb543126,0 12px 30px #0008}
+.brake-button small{max-width:118px;text-align:center;line-height:1.2}
+.response-toast{position:absolute;left:50%;top:75px;z-index:8;transform:translate(-50%,-12px);padding:12px 18px;border:1px solid #63e8b0;border-radius:999px;background:rgba(4,32,27,.94);color:#caffea;font-size:12px;font-weight:1000;letter-spacing:1px;box-shadow:0 12px 40px #0008;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;white-space:nowrap}
+.response-toast.show{opacity:1;transform:translate(-50%,0)}
+.response-toast.miss{border-color:#ff8b84;background:rgba(48,10,13,.95);color:#ffd6d2}
+.game-controls-note{flex-wrap:wrap}
+.graphics-notice{max-width:min(90%,600px);line-height:1.5;text-align:center}
+@media(max-width:600px){
+ .simulator-frame{height:68dvh;min-height:420px}
+ .drive-touch-controls{display:flex;left:9px;right:auto;bottom:112px}
+ .accelerate-control{width:102px;min-width:102px;height:64px;border-radius:15px}
+ .accelerate-control span{font-size:20px;line-height:19px}
+ .accelerate-control strong{font-size:8px}
+ .accelerate-control small{font-size:5.5px}
+ .sim-bottom{grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);gap:5px}
+ .go-button{width:84px;height:84px}
+ .response-toast{top:68px;max-width:92%;font-size:9px;padding:10px 13px}
+ .drive-hint{max-width:86%;font-size:7px}
+}
+@media(min-width:601px){.drive-touch-controls{display:none!important}}
+
+/* Selected school colour is reflected in the practice-game identity. */
+.brand-mark{color:var(--school-accent,var(--gold));border-color:color-mix(in srgb,var(--school-accent,var(--gold)) 45%,transparent)}
+.brand-lockup small,.game-score strong,.mission-info .eyebrow{color:var(--school-accent,var(--gold))}
+@media(max-width:600px){.school-chip{gap:5px;padding:5px 7px;font-size:8px}.school-chip img{width:20px;height:20px;flex-basis:20px}}
