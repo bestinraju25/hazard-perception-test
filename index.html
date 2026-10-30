@@ -84,7 +84,7 @@
     <div class="timer" id="timer">00:50</div>
   </div>
   <div class="homeTools" id="homeTools" aria-label="HPT home controls">
-    <button id="playGameBtn" class="homeTool playGameTool" type="button" title="Launch the 3D hazard perception driving game" aria-label="Play game"><span class="toolIcon">🚗</span><span>PLAY GAME</span></button>
+    <button id="learnerTestBtn" class="homeTool learnerTestTool" type="button" title="Open Learner’s Test practice and mock examination" aria-label="Learner test"><span class="toolIcon">📘</span><span>LEARNER’S TEST</span></button>
     <button id="schoolStatsBtn" class="homeTool schoolStatsTool" type="button" title="Open lifetime school statistics in a new window" aria-label="School statistics"><span class="toolIcon">▥</span><span>SCHOOL STATS</span></button>
     <button id="exitSchoolBtn" class="homeTool exitSchoolBtn" type="button" title="Exit to school access screen" aria-label="Exit to school access screen"><span class="toolIcon">↩</span><span>EXIT</span></button>
     <button id="homeAttemptsBtn" class="homeTool" type="button" title="View previous HPT attempts"><span class="toolIcon">↺</span><span>MY ATTEMPTS</span></button>
@@ -254,20 +254,45 @@
   </div></div>
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
-<div id="driveGameAccessModal" class="driveGameAccessModal" hidden role="dialog" aria-modal="true" aria-labelledby="driveGameAccessTitle">
-  <div class="driveGameAccessBackdrop" data-drive-game-close></div>
-  <section class="driveGameAccessCard">
-    <button class="driveGameAccessClose" type="button" data-drive-game-close aria-label="Close">×</button>
-    <div class="driveGameAccessIcon">🚗</div>
-    <div class="driveGameAccessEyebrow">EXTRA PRACTICE EXPERIENCE</div>
-    <h2 id="driveGameAccessTitle">Drive Yourself</h2>
-    <p>Enter the game access code to launch your school's 3D hazard-perception driving experience.</p>
-    <label for="driveGameAccessCode">GAME ACCESS CODE</label>
-    <input id="driveGameAccessCode" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Enter game code">
-    <div id="driveGameAccessMessage" class="driveGameAccessMessage" role="status" aria-live="polite"></div>
-    <button id="driveGameAccessSubmit" type="button">UNLOCK GAME <span>→</span></button>
-    <small>Practice game only. Official HPT scores and reports remain separate.</small>
-  </section>
-</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=88"></script><script src="play-game-launch.js?v=89"></script></body></html>
+<script src="app.js?v=92"></script><script>
+(()=>{
+ const button=document.getElementById('learnerTestBtn');
+ let learnerLayer=null,learnerFrame=null,wasFullscreenBeforeLearner=false;
+ function sameOriginMessage(event){return location.origin==='null'?event.origin==='null':event.origin===location.origin}
+ window.addEventListener('message',event=>{
+  if(!learnerFrame||event.source!==learnerFrame.contentWindow||!sameOriginMessage(event))return;
+  if(event.data&&event.data.type==='HPT_LEARNER_EXIT'){
+   learnerLayer?.remove();learnerLayer=null;learnerFrame=null;
+   if(!wasFullscreenBeforeLearner&&document.fullscreenElement){document.exitFullscreen().catch(()=>{});}
+  }
+ });
+ button?.addEventListener('click',()=>{
+  const session=sessionStorage.getItem('hpt_school_session');
+  if(!session){alert('Please sign in through your driving school first.');return;}
+  if(learnerLayer)return;
+  wasFullscreenBeforeLearner=!!document.fullscreenElement;
+  learnerLayer=document.createElement('div');
+  learnerLayer.id='learnerTestFullscreenLayer';
+  learnerLayer.style.cssText='position:fixed;inset:0;z-index:2147483000;width:100vw;height:100vh;height:100svh;background:#04121e;overflow:hidden;';
+  learnerFrame=document.createElement('iframe');
+  learnerFrame.title='Kerala Learner’s Test';
+  learnerFrame.src='learner-test.html?v=97';
+  learnerFrame.allow='fullscreen';
+  learnerFrame.setAttribute('allowfullscreen','');
+  learnerFrame.style.cssText='display:block;width:100%;height:100%;border:0;background:#04121e;';
+  const schoolSession=JSON.parse(session);
+  learnerFrame.addEventListener('load',()=>{
+   const messageOrigin=location.origin==='null'?'*':location.origin;
+   learnerFrame.contentWindow.postMessage({type:'HPT_SCHOOL_SESSION',session:schoolSession},messageOrigin);
+  });
+  learnerLayer.appendChild(learnerFrame);
+  document.body.appendChild(learnerLayer);
+  // Request fullscreen during this actual button click; navigation inside the iframe
+  // no longer tears down the school portal's fullscreen document.
+  if(!wasFullscreenBeforeLearner&&document.documentElement.requestFullscreen){
+   document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});
+  }
+ });
+})();
+</script></body></html>
