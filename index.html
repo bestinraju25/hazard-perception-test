@@ -29,7 +29,7 @@
 <meta name="twitter:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
 <link rel="icon" href="school-placeholder.svg" type="image/svg+xml">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=89">
+<link rel="stylesheet" href="style.css?v=100">
 <script src="hpt-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -84,10 +84,10 @@
     <div class="timer" id="timer">00:50</div>
   </div>
   <div class="homeTools" id="homeTools" aria-label="HPT home controls">
-    <button id="learnerTestBtn" class="homeTool learnerTestTool" type="button" title="Open Learner’s Test practice and mock examination" aria-label="Learner test"><span class="toolIcon">📘</span><span>LEARNER’S TEST</span></button>
+    
     <button id="schoolStatsBtn" class="homeTool schoolStatsTool" type="button" title="Open lifetime school statistics in a new window" aria-label="School statistics"><span class="toolIcon">▥</span><span>SCHOOL STATS</span></button>
     <button id="exitSchoolBtn" class="homeTool exitSchoolBtn" type="button" title="Exit to school access screen" aria-label="Exit to school access screen"><span class="toolIcon">↩</span><span>EXIT</span></button>
-    <button id="homeAttemptsBtn" class="homeTool" type="button" title="View previous HPT attempts"><span class="toolIcon">↺</span><span>MY ATTEMPTS</span></button>
+    <button id="homeAttemptsBtn" class="homeTool" type="button" title="View the student profile and combined test records"><span class="toolIcon">▤</span><span>STUDENT PROFILE</span></button>
     <button id="homeFullBtn" class="homeTool iconOnly" type="button" title="Enter fullscreen"><span>⛶</span></button>
   </div>
 </header>
@@ -190,7 +190,7 @@
         <label><span>Candidate Name</span><input id="name" autocomplete="name" placeholder="Enter full name"></label>
         <label><span>Phone Number</span><input id="phone" inputmode="tel" autocomplete="tel" placeholder="Enter phone number"></label>
       </div>
-      <button id="startBtn" class="primary startExamBtn" type="button"><span>START EXAM</span><b>→</b></button>
+      <button id="startBtn" class="primary startExamBtn" type="button"><span>CONTINUE</span><b>→</b></button>
       <div class="cardBottom"><span class="keyboardHint">Your result is saved automatically</span></div>
     </div>
   </div>
@@ -244,7 +244,24 @@
     </div>
   </section>
 </div>
-<div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>MY HPT ATTEMPTS</h3><p class="attemptIntro">Enter the mobile number used for your examination to view your previous attempts.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW</button></div><div id="attemptMsg" class="attemptMsg"></div><div id="attemptList" class="attemptList"><div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div></div><div class="attemptPrivacy">Only examination records matching the entered mobile number are shown.</div></div></div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div class="modal fade report-modal" id="fullReportModal" tabindex="-1" aria-labelledby="fullReportTitle" aria-hidden="true">
+<div id="testSelectionModal" class="testSelectionModal" hidden role="dialog" aria-modal="true" aria-labelledby="testSelectionTitle">
+ <div class="testSelectionBackdrop" data-test-selection-close></div>
+ <section class="testSelectionCard">
+  <button id="testSelectionClose" class="testSelectionClose" type="button" aria-label="Close test selection">×</button>
+  <div class="testSelectionEyebrow">SELECT YOUR TEST</div><h2 id="testSelectionTitle">Choose the test you want to take</h2>
+  <button id="chooseHptBtn" type="button" class="testChoice"><span class="choiceIcon hazardChoiceIcon">⚠️</span><span class="choiceCopy"><strong>HAZARD PERCEPTION TEST</strong><small>Watch driving clips and identify developing road hazards.</small></span><span class="choiceArrow">›</span></button>
+  <button id="chooseLearnerBtn" type="button" class="testChoice"><span class="choiceIcon learnerChoiceIcon">☑️</span><span class="choiceCopy"><strong>LEARNER’S MOCK TEST</strong><small>30 multiple-choice questions based on the Kerala MVD Learner’s Test.</small></span><span class="choiceArrow">›</span></button>
+ </section>
+</div>
+<div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>STUDENT PROFILE</h3><p class="attemptIntro">Enter the student’s mobile number to view their HPT and Learner’s Mock Test history.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW PROFILE</button></div><div id="attemptMsg" class="attemptMsg"></div>
+<div id="studentProfileSummary" class="studentProfileSummary" hidden>
+ <div class="profileIdentity"><div><strong id="studentProfileName">—</strong><span id="studentProfileSchool">—</span></div><button id="printStudentProfileBtn" type="button" class="profilePrintBtn">⎙ PRINT A4</button></div>
+ <div class="profileKpis"><article><small>HPT ATTEMPTS</small><b id="profileHptAttempts">0</b></article><article><small>LEARNER ATTEMPTS</small><b id="profileLearnerAttempts">0</b></article><article><small>BEST HPT SCORE</small><b id="profileBestHpt">— / 100</b></article><article><small>BEST LEARNER SCORE</small><b id="profileBestLearner">— / 30</b></article></div>
+ <section class="profileHistory"><h4>LEARNER’S MOCK TEST HISTORY</h4><div id="learnerHistoryList"><div class="attemptEmpty">No Learner’s Mock Test attempts found.</div></div></section>
+</div>
+<div class="profileHptHeading">HAZARD PERCEPTION TEST HISTORY</div>
+<div id="attemptList" class="attemptList"><div class="attemptEmpty">Enter a mobile number to view both test histories.</div></div>
+<div class="attemptPrivacy">Results are limited to the currently selected driving school.</div></div></div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div class="modal fade report-modal" id="fullReportModal" tabindex="-1" aria-labelledby="fullReportTitle" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
     <div class="modal-header report-modal-header"><div><div class="report-modal-kicker">HAZARD PERCEPTION TEST</div><h2 class="modal-title" id="fullReportTitle">Full examination report</h2><div id="reportCandidateMeta" class="report-candidate-meta"></div></div><button type="button" class="btn-close btn-close-white" id="closeFullReportBtn" data-bs-dismiss="modal" aria-label="Close"></button></div>
     <div class="modal-body"><div id="reportSummary" class="report-summary-strip"></div>
@@ -255,9 +272,8 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=92"></script><script>
+<script src="app.js?v=100"></script><script>
 (()=>{
- const button=document.getElementById('learnerTestBtn');
  let learnerLayer=null,learnerFrame=null,wasFullscreenBeforeLearner=false;
  function sameOriginMessage(event){return location.origin==='null'?event.origin==='null':event.origin===location.origin}
  window.addEventListener('message',event=>{
@@ -267,32 +283,23 @@
    if(!wasFullscreenBeforeLearner&&document.fullscreenElement){document.exitFullscreen().catch(()=>{});}
   }
  });
- button?.addEventListener('click',()=>{
+ window.HPTLaunchLearnerTest=()=>{
   const session=sessionStorage.getItem('hpt_school_session');
-  if(!session){alert('Please sign in through your driving school first.');return;}
+  if(!session){alert('Please sign in through your driving school first.');return}
   if(learnerLayer)return;
   wasFullscreenBeforeLearner=!!document.fullscreenElement;
-  learnerLayer=document.createElement('div');
-  learnerLayer.id='learnerTestFullscreenLayer';
-  learnerLayer.style.cssText='position:fixed;inset:0;z-index:2147483000;width:100vw;height:100vh;height:100svh;background:#04121e;overflow:hidden;';
-  learnerFrame=document.createElement('iframe');
-  learnerFrame.title='Kerala Learner’s Test';
-  learnerFrame.src='learner-test.html?v=97';
-  learnerFrame.allow='fullscreen';
-  learnerFrame.setAttribute('allowfullscreen','');
-  learnerFrame.style.cssText='display:block;width:100%;height:100%;border:0;background:#04121e;';
+  learnerLayer=document.createElement('div');learnerLayer.id='learnerTestFullscreenLayer';
+  learnerLayer.style.cssText='position:fixed;inset:0;z-index:2147483000;width:100vw;height:100vh;height:100svh;background:#fff;overflow:hidden;';
+  learnerFrame=document.createElement('iframe');learnerFrame.title='Kerala Learner’s Test';
+  learnerFrame.src='learner-test.html?v=100';learnerFrame.allow='fullscreen';learnerFrame.setAttribute('allowfullscreen','');
+  learnerFrame.style.cssText='display:block;width:100%;height:100%;border:0;background:#fff;';
   const schoolSession=JSON.parse(session);
   learnerFrame.addEventListener('load',()=>{
    const messageOrigin=location.origin==='null'?'*':location.origin;
-   learnerFrame.contentWindow.postMessage({type:'HPT_SCHOOL_SESSION',session:schoolSession},messageOrigin);
+   learnerFrame.contentWindow.postMessage({type:'HPT_SCHOOL_SESSION',session:schoolSession,candidate:JSON.parse(sessionStorage.getItem('hpt_learner_candidate')||'null')},messageOrigin);
   });
-  learnerLayer.appendChild(learnerFrame);
-  document.body.appendChild(learnerLayer);
-  // Request fullscreen during this actual button click; navigation inside the iframe
-  // no longer tears down the school portal's fullscreen document.
-  if(!wasFullscreenBeforeLearner&&document.documentElement.requestFullscreen){
-   document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});
-  }
- });
+  learnerLayer.appendChild(learnerFrame);document.body.appendChild(learnerLayer);
+  if(!wasFullscreenBeforeLearner&&document.documentElement.requestFullscreen){document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});}
+ };
 })();
 </script></body></html>

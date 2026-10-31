@@ -12,3 +12,7 @@ The error `relation "public.hpt_attempts" does not exist` means the SQL query be
 Do not run the old `supabase-hpt-v13-results.sql`, `supabase-hpt-v14-candidate-history.sql`, or other incremental HPT SQL scripts instead of the complete multi-school migration. Those are add-on scripts and assume the base HPT tables already exist.
 
 This setup does not drop existing tables. As with any database migration, review errors before retrying and do not delete production data to resolve a missing-table error.
+
+
+Learner's Mock Test + Student Profile (V100)
+After the complete base HPT multi-school schema is already installed, run `16-learner-test-and-student-profile.sql` in the same Supabase project. This additive migration adds `learner_score` to `hpt_attempts`, creates the school-scoped `hpt_learner_attempts` history table and installs the school access-code-validated RPCs used by Learner's Mock Test and Student Profile. Do not run it before the base `hpt_schools`, `hpt_attempts` and `hpt_responses` tables exist. Back up the project first and review any SQL error before retrying.

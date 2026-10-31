@@ -1,0 +1,9 @@
+HPT ONLINE WEBSITE V100
+
+Included: candidate details -> Continue -> HPT/ Learner Mock test picker; MVD LEADS-inspired Learner Mock instructions and white exam UI; official bilingual 200-question source bank and local image assets; 30-question, 15-minute, 18/30 mock; per-attempt answer review; school-scoped learner attempt persistence and Student Profile/A4 report; combined HPT and learner scores in provider view.
+
+Question-text pass: fixed obvious merged words/punctuation where supported, including First aid, Give way to, Not more than 50 km/hr, the question-bank typo suffix on Q1461, and joined terms in Q1421, 1427, 1431, 1445, 1446, 1470, 1472-1473, 1495-1508, 1511-1513, 1524, 1536 and 1540-1544. All question IDs, image references, and correct-option indexes preserved. The English PDF itself contains a few awkward/ambiguous source phrases (for example Q1491 option 2); they are not rewritten beyond obvious spacing fixes.
+
+REQUIRED: run 16-learner-test-and-student-profile.sql after the base HPT multi-school schema, then deploy the complete folder over HTTPS. See README-V100-LEARNER-MOCK-STUDENT-PROFILE.txt.
+
+VIDEO ASSETS NOTE: No local MP4/WebM assets were present in the supplied source ZIP. Existing HPT video configuration and code were not changed; remote media must remain available at its current source.

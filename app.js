@@ -403,11 +403,30 @@ function changeSchool(){
   document.body.classList.remove('home-active','exam-active','result-active');
   loadGlobalMonthlyTopThree();
 }
-async function begin(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}
+async function beginHPTExam(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}
   try{const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:schoolAccessCode});if(error)throw error;const status=Array.isArray(data)?data[0]:data;if(status?.status==='disabled'||!(status?.school?.id||status?.id)){changeSchool();setGateMessage(status?.status==='disabled'?'HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.':'SCHOOL ACCESS COULD NOT BE VERIFIED. PLEASE CONTACT THE PROVIDER.',true);return}}
   catch(e){console.warn('School access revalidation failed:',e);toast('Could not verify school access. Please try again.',true);return}
   clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
 updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
+function begin(){
+  buttonFeedback();
+  const n=$('name').value.trim(),p=$('phone').value.trim();
+  if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}
+  if(!n){toast('Enter candidate name.',true);$('name').focus();return}
+  const digits=p.replace(/\D/g,'');
+  if(digits.length<10||digits.length>15){toast('Enter a valid mobile number.',true);$('phone').focus();return}
+  candidate={name:n,phone:p};
+  try{sessionStorage.setItem('hpt_learner_candidate',JSON.stringify({name:n,phone:p,school_id:activeSchool.id,school_name:activeSchool.school_name,selected_at:new Date().toISOString()}))}catch{}
+  const modal=$('testSelectionModal');if(modal)modal.hidden=false;
+}
+function closeTestSelection(){const modal=$('testSelectionModal');if(modal)modal.hidden=true}
+function chooseHptTest(){closeTestSelection();beginHPTExam()}
+function chooseLearnerTest(){
+  closeTestSelection();
+  const learnerCandidate={name:$('name').value.trim(),phone:$('phone').value.trim(),school_id:activeSchool?.id,school_name:activeSchool?.school_name,selected_at:new Date().toISOString(),mode:'mock'};
+  try{sessionStorage.setItem('hpt_learner_candidate',JSON.stringify(learnerCandidate))}catch{}
+  if(typeof window.HPTLaunchLearnerTest==='function')window.HPTLaunchLearnerTest();else toast('Learner’s Mock Test could not be opened. Please refresh and try again.',true);
+}
 async function printCertificate(examOverride=null,candidateOverride=null){
   // Ignore browser click events; only a genuine saved exam object may override _lastExam.
   const isExamObject=examOverride&&typeof examOverride==='object'&&
@@ -438,41 +457,67 @@ async function printCertificate(examOverride=null,candidateOverride=null){
 }
 async function imageData(url){return await new Promise((resolve,reject)=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;const x=c.getContext('2d');x.drawImage(img,0,0);resolve(c.toDataURL('image/png'))}catch(e){reject(e)}};img.onerror=reject;img.src=url+(url.includes('?')?'&':'?')+'v='+Date.now()})}
 async function lookupAttempts(){
-  const phoneInput=$('attemptPhone');const msg=$('attemptMsg');const list=$('attemptList');
+  const phoneInput=$('attemptPhone'),msg=$('attemptMsg'),list=$('attemptList');
   const phone=(phoneInput?.value||'').trim();
-  if(!phone){if(msg){msg.textContent='Enter your mobile number.';msg.className='attemptMsg bad'}return}
-  if(msg){msg.textContent='Searching…';msg.className='attemptMsg'}
-  list.innerHTML='<div class="attemptLoading">Loading your examination attempts…</div>';
+  if(!phone){if(msg){msg.textContent='Enter the student mobile number.';msg.className='attemptMsg bad'}return}
+  if(!activeSchool?.id||!schoolAccessCode){if(msg){msg.textContent='Please sign in with the correct school access code.';msg.className='attemptMsg bad'}return}
+  if(msg){msg.textContent='Searching both examination records…';msg.className='attemptMsg'}
+  $('studentProfileSummary').hidden=true;list.innerHTML='<div class="attemptLoading">Loading student examination records…</div>';
+  $('learnerHistoryList').innerHTML='<div class="attemptLoading">Loading Learner’s Mock Test history…</div>';
   const sb=await supabase();
   if(!sb){list.innerHTML='';if(msg){msg.textContent='Results service is unavailable. Please try again.';msg.className='attemptMsg bad'}return}
+  let profile=null,rows=[];
   try{
-    const {data,error}=activeSchool?.id?await sb.rpc('hpt_get_candidate_attempts_by_school',{p_phone:phone,p_school_id:activeSchool.id}):await sb.rpc('hpt_get_candidate_attempts',{p_phone:phone});
-    if(error)throw error;
-    const rows=data||[];
-    if(!rows.length){list.innerHTML='<div class="attemptEmpty">No HPT attempts found for this mobile number.</div>';if(msg){msg.textContent='';msg.className='attemptMsg'}return}
-    if(msg){msg.textContent=`${rows.length} attempt${rows.length===1?'':'s'} found`;msg.className='attemptMsg ok'}
-    list.innerHTML=rows.map((r,i)=>{
-      const passed=Number(r.total_score||0)>=C.passMark;
-      const d=new Date(r.completed_at||r.started_at);
-      return `<article class="attemptCard"><div class="attemptTop"><div><span class="attemptDate">${d.toLocaleDateString('en-IN')} • ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span><strong>Attempt ${rows.length-i}</strong></div><span class="attemptStatus ${passed?'pass':'fail'}">${passed?'PASS':'NOT PASSED'}</span></div><div class="attemptScore"><b>${Number(r.total_score||0)}</b><span>/ 100</span></div><div class="attemptMeta">Pass mark ${C.passMark} • ${passed?'Certificate available':'Certificate not available'}</div><div class="attemptActions"><button class="attemptReportBtn" type="button" data-attempt-report="${escHtml(r.id)}">VIEW FULL REPORT</button>${passed?`<button class="attemptCertBtn" type="button" data-attempt-cert="${escHtml(r.id)}">↓ DOWNLOAD CERTIFICATE</button>`:''}</div></article>`
+    const [pr,hr]=await Promise.all([
+      sb.rpc('hpt_get_student_profile_by_school',{p_phone:phone,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode}),
+      sb.rpc('hpt_get_candidate_attempts_by_school',{p_phone:phone,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode})
+    ]);
+    if(pr.error)throw pr.error;
+    profile=Array.isArray(pr.data)?pr.data[0]:pr.data;
+    if(hr.error)throw hr.error;
+    rows=hr.data||[];
+    if(!profile){list.innerHTML='<div class="attemptEmpty">No student records found for this mobile number in this school.</div>';if(msg){msg.textContent='No matching profile found.';msg.className='attemptMsg'}return}
+    window._currentStudentProfile={profile,rows,phone,school:{...activeSchool},learnerRows:Array.isArray(profile.learner_attempts)?profile.learner_attempts:[]};
+    $('studentProfileSummary').hidden=false;
+    $('studentProfileName').textContent=profile.candidate_name||rows[0]?.candidate_name||'Student';
+    $('studentProfileSchool').textContent=profile.school_name||activeSchool.school_name||'Driving school';
+    $('profileHptAttempts').textContent=Number(profile.hpt_attempt_count??rows.length).toLocaleString('en-IN');
+    $('profileLearnerAttempts').textContent=Number(profile.learner_attempt_count||0).toLocaleString('en-IN');
+    $('profileBestHpt').textContent=`${profile.best_hpt_score==null?'—':Number(profile.best_hpt_score)} / 100`;
+    $('profileBestLearner').textContent=`${profile.best_learner_score==null?'—':Number(profile.best_learner_score)} / 30`;
+    const learners=Array.isArray(profile.learner_attempts)?profile.learner_attempts:[];
+    $('learnerHistoryList').innerHTML=learners.length?learners.map((r,i)=>{
+      const d=new Date(r.completed_at||r.started_at||Date.now()),sc=Number(r.score)||0,passed=!!r.passed;
+      return `<div class="profileLearnerRow"><div><strong>Mock Attempt ${learners.length-i} · ${d.toLocaleDateString('en-IN')}</strong><small>${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})} · ${(r.language||'en').toUpperCase()} · ${passed?'PASS':'NOT PASSED'}</small></div><b class="profileLearnerScore">${sc} / 30</b></div>`
+    }).join(''):'<div class="attemptEmpty">No Learner’s Mock Test attempts found.</div>';
+    if(!rows.length){list.innerHTML='<div class="attemptEmpty">No Hazard Perception Test attempts found for this student.</div>'}
+    else list.innerHTML=rows.map((r,i)=>{
+      const passed=Number(r.total_score||0)>=C.passMark,d=new Date(r.completed_at||r.started_at);
+      return `<article class="attemptCard"><div class="attemptTop"><div><span class="attemptDate">${d.toLocaleDateString('en-IN')} • ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span><strong>HPT Attempt ${rows.length-i}</strong></div><span class="attemptStatus ${passed?'pass':'fail'}">${passed?'PASS':'NOT PASSED'}</span></div><div class="attemptScore"><b>${Number(r.total_score||0)}</b><span>/ 100</span></div><div class="attemptMeta">HPT score • ${passed?'Certificate available':'Certificate not available'}${r.learner_score!=null?` • Latest learner score recorded: ${Number(r.learner_score)}/30`:''}</div><div class="attemptActions"><button class="attemptReportBtn" type="button" data-attempt-report="${escHtml(r.id)}">VIEW FULL REPORT</button>${passed?`<button class="attemptCertBtn" type="button" data-attempt-cert="${escHtml(r.id)}">↓ DOWNLOAD CERTIFICATE</button>`:''}</div></article>`
     }).join('');
+    if(msg){msg.textContent=`Student profile loaded · ${rows.length} HPT attempts · ${learners.length} learner attempts`;msg.className='attemptMsg ok'}
     list.querySelectorAll('[data-attempt-cert]').forEach(btn=>btn.onclick=async()=>{
-      const r=rows.find(x=>String(x.id)===String(btn.dataset.attemptCert));if(!r)return;
-      btn.disabled=true;btn.textContent='GENERATING…';
-      try{await printCertificate({id:r.id,total:r.total_score,completed_at:r.completed_at,candidate_name:r.candidate_name},{name:r.candidate_name,phone:r.phone})}catch(e){console.error(e);toast('Could not generate the certificate.',true)}
-      finally{btn.disabled=false;btn.textContent='↓ DOWNLOAD CERTIFICATE'}
+      const r=rows.find(x=>String(x.id)===String(btn.dataset.attemptCert));if(!r)return;btn.disabled=true;btn.textContent='GENERATING…';
+      try{await printCertificate({id:r.id,total:r.total_score,completed_at:r.completed_at,candidate_name:r.candidate_name},{name:r.candidate_name,phone:r.phone})}catch(e){console.error(e);toast('Could not generate the certificate.',true)}finally{btn.disabled=false;btn.textContent='↓ DOWNLOAD CERTIFICATE'}
     });
     list.querySelectorAll('[data-attempt-report]').forEach(btn=>btn.onclick=async()=>{
-      const r=rows.find(x=>String(x.id)===String(btn.dataset.attemptReport));if(!r)return;
-      btn.disabled=true;btn.textContent='LOADING…';
-      try{
-        const report=await buildHistoricalExam(r);
-        if(!window.RajuHPTReport?.open)throw new Error('Report viewer unavailable');
-        window.RajuHPTReport.open(report);
-      }catch(e){console.error(e);toast('Could not open the full report.',true)}
-      finally{btn.disabled=false;btn.textContent='VIEW FULL REPORT'}
+      const r=rows.find(x=>String(x.id)===String(btn.dataset.attemptReport));if(!r)return;btn.disabled=true;btn.textContent='LOADING…';
+      try{const report=await buildHistoricalExam(r);if(!window.RajuHPTReport?.open)throw new Error('Report viewer unavailable');window.RajuHPTReport.open(report)}catch(e){console.error(e);toast('Could not open the full report.',true)}finally{btn.disabled=false;btn.textContent='VIEW FULL REPORT'}
     });
-  }catch(e){console.error(e);list.innerHTML='';if(msg){msg.textContent='Could not load attempts. Please try again.';msg.className='attemptMsg bad'}}
+  }catch(e){
+    console.error('Student profile lookup failed',e);list.innerHTML=rows.length?'':'<div class="attemptEmpty">No HPT attempts returned. The student profile migration may not have been applied yet.</div>';
+    if(rows.length)list.innerHTML=rows.map(r=>`<article class="attemptCard"><div class="attemptTop"><strong>HPT attempt</strong><span>${Number(r.total_score||0)} / 100</span></div></article>`).join('');
+    if(msg){msg.textContent='Could not load the combined student profile. Run 16-learner-test-and-student-profile.sql in Supabase, then try again.';msg.className='attemptMsg bad'}
+  }
+}
+function printStudentProfile(){
+ const data=window._currentStudentProfile;if(!data){toast('Load a student profile first.',true);return}
+ const {profile,rows,phone,school,learnerRows}=data;const safe=escHtml;
+ const hpt=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${safe(new Date(r.completed_at||r.started_at||Date.now()).toLocaleString('en-IN'))}</td><td>${Number(r.total_score||0)} / 100</td><td>${Number(r.total_score||0)>=C.passMark?'PASS':'NOT PASSED'}</td><td>${r.learner_score==null?'—':Number(r.learner_score)+' / 30'}</td></tr>`).join('');
+ const learner=learnerRows.map((r,i)=>`<tr><td>${i+1}</td><td>${safe(new Date(r.completed_at||r.started_at||Date.now()).toLocaleString('en-IN'))}</td><td>${Number(r.score||0)} / 30</td><td>${r.passed?'PASS':'NOT PASSED'}</td><td>${safe(String(r.language||'en').toUpperCase())}</td></tr>`).join('');
+ const w=window.open('','_blank','width=900,height=720');if(!w){toast('Please allow the report popup to print the student profile.',true);return}
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Student Performance Report</title><style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1b2734;margin:0;font-size:11px}header{text-align:center;border-bottom:2px solid #1b2734;padding:0 0 12px;margin-bottom:15px}header h1{font-size:20px;margin:0 0 5px}header p{margin:2px 0;color:#596777}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0 17px}.meta div{border:1px solid #cbd5df;border-radius:5px;padding:8px}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0 18px}.kpis div{border:1px solid #cbd5df;text-align:center;padding:9px 4px;border-radius:6px}.kpis small{display:block;font-size:8px;color:#667788;font-weight:bold}.kpis strong{display:block;font-size:17px;margin-top:5px}h2{font-size:13px;margin:18px 0 7px;text-transform:uppercase}table{width:100%;border-collapse:collapse;margin-bottom:10px}th,td{border:1px solid #cbd5df;padding:6px 5px;text-align:left;font-size:9px}th{background:#edf2f6}.signatures{display:grid;grid-template-columns:1fr 1fr;gap:35px;margin-top:50px}.signatures div{padding-top:8px;border-top:1px solid #283747;text-align:center}.note{margin-top:12px;font-size:8px;color:#687586}@media print{button{display:none!important}}</style></head><body><header><h1>${safe(school?.school_name||profile.school_name||'Driving School')}</h1><p>STUDENT PERFORMANCE REPORT</p><p>Hazard Perception Test · Learner’s Mock Test</p></header><div class="meta"><div><b>Student Name:</b> ${safe(profile.candidate_name||rows[0]?.candidate_name||'Student')}</div><div><b>Mobile Number:</b> ${safe(phone)}</div><div><b>Driving School:</b> ${safe(profile.school_name||school?.school_name||'')}</div><div><b>Report Date:</b> ${safe(new Date().toLocaleDateString('en-IN'))}</div></div><div class="kpis"><div><small>HPT ATTEMPTS</small><strong>${Number(profile.hpt_attempt_count??rows.length)}</strong></div><div><small>LEARNER ATTEMPTS</small><strong>${Number(profile.learner_attempt_count||0)}</strong></div><div><small>MAX HPT SCORE</small><strong>${profile.best_hpt_score==null?'—':Number(profile.best_hpt_score)+'/100'}</strong></div><div><small>MAX LEARNER SCORE</small><strong>${profile.best_learner_score==null?'—':Number(profile.best_learner_score)+'/30'}</strong></div></div><h2>Hazard Perception Test Results</h2><table><thead><tr><th>#</th><th>Date</th><th>Score</th><th>Status</th><th>Learner Score</th></tr></thead><tbody>${hpt||'<tr><td colspan="5">No HPT attempts recorded.</td></tr>'}</tbody></table><h2>Learner’s Mock Test Results</h2><table><thead><tr><th>#</th><th>Date</th><th>Score</th><th>Status</th><th>Language</th></tr></thead><tbody>${learner||'<tr><td colspan="5">No learner attempts recorded.</td></tr>'}</tbody></table><div class="signatures"><div>Student Signature</div><div>Instructor Signature</div></div><p class="note">This report summarises records available for this school and mobile number at the time of printing.</p><script>window.onload=()=>{setTimeout(()=>window.print(),350)}<\/script></body></html>`);
+ w.document.close();
 }
 function escHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function buildHistoricalExam(r){
@@ -493,7 +538,7 @@ async function buildHistoricalExam(r){
   clipsOut.forEach(c=>{c.score=c.responses.reduce((sum,x)=>sum+Number(x.points||0),0)});
   return {id:r.id,total:Number(r.total_score||0),total_score:Number(r.total_score||0),passed:!!r.passed,candidate_name:r.candidate_name,phone:r.phone,started_at:r.started_at,completed_at:r.completed_at,school:schoolBrand(),clips:clipsOut};
 }
-function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('attemptList').innerHTML='<div class="attemptEmpty">Enter your mobile number to view your HPT attempts.</div>';}
+function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('studentProfileSummary').hidden=true;$('attemptList').innerHTML='<div class="attemptEmpty">Enter a mobile number to view HPT attempts.</div>';$('learnerHistoryList').innerHTML='<div class="attemptEmpty">Learner test history will appear here.</div>';}
 function closeAttempts(){show('attemptsModal',false)}
 function setupCandidateCertificate(){const btn=$('printCertBtn');if(btn)btn.hidden=true}
 bind('whatsappInquiryBtn','click',e=>{
@@ -564,6 +609,9 @@ bind('exitSchoolBtn','click',()=>{
 bind('enterSchoolBtn','click',enterSchool);
 bind('schoolAccessCode','keydown',e=>{if(e.key==='Enter')enterSchool()});
 bind('startBtn','click',begin);
+bind('chooseHptBtn','click',chooseHptTest);bind('chooseLearnerBtn','click',chooseLearnerTest);bind('testSelectionClose','click',closeTestSelection);
+bind('testSelectionModal','click',e=>{if(e.target===$('testSelectionModal')||e.target?.matches('[data-test-selection-close]'))closeTestSelection()});
+bind('printStudentProfileBtn','click',printStudentProfile);
 bind('resultClose','click',()=>{show('resultScreen',false);show('startScreen',true)});
 bind('newBtn','click',()=>{show('resultScreen',false);show('startScreen',true);loadTopScorers()});
 bind('printCertBtn','click',()=>printCertificate());
@@ -571,7 +619,7 @@ bind('viewFullReportBtn','click',()=>{
   if(!window._lastExam||!window.RajuHPTReport?.open){toast('Full report viewer is not available. Refresh the page and try again.',true);return}
   window.RajuHPTReport.open(window._lastExam);
 });
-const viewAttemptsBtn=$('homeAttemptsBtn')||$('viewAttemptsBtn');if(viewAttemptsBtn)viewAttemptsBtn.addEventListener('click',openAttempts);
+// Student Profile is wired once by setupHomeMedia(); avoid duplicate modal-opening handlers.
 bind('attemptSearchBtn','click',lookupAttempts);bind('attemptCloseBtn','click',closeAttempts);
 bind('attemptPhone','keydown',e=>{if(e.key==='Enter')lookupAttempts()});
 bind('attemptsModal','click',e=>{if(e.target===$('attemptsModal'))closeAttempts()});

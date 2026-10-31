@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en-IN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#061522"><title>Kerala Learner’s Test | School Practice & Mock Exam</title>
+<meta name="theme-color" content="#ffffff"><title>Kerala Learner’s Test | School Practice & Mock Exam</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="learner-test.css?v=97"></head><body>
+<link rel="stylesheet" href="learner-test.css?v=100"></head><body>
 <div class="access-gate" id="accessGate" role="dialog" aria-modal="true" aria-labelledby="accessTitle">
   <div class="access-card">
     <div class="access-brand">
@@ -12,7 +12,7 @@
     </div>
     <div class="access-lock" aria-hidden="true">🔐</div>
     <h2 id="accessTitle">Learner’s Test Access</h2>
-    <p>Enter your access code to continue to Practice and Mock Examination.</p>
+    <p>Access is available from your school portal. Enter the learner code only when opening this page directly.</p>
     <form id="accessForm" autocomplete="off">
       <label for="learnerAccessCode">ACCESS CODE</label>
       <input id="learnerAccessCode" name="accessCode" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="Enter 4-digit code" autocomplete="off" required>
@@ -23,10 +23,17 @@
 </div>
 <div class="exam-shell">
 <header class="exam-header"><div class="brand"><img id="schoolLogo" class="school-logo" alt="Driving school logo" hidden><div class="brand-copy"><span id="schoolBrandEyebrow">DRIVING SCHOOL</span><h1 id="schoolBrandName">LEARNER’S TEST</h1><p id="modeSubtitle">Learner Practice</p></div></div>
-<div class="header-actions"><div class="language-switch"><button id="langEn" class="active">ENGLISH</button><button id="langMl">മലയാളം</button></div><div class="timer-box" id="timerBox" hidden><span>◷</span><div><small>TIME LEFT</small><b id="timer">15:00</b></div></div><button class="fullscreen-btn" id="fullscreenBtn" type="button" aria-label="Enter full screen" title="Enter full screen">⛶</button><button class="close-btn" id="exitBtn" aria-label="Exit">×</button></div><div id="fullscreenNotice" class="fullscreen-notice" hidden>Use the ⛶ button or press F11 to enter full screen.</div></header>
+<div class="header-actions"><div class="language-switch"><button id="langEn" class="active">ENGLISH</button><button id="langMl">മലയാളം</button></div><div class="timer-box" id="timerBox" hidden><span>◷</span><div><small>TIME LEFT</small><b id="timer">15:00</b></div></div><button class="close-btn" id="exitBtn" aria-label="Exit">×</button></div></header>
 <nav class="mode-tabs"><button id="practiceTab" class="active">📘 LEARNER PRACTICE</button><button id="mockTab">🧪 MOCK EXAMINATION</button></nav>
 <main class="exam-main">
-<section class="setup" id="setup"><div><span class="eyebrow">KERALA MOTOR VEHICLES DEPARTMENT QUESTION BANK</span><h2 id="setupTitle">Prepare for your Learner’s Test</h2><p id="setupText">Practise the official learner questions or take a timed mock examination.</p></div><div class="setup-stats" id="setupStats"><div id="bankCountStat"><b id="totalQuestions">—</b><span>QUESTION BANK</span></div><div><b>30</b><span>MOCK QUESTIONS</span></div><div><b>15 min</b><span>MOCK TIME</span></div><div><b>18/30</b><span>PASS MARK</span></div></div><button id="startBtn" class="start-btn">START PRACTICE →</button></section>
+<section class="setup" id="setup">
+ <div class="instructionHero"><div class="instructionIcon" aria-hidden="true">☑️</div><div><span class="eyebrow">KERALA LEARNER’S LICENCE</span><h2 id="setupTitle">Mock Test</h2><p id="setupText">Get ready for your mock examination.</p></div></div>
+ <div class="setup-stats" id="setupStats"><div id="bankCountStat"><b id="totalQuestions">200</b><span>QUESTION BANK</span></div><div><b>30</b><span>QUESTIONS</span></div><div><b>15 min</b><span>TIME LIMIT</span></div><div><b>18/30</b><span>PASS MARK</span></div></div>
+ <section class="instructionRules"><h3 id="instructionsHeading">Instructions</h3><ol id="instructionsList"><li>There are 30 questions in the mock examination.</li><li>Each question carries one mark. There is no negative marking.</li><li>You have 15 minutes (900 seconds) to complete the exam.</li><li>You must answer at least 18 questions correctly to pass.</li><li>You can move between questions and change answers before submission.</li><li>At the end, review your score and view the correct answers.</li></ol></section>
+ <div class="manualCandidate" id="manualCandidate" hidden><label>Student name<input id="manualStudentName" maxlength="100" placeholder="Enter full name"></label><label>Mobile number<input id="manualStudentPhone" inputmode="tel" maxlength="18" placeholder="Enter mobile number"></label></div>
+ <button id="startBtn" class="start-btn">START EXAM →</button>
+ <p class="instructionFootnote">Practice mock only · Results are separate from the official HPT examination.</p>
+</section>
 <section id="exam" hidden>
 <div class="progress-row"><strong id="questionCounter">Question 1 / 200</strong><div class="progress-track"><i id="progressFill"></i></div><span id="progressPct">1%</span></div>
 <article class="question-panel"><div class="question-text"><span class="question-number" id="qNumber">QUESTION 1</span><h2 id="questionMl" class="ml"></h2><h3 id="questionEn"></h3></div>
@@ -36,11 +43,15 @@
 <div class="question-map" id="questionMap" hidden></div>
 </section>
 <section id="result" class="result-panel" hidden aria-live="polite">
- <div class="result-hero"><div class="result-icon" id="resultIcon">✓</div><div class="result-heading"><span class="eyebrow">MOCK EXAMINATION COMPLETED</span><div class="result-status" id="resultStatus">NEEDS MORE PRACTICE</div><h2 id="resultTitle">Keep practising</h2><p id="resultMessage">Review your answers and try again.</p></div></div>
+ <div class="result-hero"><div class="result-icon" id="resultIcon">✓</div><div class="result-heading"><span class="eyebrow">MOCK EXAMINATION COMPLETED</span><div class="result-status" id="resultStatus">NEEDS MORE PRACTICE</div><h2 id="resultTitle">Keep practising</h2><p id="resultMessage">Review your answers and try again.</p><div id="saveResultStatus" class="result-save-status" role="status"></div></div></div>
  <div class="score-panel"><div class="score" id="score">0 / 30</div><span>YOUR SCORE</span></div>
  <div class="result-stats"><div><b id="correctCount">0</b><span>CORRECT</span></div><div><b id="wrongCount">0</b><span>INCORRECT</span></div><div><b id="skipCount">0</b><span>UNANSWERED</span></div><div><b id="accuracy">0%</b><span>ACCURACY</span></div></div>
- <div class="result-actions"><button id="retakeBtn" class="start-btn">RETAKE MOCK EXAM&nbsp; →</button><button id="backHomeBtn" class="result-home-btn">BACK TO LEARNER HOME</button></div>
+ <div class="result-actions"><button id="viewAnswersBtn" class="result-home-btn primary-result-btn">VIEW TEST RESULTS</button><button id="retakeBtn" class="start-btn">RETAKE MOCK EXAM&nbsp; →</button><button id="backHomeBtn" class="result-home-btn">BACK TO LEARNER HOME</button></div>
 </section>
-</main><footer class="exam-footer"><span id="schoolLabel">School access verified</span><span>Official HPT examination remains separate</span></footer>
+</main>
+<div id="answerReviewModal" class="answerReviewModal" hidden role="dialog" aria-modal="true" aria-labelledby="answerReviewTitle">
+ <div class="answerReviewBackdrop" data-review-close></div><section class="answerReviewDialog"><header><div><span class="eyebrow">ANSWER REVIEW</span><h2 id="answerReviewTitle">Your 30 questions</h2><p>Selected answers and correct answers for this mock exam.</p></div><button id="closeAnswerReview" type="button" aria-label="Close results review">×</button></header><div id="answerReviewList" class="answerReviewList"></div><footer><span id="answerReviewSummary"></span><button id="closeAnswerReviewBottom" type="button">CLOSE</button></footer></section>
 </div>
-<script src="learner-question-bank.js"></script><script src="learner-test.js?v=97"></script></body></html>
+<footer class="exam-footer"><span id="schoolLabel">School access verified</span><span>Official HPT examination remains separate</span></footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="hpt-config.js"></script><script src="learner-question-bank.js?v=100"></script><script src="learner-test.js?v=100"></script></body></html>
