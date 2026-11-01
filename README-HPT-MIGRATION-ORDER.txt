@@ -16,3 +16,8 @@ This setup does not drop existing tables. As with any database migration, review
 
 Learner's Mock Test + Student Profile (V100)
 After the complete base HPT multi-school schema is already installed, run `16-learner-test-and-student-profile.sql` in the same Supabase project. This additive migration adds `learner_score` to `hpt_attempts`, creates the school-scoped `hpt_learner_attempts` history table and installs the school access-code-validated RPCs used by Learner's Mock Test and Student Profile. Do not run it before the base `hpt_schools`, `hpt_attempts` and `hpt_responses` tables exist. Back up the project first and review any SQL error before retrying.
+
+Student Profile summary-only update (V105)
+After `16-learner-test-and-student-profile.sql` has been applied, back up the database and run `17-learner-summary-only-profile.sql`. This migration aggregates any existing learner attempt rows into per-school/mobile totals and highest scores, then drops the old `hpt_learner_attempts` detail table. New learner mock completions save only the aggregate attempt count and best score; their question-by-question answers remain available only in the current browser session for the immediate result-review popup. The Student Profile and A4 report show summary data only.
+
+Existing HPT rows in `hpt_attempts` are intentionally retained for current HPT certificates, detailed reports, and manager analytics. They are no longer shown as per-attempt history in the Student Profile or A4 performance summary.

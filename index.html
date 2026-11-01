@@ -253,18 +253,23 @@
   <button id="chooseLearnerBtn" type="button" class="testChoice"><span class="choiceIcon learnerChoiceIcon">☑️</span><span class="choiceCopy"><strong>LEARNER’S MOCK TEST</strong><small>30 multiple-choice questions based on the Kerala MVD Learner’s Test.</small></span><span class="choiceArrow">›</span></button>
  </section>
 </div>
-<div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>STUDENT PROFILE</h3><p class="attemptIntro">Enter the student’s mobile number to view their HPT and Learner’s Mock Test history.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW PROFILE</button></div><div id="attemptMsg" class="attemptMsg"></div>
-<div id="studentProfileSummary" class="studentProfileSummary" hidden>
- <div class="profileIdentity"><div><strong id="studentProfileName">—</strong><span id="studentProfileSchool">—</span></div><button id="printStudentProfileBtn" type="button" class="profilePrintBtn">⎙ PRINT A4</button></div>
- <div class="profileTestCards">
- <article class="profileTestCard hptProfileCard"><button type="button" class="profileTestTitle" onclick="document.getElementById('attemptList').scrollIntoView({behavior:'smooth',block:'start'})"><span class="profileTestIcon">▣</span><strong>Hazard Perception Test (HPT)</strong><span class="profileTestArrow">›</span></button><div class="profileTestMetrics"><div><small>ATTEMPTS</small><b id="profileHptAttempts">0</b></div><div><small>MAXIMUM SCORE</small><b id="profileBestHpt">— / 100</b></div><div><small>BEST RESULT</small><b id="profileHptBestResult" class="profileResultBadge">—</b></div></div></article>
- <article class="profileTestCard learnerProfileCard"><button type="button" class="profileTestTitle" onclick="document.getElementById('learnerHistoryList').scrollIntoView({behavior:'smooth',block:'start'})"><span class="profileTestIcon">▤</span><strong>Learner’s Mock Test</strong><span class="profileTestArrow">›</span></button><div class="profileTestMetrics"><div><small>ATTEMPTS</small><b id="profileLearnerAttempts">0</b></div><div><small>MAXIMUM SCORE</small><b id="profileBestLearner">— / 30</b></div><div><small>BEST RESULT</small><b id="profileLearnerBestResult" class="profileResultBadge">—</b></div></div></article>
-</div>
- <section class="profileHistory"><h4>LEARNER’S MOCK TEST HISTORY</h4><div id="learnerHistoryList"><div class="attemptEmpty">No Learner’s Mock Test attempts found.</div></div></section>
-</div>
-<div class="profileHptHeading">HAZARD PERCEPTION TEST HISTORY</div>
-<div id="attemptList" class="attemptList"><div class="attemptEmpty">Enter a mobile number to view both test histories.</div></div>
-<div class="attemptPrivacy">Results are limited to the currently selected driving school.</div></div></div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div class="modal fade report-modal" id="fullReportModal" tabindex="-1" aria-labelledby="fullReportTitle" aria-hidden="true">
+<div id="attemptsModal" class="attemptsModal" hidden role="dialog" aria-modal="true" aria-labelledby="studentProfileModalTitle">
+ <section class="attemptsCard">
+  <header class="studentProfileModalHeader">
+   <div><div class="eyebrow">SCHOOL STUDENT RECORD</div><h3 id="studentProfileModalTitle">STUDENT PROFILE</h3><p>View total examination attempts and the highest scores recorded for this student.</p></div>
+   <button id="attemptCloseBtn" class="attemptClose" type="button" aria-label="Close student profile">×</button>
+  </header>
+  <div class="attemptSearchRow"><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter student mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW PROFILE</button></div><div id="attemptMsg" class="attemptMsg" role="status"></div></div>
+  <div id="studentProfileSummary" class="studentProfileSummary" hidden>
+   <div class="profileIdentity"><div><strong id="studentProfileName">—</strong><span id="studentProfileSchool">—</span><small id="studentProfilePhone"></small></div><button id="printStudentProfileBtn" type="button" class="profilePrintBtn">▣ PRINT A4 REPORT</button></div>
+   <div class="profileTestCards">
+    <article class="profileTestCard hptProfileCard"><div class="profileTestTitle"><span class="profileTestIcon">▣</span><strong>Hazard Perception Test (HPT)</strong></div><div class="profileTestMetrics"><div><small>TOTAL ATTEMPTS</small><b id="profileHptAttempts">0</b></div><div><small>HIGHEST SCORE</small><b id="profileBestHpt">— / 100</b></div><div><small>BEST RESULT</small><b id="profileHptBestResult" class="profileResultBadge">—</b></div></div></article>
+    <article class="profileTestCard learnerProfileCard"><div class="profileTestTitle"><span class="profileTestIcon">▤</span><strong>Learner’s Mock Test</strong></div><div class="profileTestMetrics"><div><small>TOTAL ATTEMPTS</small><b id="profileLearnerAttempts">0</b></div><div><small>HIGHEST SCORE</small><b id="profileBestLearner">— / 30</b></div><div><small>BEST RESULT</small><b id="profileLearnerBestResult" class="profileResultBadge">—</b></div></div></article>
+   </div>
+   <div class="profileProgressNote"><span class="profileProgressIcon">✓</span><div><strong>Learning progress summary</strong><small id="profileProgressText">Your best results are shown above. Individual attempt history is not retained in this profile.</small></div></div>
+  </div>
+ </section>
+</div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div class="modal fade report-modal" id="fullReportModal" tabindex="-1" aria-labelledby="fullReportTitle" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
     <div class="modal-header report-modal-header"><div><div class="report-modal-kicker">HAZARD PERCEPTION TEST</div><h2 class="modal-title" id="fullReportTitle">Full examination report</h2><div id="reportCandidateMeta" class="report-candidate-meta"></div></div><button type="button" class="btn-close btn-close-white" id="closeFullReportBtn" data-bs-dismiss="modal" aria-label="Close"></button></div>
     <div class="modal-body"><div id="reportSummary" class="report-summary-strip"></div>
@@ -295,7 +300,7 @@
   learnerLayer=document.createElement('div');learnerLayer.id='learnerTestFullscreenLayer';
   learnerLayer.style.cssText='position:fixed;inset:0;z-index:2147483000;width:100vw;height:100vh;height:100svh;background:#fff;overflow:hidden;';
   learnerFrame=document.createElement('iframe');learnerFrame.title='Kerala Learner’s Test';
-  learnerFrame.src='learner-test.html?v=102';learnerFrame.allow='fullscreen';learnerFrame.setAttribute('allowfullscreen','');
+  learnerFrame.src='learner-test.html?v=104';learnerFrame.allow='fullscreen';learnerFrame.setAttribute('allowfullscreen','');
   learnerFrame.style.cssText='display:block;width:100%;height:100%;border:0;background:#fff;';
   const schoolSession=JSON.parse(session);
   learnerFrame.addEventListener('load',()=>{

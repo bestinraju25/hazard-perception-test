@@ -457,83 +457,61 @@ async function printCertificate(examOverride=null,candidateOverride=null){
 }
 async function imageData(url){return await new Promise((resolve,reject)=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;const x=c.getContext('2d');x.drawImage(img,0,0);resolve(c.toDataURL('image/png'))}catch(e){reject(e)}};img.onerror=reject;img.src=url+(url.includes('?')?'&':'?')+'v='+Date.now()})}
 async function lookupAttempts(){
-  const phoneInput=$('attemptPhone'),msg=$('attemptMsg'),list=$('attemptList');
+  const phoneInput=$('attemptPhone'),msg=$('attemptMsg');
   const phone=(phoneInput?.value||'').trim();
   if(!phone){if(msg){msg.textContent='Enter the student mobile number.';msg.className='attemptMsg bad'}return}
   if(!activeSchool?.id||!schoolAccessCode){if(msg){msg.textContent='Please sign in with the correct school access code.';msg.className='attemptMsg bad'}return}
-  if(msg){msg.textContent='Searching both examination records…';msg.className='attemptMsg'}
-  $('studentProfileSummary').hidden=true;list.innerHTML='<div class="attemptLoading">Loading student examination records…</div>';
-  $('learnerHistoryList').innerHTML='<div class="attemptLoading">Loading Learner’s Mock Test history…</div>';
+  if(msg){msg.textContent='Loading student performance summary…';msg.className='attemptMsg'}
+  $('studentProfileSummary').hidden=true;
   const sb=await supabase();
-  if(!sb){list.innerHTML='';if(msg){msg.textContent='Results service is unavailable. Please try again.';msg.className='attemptMsg bad'}return}
-  let profile=null,rows=[];
+  if(!sb){if(msg){msg.textContent='Results service is unavailable. Please try again.';msg.className='attemptMsg bad'}return}
   try{
-    const [pr,hr]=await Promise.all([
-      sb.rpc('hpt_get_student_profile_by_school',{p_phone:phone,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode}),
-      sb.rpc('hpt_get_candidate_attempts_by_school',{p_phone:phone,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode})
-    ]);
-    if(pr.error)throw pr.error;
-    profile=Array.isArray(pr.data)?pr.data[0]:pr.data;
-    if(hr.error)throw hr.error;
-    rows=hr.data||[];
-    if(!profile){list.innerHTML='<div class="attemptEmpty">No student records found for this mobile number in this school.</div>';if(msg){msg.textContent='No matching profile found.';msg.className='attemptMsg'}return}
-    window._currentStudentProfile={profile,rows,phone,school:{...activeSchool},learnerRows:Array.isArray(profile.learner_attempts)?profile.learner_attempts:[]};
+    const {data,error}=await sb.rpc('hpt_get_student_profile_by_school',{p_phone:phone,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode});
+    if(error)throw error;
+    const profile=Array.isArray(data)?data[0]:data;
+    if(!profile){if(msg){msg.textContent='No student profile found for this mobile number in this school.';msg.className='attemptMsg'}return}
+    const hptAttempts=Number(profile.hpt_attempt_count||0),learnerAttempts=Number(profile.learner_attempt_count||0);
+    const hptBest=profile.best_hpt_score==null?null:Number(profile.best_hpt_score);
+    const learnerBest=profile.best_learner_score==null?null:Number(profile.best_learner_score);
+    const name=profile.candidate_name||'Student',schoolName=profile.school_name||activeSchool.school_name||'Driving school';
+    window._currentStudentProfile={profile,phone,school:{...activeSchool}};
     $('studentProfileSummary').hidden=false;
-    $('studentProfileName').textContent=profile.candidate_name||rows[0]?.candidate_name||'Student';
-    $('studentProfileSchool').textContent=profile.school_name||activeSchool.school_name||'Driving school';
-    $('profileHptAttempts').textContent=Number(profile.hpt_attempt_count??rows.length).toLocaleString('en-IN');
-    $('profileLearnerAttempts').textContent=Number(profile.learner_attempt_count||0).toLocaleString('en-IN');
-    $('profileBestHpt').textContent=`${profile.best_hpt_score==null?'—':Number(profile.best_hpt_score)} / 100`;
-    $('profileBestLearner').textContent=`${profile.best_learner_score==null?'—':Number(profile.best_learner_score)} / 30`;
-    $('profileHptBestResult').textContent=profile.best_hpt_score==null?'Not attempted':(Number(profile.best_hpt_score)>=C.passMark?'✓ Passed':'Not passed');
-    $('profileHptBestResult').classList.toggle('isFail',profile.best_hpt_score!=null&&Number(profile.best_hpt_score)<C.passMark);
-    $('profileLearnerBestResult').textContent=profile.best_learner_score==null?'Not attempted':(Number(profile.best_learner_score)>=18?'✓ Passed':'Not passed');
-    $('profileLearnerBestResult').classList.toggle('isFail',profile.best_learner_score!=null&&Number(profile.best_learner_score)<18);
-    const learners=Array.isArray(profile.learner_attempts)?profile.learner_attempts:[];
-    $('learnerHistoryList').innerHTML=learners.length?learners.map((r,i)=>{
-      const d=new Date(r.completed_at||r.started_at||Date.now()),sc=Number(r.score)||0,passed=!!r.passed;
-      return `<div class="profileLearnerRow"><div><strong>Mock Attempt ${learners.length-i} · ${d.toLocaleDateString('en-IN')}</strong><small>${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})} · ${(r.language||'en').toUpperCase()} · ${passed?'PASS':'NOT PASSED'}</small></div><b class="profileLearnerScore">${sc} / 30</b></div>`
-    }).join(''):'<div class="attemptEmpty">No Learner’s Mock Test attempts found.</div>';
-    if(!rows.length){list.innerHTML='<div class="attemptEmpty">No Hazard Perception Test attempts found for this student.</div>'}
-    else list.innerHTML=rows.map((r,i)=>{
-      const passed=Number(r.total_score||0)>=C.passMark,d=new Date(r.completed_at||r.started_at);
-      return `<article class="attemptCard"><div class="attemptTop"><div><span class="attemptDate">${d.toLocaleDateString('en-IN')} • ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span><strong>HPT Attempt ${rows.length-i}</strong></div><span class="attemptStatus ${passed?'pass':'fail'}">${passed?'PASS':'NOT PASSED'}</span></div><div class="attemptScore"><b>${Number(r.total_score||0)}</b><span>/ 100</span></div><div class="attemptMeta">HPT score • ${passed?'Certificate available':'Certificate not available'}${r.learner_score!=null?` • Latest learner score recorded: ${Number(r.learner_score)}/30`:''}</div><div class="attemptActions"><button class="attemptReportBtn" type="button" data-attempt-report="${escHtml(r.id)}">VIEW FULL REPORT</button>${passed?`<button class="attemptCertBtn" type="button" data-attempt-cert="${escHtml(r.id)}">↓ DOWNLOAD CERTIFICATE</button>`:''}</div></article>`
-    }).join('');
-    if(msg){msg.textContent=`Student profile loaded · ${rows.length} HPT attempts · ${learners.length} learner attempts`;msg.className='attemptMsg ok'}
-    list.querySelectorAll('[data-attempt-cert]').forEach(btn=>btn.onclick=async()=>{
-      const r=rows.find(x=>String(x.id)===String(btn.dataset.attemptCert));if(!r)return;btn.disabled=true;btn.textContent='GENERATING…';
-      try{await printCertificate({id:r.id,total:r.total_score,completed_at:r.completed_at,candidate_name:r.candidate_name},{name:r.candidate_name,phone:r.phone})}catch(e){console.error(e);toast('Could not generate the certificate.',true)}finally{btn.disabled=false;btn.textContent='↓ DOWNLOAD CERTIFICATE'}
-    });
-    list.querySelectorAll('[data-attempt-report]').forEach(btn=>btn.onclick=async()=>{
-      const r=rows.find(x=>String(x.id)===String(btn.dataset.attemptReport));if(!r)return;btn.disabled=true;btn.textContent='LOADING…';
-      try{const report=await buildHistoricalExam(r);if(!window.RajuHPTReport?.open)throw new Error('Report viewer unavailable');window.RajuHPTReport.open(report)}catch(e){console.error(e);toast('Could not open the full report.',true)}finally{btn.disabled=false;btn.textContent='VIEW FULL REPORT'}
-    });
+    $('studentProfileName').textContent=name;
+    $('studentProfileSchool').textContent=schoolName;
+    $('studentProfilePhone').textContent=`Mobile: ${phone}`;
+    $('profileHptAttempts').textContent=hptAttempts.toLocaleString('en-IN');
+    $('profileLearnerAttempts').textContent=learnerAttempts.toLocaleString('en-IN');
+    $('profileBestHpt').textContent=`${hptBest===null?'—':hptBest} / 100`;
+    $('profileBestLearner').textContent=`${learnerBest===null?'—':learnerBest} / 30`;
+    $('profileHptBestResult').textContent=hptBest===null?'Not attempted':(hptBest>=C.passMark?'✓ Passed':'Not passed');
+    $('profileHptBestResult').classList.toggle('isFail',hptBest!==null&&hptBest<C.passMark);
+    $('profileLearnerBestResult').textContent=learnerBest===null?'Not attempted':(learnerBest>=18?'✓ Passed':'Not passed');
+    $('profileLearnerBestResult').classList.toggle('isFail',learnerBest!==null&&learnerBest<18);
+    const summaryText=`${name} has completed ${hptAttempts} HPT attempt${hptAttempts===1?'':'s'} and ${learnerAttempts} Learner’s Mock Test attempt${learnerAttempts===1?'':'s'}. Only total counts and highest scores are retained in this profile.`;
+    $('profileProgressText').textContent=summaryText;
+    if(msg){msg.textContent='Student performance summary loaded.';msg.className='attemptMsg ok'}
   }catch(e){
-    console.error('Student profile lookup failed',e);list.innerHTML=rows.length?'':'<div class="attemptEmpty">No HPT attempts returned. The student profile migration may not have been applied yet.</div>';
-    if(rows.length)list.innerHTML=rows.map(r=>`<article class="attemptCard"><div class="attemptTop"><strong>HPT attempt</strong><span>${Number(r.total_score||0)} / 100</span></div></article>`).join('');
-    if(msg){msg.textContent='Could not load the combined student profile. Run 16-learner-test-and-student-profile.sql in Supabase, then try again.';msg.className='attemptMsg bad'}
+    console.error('Student profile lookup failed',e);
+    if(msg){msg.textContent='Could not load the student summary. Apply 17-learner-summary-only-profile.sql in Supabase and try again.';msg.className='attemptMsg bad'}
   }
 }
 function printStudentProfile(){
- const data=window._currentStudentProfile;if(!data){toast('Load a student profile first.',true);return}
- const {profile,rows,phone,school,learnerRows}=data;const safe=escHtml;
- const hptBest=profile.best_hpt_score==null?null:Number(profile.best_hpt_score), learnerBest=profile.best_learner_score==null?null:Number(profile.best_learner_score);
- const hptPassed=hptBest!==null&&hptBest>=C.passMark, learnerPassed=learnerBest!==null&&learnerBest>=18;
- const hpt=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${safe(new Date(r.completed_at||r.started_at||Date.now()).toLocaleDateString('en-IN'))}</td><td>${Number(r.total_score||0)} / 100</td><td><span class="status ${Number(r.total_score||0)>=C.passMark?'pass':'fail'}">${Number(r.total_score||0)>=C.passMark?'PASSED':'NOT PASSED'}</span></td></tr>`).join('');
- const learner=learnerRows.map((r,i)=>`<tr><td>${i+1}</td><td>${safe(new Date(r.completed_at||r.started_at||Date.now()).toLocaleDateString('en-IN'))}</td><td>${Number(r.score||0)} / 30</td><td><span class="status ${r.passed?'pass':'fail'}">${r.passed?'PASSED':'NOT PASSED'}</span></td></tr>`).join('');
- const schoolName=school?.school_name||profile.school_name||'Driving School';
- const logo=school?.logo_url||'';
- const w=window.open('','_blank','width=980,height=800');if(!w){toast('Please allow the report popup to print the student profile.',true);return}
+ const data=window._currentStudentProfile;
+ if(!data){toast('Load a student profile first.',true);return}
+ const {profile,phone,school}=data,safe=escHtml;
+ const hptAttempts=Number(profile.hpt_attempt_count||0),learnerAttempts=Number(profile.learner_attempt_count||0);
+ const hptBest=profile.best_hpt_score==null?null:Number(profile.best_hpt_score),learnerBest=profile.best_learner_score==null?null:Number(profile.best_learner_score);
+ const hptPassed=hptBest!==null&&hptBest>=C.passMark,learnerPassed=learnerBest!==null&&learnerBest>=18;
+ const schoolName=school?.school_name||profile.school_name||'Driving School',studentName=profile.candidate_name||'Student',logo=school?.logo_url||'';
+ const w=window.open('','_blank','width=980,height=760');
+ if(!w){toast('Please allow the report popup to print the student profile.',true);return}
  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Student Performance Report</title><style>
- @page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#172b46;margin:0;background:#eaf1f8;font-size:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{max-width:190mm;margin:10px auto;padding:10px;background:#0869c9;color:#fff;border-radius:8px;text-align:center;font-size:15px;font-weight:800}.sheet{width:190mm;min-height:277mm;margin:0 auto 15px;background:#fff;border:1px solid #d7e3f0;border-radius:8px;padding:10mm;position:relative;overflow:hidden}.brand{text-align:center;padding-bottom:10px;border-bottom:2px solid #1767b5}.brand img{max-height:62px;max-width:220px;object-fit:contain;display:block;margin:0 auto 6px}.brandName{font-size:24px;font-weight:900;letter-spacing:.03em;color:#12345c}.brandSub{font-size:9px;color:#63758b;margin-top:3px}.reportTitle{margin:12px 0 13px;background:linear-gradient(90deg,#075bb2,#1685e5);color:#fff;border-radius:6px;padding:10px;text-align:center;font-size:15px;font-weight:900;letter-spacing:.06em}.identity{display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;padding:4px 4px 14px}.identity div{border-bottom:1px solid #d9e2ec;padding:5px 2px;font-size:11px}.identity b{display:inline-block;min-width:105px;color:#52657c}.sectionTitle{background:#0b66bd;color:#fff;border-radius:6px 6px 0 0;padding:8px 10px;font-weight:900;font-size:11px;letter-spacing:.04em;margin-top:10px}.summary{width:100%;border-collapse:collapse;margin:0 0 10px}.summary th,.summary td{border:1px solid #d3dfeb;padding:9px 7px;text-align:center;font-size:10px}.summary th{background:#edf4fb;color:#314a68;font-size:9px}.summary td:first-child,.summary th:first-child{text-align:left}.status{display:inline-block;padding:4px 8px;border-radius:20px;font-size:9px;font-weight:900}.pass{background:#e2f7e9;color:#16803b}.fail{background:#ffeded;color:#b42332}.remarks{border:1px solid #c8ddf2;background:#f0f7ff;border-radius:7px;margin-top:13px;overflow:hidden}.remarks h3{margin:0;padding:8px 10px;background:#e0efff;color:#14549a;font-size:11px}.remarks p{margin:0;padding:12px;font-size:11px;line-height:1.5}.signatures{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;align-items:end;margin-top:40px;text-align:center}.signLine{border-top:1px solid #60748a;padding-top:7px;font-size:10px;font-weight:700}.seal{width:92px;height:92px;border:3px double #244b91;border-radius:50%;margin:auto;display:flex;align-items:center;justify-content:center;text-align:center;color:#244b91;font-weight:900;font-size:10px;line-height:1.35;padding:8px}.date{margin-top:22px;font-size:10px;color:#405873}.footer{position:absolute;bottom:8mm;left:10mm;right:10mm;border-top:1px solid #dce6f0;padding-top:6px;color:#7b8da2;font-size:8px;display:flex;justify-content:space-between}.bottomAccent{position:absolute;bottom:0;right:0;width:75mm;height:5mm;background:linear-gradient(110deg,#d8ebff,#1685e5);clip-path:polygon(30% 0,100% 0,100% 100%,0 100%)}
- @media screen{.toolbar{cursor:pointer}.sheet{box-shadow:0 8px 28px #18365322}}@media print{body{background:#fff}.toolbar{display:none}.sheet{margin:0;border:0;border-radius:0;width:auto;min-height:277mm;padding:8mm}.footer{bottom:6mm}}
- </style></head><body><div class="toolbar" onclick="window.print()">▣ &nbsp; PRINT PERFORMANCE REPORT (A4)　⌄</div><main class="sheet"><header class="brand">${logo?`<img src="${safe(logo)}" alt="School logo" onerror="this.style.display='none'">`:''}<div class="brandName">${safe(schoolName)}</div><div class="brandSub">${safe(school?.location||'')} ${school?.contact_number?' | '+safe(school.contact_number):''}</div></header><div class="reportTitle">STUDENT PERFORMANCE REPORT</div>
- <section class="identity"><div><b>Student Name</b> : ${safe(profile.candidate_name||rows[0]?.candidate_name||'Student')}</div><div><b>Mobile Number</b> : ${safe(phone)}</div><div><b>Driving School</b> : ${safe(schoolName)}</div><div><b>Report Date</b> : ${safe(new Date().toLocaleDateString('en-IN'))}</div></section>
- <div class="sectionTitle">TEST PERFORMANCE SUMMARY</div><table class="summary"><thead><tr><th>Test</th><th>Attempts</th><th>Maximum Score</th><th>Best Score</th><th>Best Result</th></tr></thead><tbody><tr><td>Hazard Perception Test (HPT)</td><td>${Number(profile.hpt_attempt_count??rows.length)}</td><td>100</td><td>${hptBest===null?'—':hptBest}</td><td><span class="status ${hptPassed?'pass':'fail'}">${hptBest===null?'NOT ATTEMPTED':hptPassed?'PASSED':'NOT PASSED'}</span></td></tr><tr><td>Learner’s Mock Test</td><td>${Number(profile.learner_attempt_count||learnerRows.length||0)}</td><td>30</td><td>${learnerBest===null?'—':learnerBest}</td><td><span class="status ${learnerPassed?'pass':'fail'}">${learnerBest===null?'NOT ATTEMPTED':learnerPassed?'PASSED':'NOT PASSED'}</span></td></tr></tbody></table>
- <div class="sectionTitle">HAZARD PERCEPTION TEST — ATTEMPT HISTORY</div><table class="summary"><thead><tr><th>#</th><th>Date</th><th>Score</th><th>Result</th></tr></thead><tbody>${hpt||'<tr><td colspan="4">No HPT attempts recorded.</td></tr>'}</tbody></table>
- <div class="sectionTitle">LEARNER’S MOCK TEST — ATTEMPT HISTORY</div><table class="summary"><thead><tr><th>#</th><th>Date</th><th>Score</th><th>Result</th></tr></thead><tbody>${learner||'<tr><td colspan="4">No learner mock test attempts recorded.</td></tr>'}</tbody></table>
- <section class="remarks"><h3>REMARKS</h3><p>${(hptPassed||learnerPassed)?'The student has achieved a passing score in at least one assessment. Continue practising to maintain consistent performance.':'Further practice is recommended before attempting the MVD Learner’s Licence Test.'}</p></section>
- <section class="signatures"><div class="signLine">Student Signature</div><div class="seal">${safe(schoolName)}<br><small>OFFICIAL RECORD</small></div><div class="signLine">Instructor Signature</div></section><div class="date">Date: ${safe(new Date().toLocaleDateString('en-IN'))}</div><footer class="footer"><span>${safe(schoolName)}</span><span>Student Performance Report · Generated ${safe(new Date().toLocaleString('en-IN'))}</span></footer><div class="bottomAccent"></div></main><script>window.onload=()=>{const im=[...document.images];Promise.all(im.map(x=>x.complete?Promise.resolve():new Promise(r=>{x.onload=x.onerror=r}))).then(()=>setTimeout(()=>window.print(),300))} <\/script></body></html>`);
+ @page{size:A4 portrait;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#172b46;margin:0;background:#eaf1f8;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{max-width:190mm;margin:10px auto;padding:11px;background:#0869c9;color:#fff;border-radius:8px;text-align:center;font-size:14px;font-weight:800;cursor:pointer}.sheet{width:190mm;min-height:277mm;margin:0 auto 15px;background:#fff;border:1px solid #d7e3f0;border-radius:10px;padding:12mm;position:relative;overflow:hidden}.brand{text-align:center;padding-bottom:13px;border-bottom:3px solid #1767b5}.brand img{max-height:66px;max-width:220px;object-fit:contain;display:block;margin:0 auto 7px}.brandName{font-size:24px;font-weight:900;letter-spacing:.03em;color:#12345c}.brandSub{font-size:10px;color:#63758b;margin-top:4px}.reportTitle{margin:16px 0 18px;background:linear-gradient(90deg,#075bb2,#1685e5);color:#fff;border-radius:7px;padding:12px;text-align:center;font-size:16px;font-weight:900;letter-spacing:.06em}.identity{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;padding:5px 5px 22px}.identity div{border-bottom:1px solid #d9e2ec;padding:8px 2px;font-size:12px}.identity b{display:inline-block;min-width:112px;color:#52657c}.sectionTitle{background:#0b66bd;color:#fff;border-radius:7px 7px 0 0;padding:11px 12px;font-weight:900;font-size:12px;letter-spacing:.04em;margin-top:14px}.summary{width:100%;border-collapse:collapse;margin:0 0 15px}.summary th,.summary td{border:1px solid #d3dfeb;padding:13px 9px;text-align:center;font-size:11px}.summary th{background:#edf4fb;color:#314a68;font-size:10px}.summary td:first-child,.summary th:first-child{text-align:left}.status{display:inline-block;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:900}.pass{background:#e2f7e9;color:#16803b}.fail{background:#ffeded;color:#b42332}.progress{margin-top:20px;border:1px solid #c8ddf2;background:#f0f7ff;border-radius:8px;overflow:hidden}.progress h3{margin:0;padding:10px 12px;background:#e0efff;color:#14549a;font-size:12px}.progress p{margin:0;padding:14px;font-size:12px;line-height:1.6}.footer{position:absolute;bottom:10mm;left:12mm;right:12mm;border-top:1px solid #dce6f0;padding-top:8px;color:#7b8da2;font-size:9px;display:flex;justify-content:space-between}.bottomAccent{position:absolute;bottom:0;right:0;width:75mm;height:5mm;background:linear-gradient(110deg,#d8ebff,#1685e5);clip-path:polygon(30% 0,100% 0,100% 100%,0 100%)}@media screen{.sheet{box-shadow:0 8px 28px #18365322}}@media print{body{background:#fff}.toolbar{display:none}.sheet{margin:0;border:0;border-radius:0;width:auto;min-height:277mm;padding:9mm}}
+ </style></head><body><div class="toolbar" onclick="window.print()">▣ &nbsp; PRINT PERFORMANCE REPORT (A4)</div><main class="sheet"><header class="brand">${logo?`<img src="${safe(logo)}" alt="School logo" onerror="this.style.display='none'">`:''}<div class="brandName">${safe(schoolName)}</div><div class="brandSub">${safe(school?.location||'')} ${school?.contact_number?' | '+safe(school.contact_number):''}</div></header><div class="reportTitle">STUDENT PERFORMANCE REPORT</div>
+ <section class="identity"><div><b>Student Name</b> : ${safe(studentName)}</div><div><b>Mobile Number</b> : ${safe(phone)}</div><div><b>Driving School</b> : ${safe(schoolName)}</div><div><b>Report Date</b> : ${safe(new Date().toLocaleDateString('en-IN'))}</div></section>
+ <div class="sectionTitle">EXAMINATION PERFORMANCE SUMMARY</div><table class="summary"><thead><tr><th>Examination</th><th>Total Attempts</th><th>Maximum Score</th><th>Highest Score</th><th>Best Result</th></tr></thead><tbody><tr><td>Hazard Perception Test (HPT)</td><td>${hptAttempts}</td><td>100</td><td>${hptBest===null?'—':hptBest}</td><td><span class="status ${hptPassed?'pass':'fail'}">${hptBest===null?'NOT ATTEMPTED':hptPassed?'PASSED':'NOT PASSED'}</span></td></tr><tr><td>Learner’s Mock Test</td><td>${learnerAttempts}</td><td>30</td><td>${learnerBest===null?'—':learnerBest}</td><td><span class="status ${learnerPassed?'pass':'fail'}">${learnerBest===null?'NOT ATTEMPTED':learnerPassed?'PASSED':'NOT PASSED'}</span></td></tr></tbody></table>
+ <section class="progress"><h3>LEARNING PROGRESS</h3><p>${(hptPassed&&learnerPassed)?'The student has achieved the pass benchmark in both examinations. Continue practising to maintain consistent performance.':(hptPassed||learnerPassed)?'The student has achieved the pass benchmark in one examination. Continued practice is recommended for the remaining examination.':'Further practice is recommended. The highest scores and total completed attempts are shown above.'}</p></section>
+ <footer class="footer"><span>${safe(schoolName)}</span><span>Student Performance Summary · Generated ${safe(new Date().toLocaleString('en-IN'))}</span></footer><div class="bottomAccent"></div></main><script>window.onload=()=>{const im=[...document.images];Promise.all(im.map(x=>x.complete?Promise.resolve():new Promise(r=>{x.onload=x.onerror=r}))).then(()=>setTimeout(()=>window.print(),300))} <\/script></body></html>`);
  w.document.close();
 }
 function escHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -555,8 +533,8 @@ async function buildHistoricalExam(r){
   clipsOut.forEach(c=>{c.score=c.responses.reduce((sum,x)=>sum+Number(x.points||0),0)});
   return {id:r.id,total:Number(r.total_score||0),total_score:Number(r.total_score||0),passed:!!r.passed,candidate_name:r.candidate_name,phone:r.phone,started_at:r.started_at,completed_at:r.completed_at,school:schoolBrand(),clips:clipsOut};
 }
-function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('studentProfileSummary').hidden=true;$('attemptList').innerHTML='<div class="attemptEmpty">Enter a mobile number to view HPT attempts.</div>';$('learnerHistoryList').innerHTML='<div class="attemptEmpty">Learner test history will appear here.</div>';}
-function closeAttempts(){show('attemptsModal',false)}
+function openAttempts(){show('attemptsModal',true);$('attemptPhone').value='';$('attemptMsg').textContent='';$('attemptMsg').className='attemptMsg';$('studentProfileSummary').hidden=true;setTimeout(()=>$('attemptPhone')?.focus(),50);}
+function closeAttempts(){show('attemptsModal',false);$('studentProfileSummary').hidden=true;$('attemptMsg').textContent='';}
 function setupCandidateCertificate(){const btn=$('printCertBtn');if(btn)btn.hidden=true}
 bind('whatsappInquiryBtn','click',e=>{
   const name=$('inquirySchoolName')?.value.trim()||'',contact=$('inquiryContact')?.value.trim()||'',location=$('inquiryLocation')?.value.trim()||'';
@@ -639,7 +617,7 @@ bind('viewFullReportBtn','click',()=>{
 // Student Profile is wired once by setupHomeMedia(); avoid duplicate modal-opening handlers.
 bind('attemptSearchBtn','click',lookupAttempts);bind('attemptCloseBtn','click',closeAttempts);
 bind('attemptPhone','keydown',e=>{if(e.key==='Enter')lookupAttempts()});
-bind('attemptsModal','click',e=>{if(e.target===$('attemptsModal'))closeAttempts()});
+bind('attemptsModal','click',e=>{if(e.target===$('attemptsModal'))closeAttempts()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('attemptsModal')?.hidden)closeAttempts()});
 bind('skipBtn','click',finishClip);bind('soundBtn','click',()=>setSoundState(!sound));bind('fullBtn','click',toggleFullscreen);
 bind('helpBtn','click',()=>toast('Tap when a developing hazard becomes apparent. You can make up to 5 responses per clip.'));
 bind('exitBtn','click',()=>{if(confirm('Exit the examination? This attempt will be incomplete.')){clearTimeout(timer);video.pause();running=false;stopRoadAudio();show('examScreen',false);show('startScreen',true)}});
