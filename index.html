@@ -256,7 +256,10 @@
 <div id="attemptsModal" class="attemptsModal" hidden><div class="attemptsCard"><button id="attemptCloseBtn" class="attemptClose" type="button">×</button><div class="attemptIcon">↺</div><div class="eyebrow">CANDIDATE RECORD</div><h3>STUDENT PROFILE</h3><p class="attemptIntro">Enter the student’s mobile number to view their HPT and Learner’s Mock Test history.</p><div class="attemptSearch"><input id="attemptPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter mobile number"><button id="attemptSearchBtn" class="primary" type="button">VIEW PROFILE</button></div><div id="attemptMsg" class="attemptMsg"></div>
 <div id="studentProfileSummary" class="studentProfileSummary" hidden>
  <div class="profileIdentity"><div><strong id="studentProfileName">—</strong><span id="studentProfileSchool">—</span></div><button id="printStudentProfileBtn" type="button" class="profilePrintBtn">⎙ PRINT A4</button></div>
- <div class="profileKpis"><article><small>HPT ATTEMPTS</small><b id="profileHptAttempts">0</b></article><article><small>LEARNER ATTEMPTS</small><b id="profileLearnerAttempts">0</b></article><article><small>BEST HPT SCORE</small><b id="profileBestHpt">— / 100</b></article><article><small>BEST LEARNER SCORE</small><b id="profileBestLearner">— / 30</b></article></div>
+ <div class="profileTestCards">
+ <article class="profileTestCard hptProfileCard"><button type="button" class="profileTestTitle" onclick="document.getElementById('attemptList').scrollIntoView({behavior:'smooth',block:'start'})"><span class="profileTestIcon">▣</span><strong>Hazard Perception Test (HPT)</strong><span class="profileTestArrow">›</span></button><div class="profileTestMetrics"><div><small>ATTEMPTS</small><b id="profileHptAttempts">0</b></div><div><small>MAXIMUM SCORE</small><b id="profileBestHpt">— / 100</b></div><div><small>BEST RESULT</small><b id="profileHptBestResult" class="profileResultBadge">—</b></div></div></article>
+ <article class="profileTestCard learnerProfileCard"><button type="button" class="profileTestTitle" onclick="document.getElementById('learnerHistoryList').scrollIntoView({behavior:'smooth',block:'start'})"><span class="profileTestIcon">▤</span><strong>Learner’s Mock Test</strong><span class="profileTestArrow">›</span></button><div class="profileTestMetrics"><div><small>ATTEMPTS</small><b id="profileLearnerAttempts">0</b></div><div><small>MAXIMUM SCORE</small><b id="profileBestLearner">— / 30</b></div><div><small>BEST RESULT</small><b id="profileLearnerBestResult" class="profileResultBadge">—</b></div></div></article>
+</div>
  <section class="profileHistory"><h4>LEARNER’S MOCK TEST HISTORY</h4><div id="learnerHistoryList"><div class="attemptEmpty">No Learner’s Mock Test attempts found.</div></div></section>
 </div>
 <div class="profileHptHeading">HAZARD PERCEPTION TEST HISTORY</div>
@@ -272,7 +275,7 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=100"></script><script>
+<script src="app.js?v=102"></script><script>
 (()=>{
  let learnerLayer=null,learnerFrame=null,wasFullscreenBeforeLearner=false;
  function sameOriginMessage(event){return location.origin==='null'?event.origin==='null':event.origin===location.origin}
@@ -280,7 +283,8 @@
   if(!learnerFrame||event.source!==learnerFrame.contentWindow||!sameOriginMessage(event))return;
   if(event.data&&event.data.type==='HPT_LEARNER_EXIT'){
    learnerLayer?.remove();learnerLayer=null;learnerFrame=null;
-   if(!wasFullscreenBeforeLearner&&document.fullscreenElement){document.exitFullscreen().catch(()=>{});}
+   // Keep the parent document fullscreen after the learner test closes.
+   // The learner test, answer-review dialog and result screen all run inside this same fullscreen shell.
   }
  });
  window.HPTLaunchLearnerTest=()=>{
@@ -291,7 +295,7 @@
   learnerLayer=document.createElement('div');learnerLayer.id='learnerTestFullscreenLayer';
   learnerLayer.style.cssText='position:fixed;inset:0;z-index:2147483000;width:100vw;height:100vh;height:100svh;background:#fff;overflow:hidden;';
   learnerFrame=document.createElement('iframe');learnerFrame.title='Kerala Learner’s Test';
-  learnerFrame.src='learner-test.html?v=100';learnerFrame.allow='fullscreen';learnerFrame.setAttribute('allowfullscreen','');
+  learnerFrame.src='learner-test.html?v=102';learnerFrame.allow='fullscreen';learnerFrame.setAttribute('allowfullscreen','');
   learnerFrame.style.cssText='display:block;width:100%;height:100%;border:0;background:#fff;';
   const schoolSession=JSON.parse(session);
   learnerFrame.addEventListener('load',()=>{
@@ -299,7 +303,13 @@
    learnerFrame.contentWindow.postMessage({type:'HPT_SCHOOL_SESSION',session:schoolSession,candidate:JSON.parse(sessionStorage.getItem('hpt_learner_candidate')||'null')},messageOrigin);
   });
   learnerLayer.appendChild(learnerFrame);document.body.appendChild(learnerLayer);
-  if(!wasFullscreenBeforeLearner&&document.documentElement.requestFullscreen){document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});}
+  // Request fullscreen directly from the student's test-selection click.
+  // Do not exit fullscreen when returning from the learner test.
+  if(!document.fullscreenElement&&document.documentElement.requestFullscreen){document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});}
  };
+ const resume=document.createElement('button');resume.id='hptResumeFullscreen';resume.type='button';resume.textContent='↗  TAP TO RETURN TO FULL SCREEN';resume.style.cssText='position:fixed;inset:auto 14px 18px;z-index:2147483647;display:none;width:calc(100% - 28px);max-width:420px;margin:auto;padding:16px 20px;border:1px solid #69c8ff;border-radius:14px;background:#0877df;color:#fff;font:700 14px system-ui;box-shadow:0 8px 30px #0008;';
+ resume.addEventListener('click',()=>{if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen({navigationUI:'hide'}).then(()=>{resume.style.display='none'}).catch(()=>{});});
+ document.body.appendChild(resume);
+ document.addEventListener('fullscreenchange',()=>{const active=!!document.fullscreenElement;const hasSession=!!sessionStorage.getItem('hpt_school_session');resume.style.display=(!active&&hasSession)?'block':'none';});
 })();
 </script></body></html>

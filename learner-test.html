@@ -3,7 +3,7 @@
 <meta name="theme-color" content="#ffffff"><title>Kerala Learner’s Test | School Practice & Mock Exam</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="learner-test.css?v=100"></head><body>
+<link rel="stylesheet" href="learner-test.css?v=103"></head><body>
 <div class="access-gate" id="accessGate" role="dialog" aria-modal="true" aria-labelledby="accessTitle">
   <div class="access-card">
     <div class="access-brand">
@@ -38,9 +38,12 @@
 <div class="progress-row"><strong id="questionCounter">Question 1 / 200</strong><div class="progress-track"><i id="progressFill"></i></div><span id="progressPct">1%</span></div>
 <article class="question-panel"><div class="question-text"><span class="question-number" id="qNumber">QUESTION 1</span><h2 id="questionMl" class="ml"></h2><h3 id="questionEn"></h3></div>
 <div class="question-layout" id="questionLayout"><div class="question-image-wrap" id="imageWrap" hidden><img id="questionImage" alt="Question illustration"></div><div class="answers" id="answers"></div></div>
-<div class="feedback" id="feedback" hidden></div></article>
-<div class="exam-controls"><button id="prevBtn" class="outline-btn" aria-label="Previous question">← <span class="full-label">PREVIOUS</span><span class="short-label">PREV</span></button><button id="clearBtn" class="clear-btn" aria-label="Clear answer">⌫ <span class="full-label">CLEAR ANSWER</span><span class="short-label">CLEAR</span></button><button id="checkBtn" class="check-btn" hidden>CHECK</button><button id="nextBtn" class="next-btn" aria-label="Next question"><span class="full-label">NEXT</span><span class="short-label">NEXT</span> →</button><button id="submitBtn" class="next-btn" hidden aria-label="Submit mock exam"><span class="full-label">SUBMIT EXAM</span><span class="short-label">SUBMIT</span> ✓</button></div>
-<div class="question-map" id="questionMap" hidden></div>
+<div class="feedback" id="feedback" hidden></div>
+<div class="exam-controls" id="examControls">
+ <button id="skipBtn" class="skip-btn" type="button">SKIP →</button>
+ <button id="confirmBtn" class="confirm-btn" type="button">CONFIRM ✓</button>
+ <button id="submitBtn" class="submit-btn" type="button" hidden>SUBMIT EXAM ✓</button>
+</div></article>
 </section>
 <section id="result" class="result-panel" hidden aria-live="polite">
  <div class="result-hero"><div class="result-icon" id="resultIcon">✓</div><div class="result-heading"><span class="eyebrow">MOCK EXAMINATION COMPLETED</span><div class="result-status" id="resultStatus">NEEDS MORE PRACTICE</div><h2 id="resultTitle">Keep practising</h2><p id="resultMessage">Review your answers and try again.</p><div id="saveResultStatus" class="result-save-status" role="status"></div></div></div>
@@ -54,4 +57,4 @@
 </div>
 <footer class="exam-footer"><span id="schoolLabel">School access verified</span><span>Official HPT examination remains separate</span></footer>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="hpt-config.js"></script><script src="learner-question-bank.js?v=100"></script><script src="learner-test.js?v=100"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="hpt-config.js"></script><script src="learner-question-bank.js?v=103"></script><script src="learner-test.js?v=103"></script></body></html>

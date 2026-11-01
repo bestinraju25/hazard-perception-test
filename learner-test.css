@@ -28,3 +28,34 @@
 @media print{@page{size:A4 portrait;margin:14mm}body{overflow:visible;background:#fff}.exam-shell,.access-gate,.answerReviewModal,.testSelectionModal{display:none!important}}
 
 .result-save-status{margin-top:7px;font-size:11px;line-height:1.35;color:#6b7b8c}.result-save-status.ok{color:#17824f}.result-save-status.bad{color:#bc3434}
+
+
+/* V103: action controls directly under the answer options */
+.exam-controls{position:static;display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:520px;margin:clamp(12px,2.2vh,22px) 0 0 auto;padding:0;flex:none;align-self:stretch;}
+.exam-controls button{min-width:0;min-height:48px;height:auto;border-radius:10px;padding:11px 16px;font-size:14px;font-weight:900;letter-spacing:.02em;white-space:nowrap;}
+.exam-controls .skip-btn{border:1px solid #c7d2df;background:#f7f9fc;color:#324256;}
+.exam-controls .confirm-btn{border:1px solid var(--brand);background:var(--brand);color:#fff;}
+.exam-controls .submit-btn{grid-column:1/-1;border:1px solid #16844f;background:#16844f;color:#fff;}
+.exam-controls button:active{transform:translateY(1px);}
+#questionMap{display:none!important;}
+.question-panel{justify-content:flex-start;}
+.question-layout.no-image{flex:0 0 auto;min-height:0;}
+.question-layout.no-image .answers{overflow:visible;}
+@media(max-width:700px){
+ .question-panel{gap:8px;padding:10px;}
+ .question-layout.no-image{display:block;flex:none;}
+ .question-layout.no-image .answers{display:flex;flex-direction:column;gap:7px;flex:none;overflow:visible;}
+ .question-layout.no-image .answer{flex:0 0 auto;min-height:48px;height:auto;overflow:visible;}
+ .question-layout:not(.no-image){flex:0 0 auto;min-height:0;overflow:visible;}
+ .question-layout:not(.no-image) .question-image-wrap{height:clamp(95px,18svh,165px);min-height:82px;max-height:165px;flex:none;}
+ .question-layout:not(.no-image) .answers{display:flex;flex-direction:column;gap:7px;flex:none;overflow:visible;}
+ .question-layout:not(.no-image) .answer{flex:0 0 auto;min-height:46px;height:auto;overflow:visible;}
+ .exam-controls{grid-template-columns:1fr 1fr;gap:8px;max-width:none;margin:14px 0 2px;padding:0;}
+ .exam-controls button{height:44px;min-height:44px;padding:8px 10px;font-size:12px;border-radius:9px;}
+ .exam-controls .submit-btn{height:46px;min-height:46px;}
+ .feedback{margin-top:1px;}
+}
+@media(max-width:380px){
+ .exam-controls{gap:6px;margin-top:12px;}
+ .exam-controls button{height:42px;min-height:42px;padding:7px 6px;font-size:11px;}
+}
