@@ -1,9 +1,7 @@
-/* V111 — consistent mobile safe spacing across every major site section.
-   The viewport-fit=cover metadata is present on the main pages, allowing
-   env(safe-area-inset-*) to protect notches, rounded corners and gesture bars. */
+/* V113 — apply device safe spacing to examination views, not the public landing pages. */
 :root {
-  --mobile-safe-top: max(14px, calc(env(safe-area-inset-top, 0px) + 8px));
-  --mobile-safe-bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 10px));
+  --mobile-safe-top: max(16px, calc(env(safe-area-inset-top, 0px) + 10px));
+  --mobile-safe-bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px));
 }
 
 @media (max-width: 800px) {
@@ -12,52 +10,176 @@
     scroll-padding-bottom: var(--mobile-safe-bottom);
   }
 
-  /* Main HPT portal and its full-screen candidate exam. Keep the existing
-     compact header sizing, but give the complete app its own safe top/bottom
-     breathing room so sticky headers and bottom HUDs never touch device edges. */
-  #app.app {
+  /* HPT candidate exam: reserve space around the whole examination viewport.
+     Keep the public school-access / landing pages at their original dimensions. */
+  body.exam-active #app.app {
+    box-sizing: border-box;
     height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom)) !important;
     margin-top: var(--mobile-safe-top) !important;
     margin-bottom: var(--mobile-safe-bottom) !important;
   }
 
-  /* These values match the existing responsive header layouts in style.css. */
-  #app.app .stage {
-    height: calc(100% - 150px) !important;
+  body.exam-active #app.app > .topbar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    height: 62px !important;
+    min-height: 62px !important;
+    padding: 5px 9px !important;
+    gap: 7px !important;
+    overflow: hidden !important;
+  }
+
+  body.exam-active #app.app > .topbar > .brand {
+    display: flex !important;
+    position: static !important;
+    transform: none !important;
+    flex: 1 1 auto !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    gap: 6px !important;
+    overflow: hidden !important;
+  }
+
+  body.exam-active #app.app .topbar .logo {
+    width: 39px !important;
+    height: 39px !important;
+    flex: 0 0 39px !important;
+  }
+  body.exam-active #app.app .topbar .brand > div {
+    min-width: 0 !important;
+    text-align: left !important;
+  }
+  body.exam-active #app.app .topbar .school {
+    display: block !important;
+    max-width: 100% !important;
+    font-size: clamp(10px, 2.8vw, 13px) !important;
+    line-height: 1.15 !important;
+    letter-spacing: .35px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  body.exam-active #app.app .topbar .testname {
+    display: block !important;
+    margin-top: 2px !important;
+    font-size: clamp(6.5px, 1.85vw, 8px) !important;
+    line-height: 1.15 !important;
+    letter-spacing: .9px !important;
+    white-space: nowrap !important;
+  }
+
+  /* The mobile home rules intentionally hide the HUD. Restore it only during
+     the real examination so the countdown remains visible. */
+  body.exam-active #app.app .topbar .hud {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+  body.exam-active #app.app .topbar .candidate { display: none !important; }
+  body.exam-active #app.app .topbar .clip {
+    display: block !important;
+    font-size: 7px !important;
+    line-height: 1.1 !important;
+    letter-spacing: .45px !important;
+    white-space: nowrap !important;
+  }
+  body.exam-active #app.app .topbar .clip b {
+    display: block !important;
+    margin-top: 2px !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+  }
+  body.exam-active #app.app .topbar .timer {
+    display: block !important;
+    min-width: 69px !important;
+    padding: 4px 5px !important;
+    border: 1px solid #6f5a20 !important;
+    border-radius: 9px !important;
+    background: #101d27 !important;
+    color: #ffd34f !important;
+    font-size: 21px !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+  body.exam-active #app.app .topbar .homeTools { display: none !important; }
+
+  body.exam-active #app.app > .stage {
+    height: calc(100% - 62px) !important;
     min-height: 0 !important;
   }
-
-  /* Provider dashboard and school statistics are document-scrolling pages. */
-  body.provider-admin-page {
-    min-height: 100dvh;
-    padding-top: var(--mobile-safe-top);
-    padding-bottom: var(--mobile-safe-bottom);
+  body.exam-active #app.app .stage > #examScreen { inset: 0 !important; }
+  body.exam-active #app.app .topOverlay { top: 12px !important; left: 10px !important; right: 10px !important; }
+  body.exam-active #app.app .bottomHud {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 12px !important;
   }
 
+  /* Provider dashboard and school statistics remain document-scrolling views. */
+  body.provider-admin-page,
   body.school-stats-page {
     min-height: 100dvh;
     padding-top: var(--mobile-safe-top);
     padding-bottom: var(--mobile-safe-bottom);
   }
 
-  /* Learners Test is a fixed-height app shell. Shrink the shell rather than
-     overlaying its header/footer, preserving the internal flex layout. */
-  .exam-shell {
+  /* Learners exam: only the active exam receives the outer safe-area margins.
+     Setup / access screens retain their original full-height presentation. */
+  .exam-shell:not(.exam-active) {
+    height: 100vh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+  }
+  .exam-shell.exam-active {
     height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom)) !important;
     height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom)) !important;
     margin-top: var(--mobile-safe-top) !important;
     margin-bottom: var(--mobile-safe-bottom) !important;
+    border-radius: 14px;
+  }
+  .exam-shell.exam-active .exam-main {
+    justify-content: flex-start !important;
+    padding: clamp(16px, 2.8vh, 24px) 9px clamp(18px, 3vh, 26px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+  .exam-shell.exam-active #exam:not([hidden]) {
+    flex: 0 0 auto !important;
+    width: min(100%, 760px) !important;
+    max-height: 100% !important;
+    margin: 0 auto !important;
+  }
+  .exam-shell.exam-active .progress-row {
+    flex: 0 0 32px !important;
+    margin-bottom: 7px !important;
+  }
+  .exam-shell.exam-active .question-panel {
+    flex: 0 1 auto !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
   }
 
-  /* Dialogs stay centered inside the usable area, not under the notch or
-     directly above the gesture indicator. */
+  /* Give all overlays safe room without changing their desktop styling. */
   .answerReviewModal,
   .testSelectionModal,
   .modal {
     padding-top: max(18px, var(--mobile-safe-top)) !important;
     padding-bottom: max(18px, var(--mobile-safe-bottom)) !important;
   }
-
   .answerReviewDialog,
   .testSelectionCard,
   .modal-card {
@@ -73,14 +195,235 @@
   }
 }
 
-/* The narrow-phone HPT home header is slightly shorter than the tablet
-   header. Keep its stage sizing proportional after adding the outer gaps. */
 @media (max-width: 520px) {
-  #app.app .stage {
-    height: calc(100% - 133px) !important;
+  body.exam-active #app.app > .topbar { height: 58px !important; min-height: 58px !important; padding-left: 7px !important; padding-right: 7px !important; }
+  body.exam-active #app.app .topbar .logo { width: 35px !important; height: 35px !important; flex-basis: 35px !important; }
+  body.exam-active #app.app > .stage { height: calc(100% - 58px) !important; }
+  body.exam-active #app.app .topbar .hud { gap: 4px !important; }
+  body.exam-active #app.app .topbar .clip { font-size: 6.5px !important; }
+  body.exam-active #app.app .topbar .clip b { font-size: 11px !important; }
+  body.exam-active #app.app .topbar .timer { min-width: 65px !important; font-size: 19px !important; padding: 4px 3px !important; }
+
+  .exam-shell.exam-active .exam-header {
+    height: 66px !important;
+    min-height: 66px !important;
+    padding: 6px 8px !important;
+    gap: 5px !important;
   }
+  .exam-shell.exam-active .brand { flex: 1 1 0 !important; min-width: 0 !important; gap: 6px !important; }
+  .exam-shell.exam-active .school-logo { width: 36px !important; height: 36px !important; }
+  .exam-shell.exam-active .brand-copy span { max-width: 27vw !important; font-size: 6.8px !important; letter-spacing: .025em !important; }
+  .exam-shell.exam-active .brand-copy h1 { font-size: clamp(12px, 3.4vw, 15px) !important; }
+  .exam-shell.exam-active .header-actions { gap: 4px !important; }
+  .exam-shell.exam-active .language-switch { gap: 1px !important; }
+  .exam-shell.exam-active .language-switch button { padding: 5px 4px !important; font-size: 6.8px !important; }
+  .exam-shell.exam-active .timer-box {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    min-width: 96px !important;
+    gap: 5px !important;
+    padding: 5px 6px !important;
+    border-radius: 8px !important;
+  }
+  .exam-shell.exam-active .timer-stat { gap: 2px !important; }
+  .exam-shell.exam-active .timer-stat small { font-size: 6.5px !important; letter-spacing: .035em !important; }
+  .exam-shell.exam-active .timer-stat b { font-size: 17px !important; line-height: 1.05 !important; }
+  .exam-shell.exam-active .total-timer b { font-size: 14px !important; }
+  .exam-shell.exam-active .timer-divider { height: 25px !important; }
+  .exam-shell.exam-active .close-btn { width: 27px !important; height: 27px !important; min-width: 27px !important; font-size: 18px !important; }
+  .exam-shell.exam-active .exam-main { padding-top: clamp(18px, 3vh, 23px) !important; padding-bottom: clamp(20px, 3.3vh, 28px) !important; }
+}
+
+@media (max-width: 380px) {
+  .exam-shell.exam-active .brand-copy span { max-width: 24vw !important; }
+  .exam-shell.exam-active .timer-box { min-width: 89px !important; padding: 4px 5px !important; gap: 4px !important; }
+  .exam-shell.exam-active .timer-stat small { font-size: 6px !important; }
+  .exam-shell.exam-active .timer-stat b { font-size: 16px !important; }
+  .exam-shell.exam-active .total-timer b { font-size: 13px !important; }
+}
+
+@media (max-height: 680px) and (max-width: 800px) {
+  .exam-shell.exam-active .exam-main { padding-top: 12px !important; padding-bottom: 14px !important; }
+  .exam-shell.exam-active .progress-row { margin-bottom: 4px !important; }
+  .exam-shell.exam-active .question-panel { padding: 7px !important; gap: 6px !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+}
+
+
+/* V115 — Learners Mock Test mobile header uses real layout rows (no absolute overlays).
+   Top row: language switch + exit. Second row: school identity + readable timers.
+   The header reserves this space so progress/question content naturally starts below it. */
+@media (max-width: 520px) {
+  .exam-shell.mock.exam-active .exam-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: 34px 50px;
+    align-content: center;
+    align-items: center;
+    column-gap: 6px;
+    row-gap: 3px;
+    height: 96px !important;
+    min-height: 96px !important;
+    padding: 5px 8px 6px !important;
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 5 !important;
+  }
+
+  /* Let the header's children participate directly in the two-row grid. */
+  .exam-shell.mock.exam-active .header-actions {
+    display: contents !important;
+  }
+
+  .exam-shell.mock.exam-active .brand {
+    grid-column: 1;
+    grid-row: 2;
+    position: static !important;
+    display: flex !important;
+    align-items: center !important;
+    width: auto !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 6px !important;
+    z-index: auto !important;
+  }
+
+  .exam-shell.mock.exam-active .school-logo {
+    width: 35px !important;
+    height: 35px !important;
+    flex: 0 0 35px !important;
+    border-radius: 6px !important;
+  }
+
+  .exam-shell.mock.exam-active .brand-copy {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .exam-shell.mock.exam-active .brand-copy span {
+    max-width: 100% !important;
+    font-size: clamp(6.5px, 1.85vw, 8px) !important;
+    line-height: 1.1 !important;
+    letter-spacing: .02em !important;
+  }
+  .exam-shell.mock.exam-active .brand-copy h1 {
+    max-width: 100% !important;
+    font-size: clamp(12px, 3.25vw, 15px) !important;
+    line-height: 1.1 !important;
+    margin-top: 2px !important;
+  }
+
+  /* Keep language + exit on the top navigation row. */
+  .exam-shell.mock.exam-active .language-switch {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    position: static !important;
+    z-index: auto !important;
+    gap: 1px !important;
+    padding: 2px !important;
+  }
+  .exam-shell.mock.exam-active .language-switch button {
+    padding: 5px 5px !important;
+    font-size: 6.8px !important;
+  }
+  .exam-shell.mock.exam-active .close-btn {
+    grid-column: 3;
+    grid-row: 1;
+    position: static !important;
+    justify-self: end;
+    z-index: auto !important;
+    width: 27px !important;
+    height: 27px !important;
+    min-width: 27px !important;
+    font-size: 18px !important;
+  }
+
+  /* Timer now sits on the second row, beside the school identity. */
+  .exam-shell.mock.exam-active .timer-box {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    position: static !important;
+    justify-self: end;
+    align-self: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    min-width: 132px !important;
+    max-width: 100% !important;
+    min-height: 42px !important;
+    padding: 5px 7px !important;
+    gap: 5px !important;
+    border-radius: 9px !important;
+    z-index: auto !important;
+  }
+  .exam-shell.mock.exam-active .timer-box[hidden] {
+    display: none !important;
+  }
+  .exam-shell.mock.exam-active .timer-clock {
+    display: grid !important;
+    font-size: 16px !important;
+  }
+  .exam-shell.mock.exam-active .timer-stat {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+  }
+  .exam-shell.mock.exam-active .timer-stat small {
+    font-size: 6px !important;
+    line-height: 1 !important;
+    letter-spacing: .035em !important;
+  }
+  .exam-shell.mock.exam-active .timer-stat b {
+    font-size: 17px !important;
+    line-height: 1.05 !important;
+  }
+  .exam-shell.mock.exam-active .total-timer b {
+    font-size: 14px !important;
+  }
+  .exam-shell.mock.exam-active .timer-divider {
+    width: 1px !important;
+    height: 26px !important;
+  }
+
+  /* The exam content stays in normal flow, just below the newly reserved header. */
+  .exam-shell.mock.exam-active .exam-main {
+    padding-top: 12px !important;
+    padding-bottom: max(18px, env(safe-area-inset-bottom, 0px) + 10px) !important;
+  }
+  .exam-shell.mock.exam-active .progress-row {
+    margin-top: 0 !important;
+    margin-bottom: 7px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .exam-shell.mock.exam-active .exam-header {
+    grid-template-rows: 32px 48px;
+    height: 94px !important;
+    min-height: 94px !important;
+    column-gap: 4px;
+  }
+  .exam-shell.mock.exam-active .brand { gap: 5px !important; }
+  .exam-shell.mock.exam-active .school-logo {
+    width: 32px !important;
+    height: 32px !important;
+    flex-basis: 32px !important;
+  }
+  .exam-shell.mock.exam-active .brand-copy span { font-size: 6.2px !important; }
+  .exam-shell.mock.exam-active .brand-copy h1 { font-size: 12px !important; }
+  .exam-shell.mock.exam-active .timer-box {
+    min-width: 124px !important;
+    padding: 4px 5px !important;
+    gap: 4px !important;
+  }
+  .exam-shell.mock.exam-active .timer-stat small { font-size: 5.6px !important; }
+  .exam-shell.mock.exam-active .timer-stat b { font-size: 16px !important; }
+  .exam-shell.mock.exam-active .total-timer b { font-size: 13px !important; }
 }

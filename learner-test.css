@@ -426,3 +426,58 @@ html,body,.exam-shell{background:var(--page);color:var(--ink)}
 @media (max-width: 380px) {
   .exam-shell { border-radius: 11px; }
 }
+
+/* V113 — mobile exam focus: bring progress and question content up under the
+   readable header; preserve safe top/bottom gaps without centering the whole
+   question block halfway down a tall phone screen. */
+@media (max-width: 760px) {
+  .exam-shell.exam-active .exam-main {
+    align-items: stretch !important;
+  }
+  .exam-shell.exam-active #exam:not([hidden]) {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    overflow: visible !important;
+  }
+  .exam-shell.exam-active .progress-row {
+    width: 100%;
+  }
+  .exam-shell.exam-active .question-panel {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    min-height: 0;
+  }
+}
+
+
+/* V115 — desktop keyboard navigation hint. */
+.keyboard-hint {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 2px;
+  color: #91a9ba;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+.keyboard-hint kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 19px;
+  padding: 0 4px;
+  border: 1px solid #355166;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #10283a;
+  color: #eff6fb;
+  font: 800 10px/1 Inter, Arial, sans-serif;
+}
+.keyboard-hint span { color: #58758a; padding: 0 2px; }
+@media (max-width: 800px) {
+  .keyboard-hint { display: none !important; }
+}

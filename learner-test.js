@@ -132,7 +132,7 @@
   $('imageWrap').hidden=!img;$('questionLayout').classList.toggle('no-image',!img);
   if(img){$('questionImage').src=img;$('questionImage').alt='Question '+(index+1)}
   const isLocked=checked[index]!==undefined;
-  $('answers').innerHTML=(q.options||[]).map((o,i)=>`<button type="button" class="answer ${answers[index]===i?'selected':''} ${isLocked&&i===q.correct?'correct':''} ${isLocked&&answers[index]===i&&i!==q.correct?'wrong':''}" data-answer="${i}" ${isLocked?'disabled':''}><span class="answer-letter">${letters[i]||i+1}</span><span class="answer-copy"><strong>${esc(o)}</strong></span></button>`).join('');
+  $('answers').innerHTML=(q.options||[]).map((o,i)=>`<button type="button" class="answer ${answers[index]===i?'selected':''} ${isLocked&&i===q.correct?'correct':''} ${isLocked&&answers[index]===i&&i!==q.correct?'wrong':''}" data-answer="${i}" aria-keyshortcuts="${i+1}" ${isLocked?'disabled':''}><span class="answer-letter">${letters[i]||i+1}</span><span class="answer-copy"><strong>${esc(o)}</strong></span></button>`).join('');
   document.querySelectorAll('[data-answer]').forEach(b=>b.addEventListener('click',()=>{if(checked[index]!==undefined)return;answers[index]=Number(b.dataset.answer);if(mode==='mock')playOptionSound();render()}));
   $('feedback').hidden=checked[index]===undefined||mode==='mock';
   $('feedback').textContent=checked[index]===undefined?'':(checked[index]==='skipped'?'Question skipped.':(answers[index]===q.correct?'Correct answer!':'Correct answer: '+letters[q.correct]));
@@ -180,7 +180,37 @@
  function openReview(){if(!lastResult)return;const qlist=lastResult.questions;$('answerReviewTitle').textContent=`Answer Review · ${qlist.length} Questions`;$('answerReviewSummary').textContent=`Score: ${lastResult.correct}/${qlist.length} · ${lastResult.accuracy}%`;$('answerReviewList').innerHTML=qlist.map((q,i)=>{const selected=lastResult.answers[i],correct=q.correct;const image=q.image?`<img class="reviewImage" src="learner-question-assets/${esc(q.image.split('/').pop())}" alt="Question ${i+1} image">`:'';const opts=(q.options||[]).map((o,j)=>`<div class="reviewOption ${j===selected?'chosen':''} ${j===correct?'correct':''}"><b>${letters[j]||j+1}.</b> ${esc(o)} ${j===selected?' — Your answer':''} ${j===correct?' — Correct':''}</div>`).join('');const badge=selected===undefined?'<span class="reviewWrong">Not answered</span>':selected===correct?'<span class="reviewCorrect">Correct</span>':'<span class="reviewWrong">Incorrect</span>';return `<article class="reviewQuestion"><div class="reviewQuestionTop"><span class="reviewNumber">${i+1}</span><div><h3>${esc(q.question)}</h3></div></div>${image}<div class="reviewOptions">${opts}</div><div class="reviewBadges">${badge}<span>Correct option: ${letters[correct]||correct+1}</span></div></article>`}).join('');$('answerReviewModal').hidden=false}
  function closeReview(){$('answerReviewModal').hidden=true}
  async function setLang(nextLang){const oldPool=pool.slice();lang=nextLang;$('langEn').classList.toggle('active',lang==='en');$('langMl').classList.toggle('active',lang==='ml');const active=questions();$('totalQuestions').textContent=active.length;if(!$('exam').hidden){pool=oldPool.map(q=>active.find(n=>n.id===q.id)||q);render()}populateInstructions()}
- $('practiceTab').onclick=()=>setMode('practice');$('mockTab').onclick=()=>setMode('mock');$('startBtn').onclick=start;$('skipBtn').onclick=skipCurrent;$('confirmBtn').onclick=confirmCurrent;$('submitBtn').onclick=()=>{finish()};$('retakeBtn').onclick=()=>{setMode('mock');start()};$('backHomeBtn').onclick=()=>{closeReview();clearInterval(mockTimer);if(window.parent!==window){window.parent.postMessage({type:'HPT_LEARNER_EXIT'},location.origin==='null'?'*':location.origin)}else{setMode('practice')}};$('viewAnswersBtn').onclick=openReview;$('closeAnswerReview').onclick=closeReview;$('closeAnswerReviewBottom').onclick=closeReview;$('answerReviewModal').addEventListener('click',e=>{if(e.target.matches('[data-review-close]'))closeReview()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('answerReviewModal').hidden)closeReview()});$('langEn').onclick=()=>setLang('en');$('langMl').onclick=()=>setLang('ml');
+ $('practiceTab').onclick=()=>setMode('practice');$('mockTab').onclick=()=>setMode('mock');$('startBtn').onclick=start;$('skipBtn').onclick=skipCurrent;$('confirmBtn').onclick=confirmCurrent;$('submitBtn').onclick=()=>{finish()};$('retakeBtn').onclick=()=>{setMode('mock');start()};$('backHomeBtn').onclick=()=>{closeReview();clearInterval(mockTimer);if(window.parent!==window){window.parent.postMessage({type:'HPT_LEARNER_EXIT'},location.origin==='null'?'*':location.origin)}else{setMode('practice')}};$('viewAnswersBtn').onclick=openReview;$('closeAnswerReview').onclick=closeReview;$('closeAnswerReviewBottom').onclick=closeReview;$('answerReviewModal').addEventListener('click',e=>{if(e.target.matches('[data-review-close]'))closeReview()});document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&!$('answerReviewModal').hidden){closeReview();return}
+  // Keyboard shortcuts are for laptop/desktop examination use only.
+  if(window.matchMedia('(max-width: 800px)').matches)return;
+  if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  if(!$('answerReviewModal').hidden||$('exam').hidden)return;
+  const target=e.target;
+  if(target&&target.closest&&target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(e.key==='Enter'&&target&&target.closest){
+    // A focused answer button should confirm the choice, not merely click itself again.
+    if(target.closest('button[data-answer]')){
+      e.preventDefault();
+      if(mode==='mock'&&index===pool.length-1&&checked[index]!==undefined&&!$('submitBtn').hidden)finish();
+      else confirmCurrent();
+      return;
+    }
+    // Preserve the native Enter behavior for Skip, Confirm, Submit, language and Exit buttons.
+    if(target.closest('button,a'))return;
+  }
+  if(/^[1-4]$/.test(e.key)){
+    if(checked[index]!==undefined)return;
+    const option=$('answers').querySelector(`[data-answer="${Number(e.key)-1}"]`);
+    if(option&&!option.disabled){e.preventDefault();option.click()}
+    return;
+  }
+  if(e.key==='Enter'){
+    if(mode==='mock'&&index===pool.length-1&&checked[index]!==undefined&&!$('submitBtn').hidden){e.preventDefault();finish();return}
+    if(mode==='practice'&&checked[index]!==undefined){e.preventDefault();confirmCurrent();return}
+    if(checked[index]===undefined){e.preventDefault();confirmCurrent()}
+  }
+});$('langEn').onclick=()=>setLang('en');$('langMl').onclick=()=>setLang('ml');
  $('exitBtn').onclick=()=>{if(mode==='mock'&&!$('exam').hidden&&!confirm('Exit the examination? Your current mock attempt will be discarded.'))return;clearInterval(mockTimer);if(window.parent!==window)window.parent.postMessage({type:'HPT_LEARNER_EXIT'},location.origin==='null'?'*':location.origin);else location.href='index.html'};
  $('totalQuestions').textContent=questions().length;
  const directMode=candidate?.mode==='mock';if(directMode){setMode('mock');$('practiceTab').hidden=true;$('mockTab').hidden=true;document.querySelector('.mode-tabs').hidden=true;$('manualCandidate').hidden=true;}
