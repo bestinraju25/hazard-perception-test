@@ -390,3 +390,39 @@ html,body,.exam-shell{background:var(--page);color:var(--ink)}
  .score-progress-track>i,.result-actions button{transition:none;}
  .result-actions button:hover{transform:none;}
 }
+
+
+/* V112 — mobile-only Learners exam breathing room and vertical focus.
+   The public landing/access-code page intentionally receives no safe-area padding. */
+@media (max-width: 760px) {
+  .exam-shell {
+    height: calc(100vh - 36px) !important;
+    height: calc(100dvh - max(16px, env(safe-area-inset-top, 0px) + 10px) - max(20px, env(safe-area-inset-bottom, 0px) + 12px)) !important;
+    margin-top: max(16px, env(safe-area-inset-top, 0px) + 10px) !important;
+    margin-bottom: max(20px, env(safe-area-inset-bottom, 0px) + 12px) !important;
+    border-radius: 14px;
+  }
+  .exam-shell.exam-active .exam-main {
+    justify-content: center;
+    padding-top: clamp(14px, 2.5vh, 28px);
+    padding-bottom: clamp(14px, 2.5vh, 28px);
+  }
+  .exam-shell.exam-active #exam:not([hidden]) {
+    flex: 0 1 auto;
+    width: 100%;
+    max-height: 100%;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+  .exam-shell.exam-active .question-panel {
+    flex: 0 1 auto;
+  }
+  .exam-shell.exam-active #result:not([hidden]) {
+    margin-top: auto;
+    margin-bottom: auto;
+    overflow-y: auto;
+  }
+}
+@media (max-width: 380px) {
+  .exam-shell { border-radius: 11px; }
+}

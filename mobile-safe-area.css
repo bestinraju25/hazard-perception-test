@@ -49,12 +49,6 @@
     margin-bottom: var(--mobile-safe-bottom) !important;
   }
 
-  .access-gate {
-    padding-top: var(--mobile-safe-top) !important;
-    padding-bottom: var(--mobile-safe-bottom) !important;
-    box-sizing: border-box;
-  }
-
   /* Dialogs stay centered inside the usable area, not under the notch or
      directly above the gesture indicator. */
   .answerReviewModal,
