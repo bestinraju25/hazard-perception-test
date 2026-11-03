@@ -198,3 +198,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .homeTools .schoolStatsTool{width:39px;min-width:39px;padding:0;justify-content:center}
   .homeTools .schoolStatsTool span:not(.toolIcon){display:none}
 }
+
+
+/* V110 — separate HPT and Learners examination views */
+.schoolExamChoices{display:grid;gap:16px;margin-top:8px}
+.examChoiceIntro h3{margin:4px 0;font-size:22px}.examChoiceIntro p,.examRecordsHead p{color:#8fa8b8;margin:5px 0 0;font-size:13px}
+.examChoiceGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.examChoiceCard{min-width:0;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:22px;border-radius:18px;border:1px solid #29485b;background:linear-gradient(145deg,#102b3e,#071722);color:#eef5fa;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s}
+.examChoiceCard:hover{transform:translateY(-3px);border-color:#e8bd26;box-shadow:0 14px 32px #0004}
+.examChoiceCard.learners{background:linear-gradient(145deg,#12352f,#071b1b);border-color:#28594a}
+.examChoiceIcon{font-size:28px}.examChoiceTitle{font-size:12px;letter-spacing:1.4px;font-weight:950;color:#b7cad7}.examChoiceCard strong{font-size:38px;line-height:1;color:#ffc629}.examChoiceCard.learners strong{color:#65e4ad}.examChoiceCard small{font-size:12px;color:#9bb0bd}.examChoiceAction{margin-top:8px;font-size:12px;font-weight:950;letter-spacing:.5px;color:#fff}.examRecordsHead{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:8px 0 14px}.examRecordsHead h3{margin:0;font-size:20px}.learnerSummaryFilters{display:grid;grid-template-columns:minmax(220px,1fr) auto;align-items:center;gap:12px;margin-bottom:12px}.learnerSummaryFilters input{min-width:0;min-height:42px;border:1px solid #304c5e;border-radius:10px;background:#071521;color:#edf4f8;padding:9px 11px}
+@media(max-width:650px){.examChoiceGrid{grid-template-columns:1fr}.examChoiceCard{padding:18px}.examRecordsHead{align-items:flex-start;flex-direction:column}.learnerSummaryFilters{grid-template-columns:1fr}}

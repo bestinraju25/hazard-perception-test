@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const C=window.RAJU_HPT_CONFIG; const sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey); const $=id=>document.getElementById(id);
-let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',editingGitHubFilePath='',schoolDirectory=[],selectedResultsSchoolId=null;
+let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',editingGitHubFilePath='',schoolDirectory=[],learnerSummaries=[],selectedResultsSchoolId=null,selectedExamView=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>{s=Math.max(0,Number(s)||0);return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}.${Math.floor((s%1)*10)}`};
 const notice=(t,bad=false)=>{const e=$('notice');e.hidden=false;e.textContent=t;e.className='notice '+(bad?'bad':'good');clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,6000)};
@@ -9,7 +9,7 @@ function showLogin(){ $('login').hidden=false;$('dashboard').hidden=true;$('logo
 function showDash(a){ $('login').hidden=true;$('dashboard').hidden=false;$('logoutBtn').hidden=false;$('adminIdentity').hidden=false;$('adminIdentity').textContent=a?.full_name||a?.email||'' }
 async function guard(){const {data:{session}}=await sb.auth.getSession();if(!session){showLogin();return null}const {data:admin,error}=await sb.from('admin_users').select('id,full_name,email').eq('id',session.user.id).eq('active',true).maybeSingle();if(error||!admin){await sb.auth.signOut();showLogin();$('loginMsg').textContent='This account is not an active provider administrator. Contact the platform provider.';return null}return {session,admin}}
 async function login(){const email=$('email').value.trim(),password=$('password').value;if(!email||!password){$('loginMsg').textContent='Enter email and password.';return}$('loginBtn').disabled=true;$('loginMsg').textContent='Signing in…';const {error}=await sb.auth.signInWithPassword({email,password});if(error){$('loginMsg').textContent=error.message;$('loginBtn').disabled=false;return}const a=await guard();$('loginBtn').disabled=false;if(a){showDash(a.admin);await refreshAll();openRequestedAdminTab()}}
-async function refreshAll(){const a=await guard();if(!a)return;await Promise.all([loadResults(),loadVideos(),loadAccessCode()]);if(window.HPTSchoolManager?.refresh)await window.HPTSchoolManager.refresh();updateStats()}
+async function refreshAll(){const a=await guard();if(!a)return;await Promise.all([loadResults(),loadLearnerSummaries(),loadVideos(),loadAccessCode()]);if(selectedResultsSchoolId&&schoolDirectory.some(x=>String(x.id)===String(selectedResultsSchoolId)))renderSchoolExamChoices(schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId)));if(window.HPTSchoolManager?.refresh)await window.HPTSchoolManager.refresh();updateStats()}
 async function loadAccessCode(){const e=$('adminAccessCode'),m=$('accessCodeMsg');if(!e)return;try{const {data,error}=await sb.from('hpt_settings').select('access_code').eq('id',1).maybeSingle();if(error)throw error;e.value=data?.access_code||'1234';m.textContent=data?'':'Run the included supabase-hpt-v21-access-code.sql migration once to enable persistent access-code changes.';m.className='message '+(data?'good':'bad')}catch(err){e.value='1234';m.textContent='Access-code settings are not configured yet. Run supabase-hpt-v21-access-code.sql in Supabase.';m.className='message bad'}}
 async function saveAccessCode(){const e=$('adminAccessCode'),m=$('accessCodeMsg');const code=e.value.trim();if(!code){m.textContent='Enter an access code.';m.className='message bad';return}if(code.length<4){m.textContent='Access code must be at least 4 characters.';m.className='message bad';return}const a=await guard();if(!a)return;$('saveAccessCode').disabled=true;$('saveAccessCode').textContent='SAVING…';try{const {error}=await sb.from('hpt_settings').update({access_code:code,updated_at:new Date().toISOString()}).eq('id',1);if(error)throw error;m.textContent='✓ Candidate access code updated.';m.className='message good';notice('Candidate HPT access code updated.')}catch(err){m.textContent=err.message||'Could not update access code.';m.className='message bad';notice(err.message||'Could not update access code.',true)}finally{$('saveAccessCode').disabled=false;$('saveAccessCode').textContent='SAVE ACCESS CODE'}}
 async function loadResults(){
@@ -35,12 +35,25 @@ async function loadResults(){
   populateSchoolFilter();
   if(schoolError)notice(`Results loaded, but school details could not be loaded: ${schoolError.message}`,true);
   if(selectedResultsSchoolId && schoolDirectory.some(s=>String(s.id)===String(selectedResultsSchoolId))){
-    openSchoolResults(selectedResultsSchoolId);
+    const priorExamView=selectedExamView;openSchoolResults(selectedResultsSchoolId);if(priorExamView)openExamRecords(priorExamView);
   }else{
     selectedResultsSchoolId=null;
     renderSchoolOverview();
   }
 }
+
+async function loadLearnerSummaries(){
+  try{
+    const {data,error}=await sb.rpc('hpt_admin_list_learner_summaries');
+    if(error)throw error;
+    learnerSummaries=(data||[]).map(r=>({...r,attempt_count:Number(r.attempt_count||0),best_score:r.best_score==null?null:Number(r.best_score)}));
+  }catch(error){
+    learnerSummaries=[];
+    console.error('Learner summaries could not be loaded:',error);
+    notice('Learners Mock Test summaries are unavailable. Apply 18-admin-learner-summary-read.sql in Supabase once.',true);
+  }
+}
+
 function resultStudentKey(r){
   const phone=String(r.phone||'').replace(/\D/g,'');
   return phone||String(r.candidate_name||'').trim().toLowerCase()||String(r.id);
@@ -91,6 +104,37 @@ function renderSchoolOverview(){
     directory.querySelectorAll('[data-open-school-results]').forEach(b=>b.onclick=()=>openSchoolResults(b.dataset.openSchoolResults));
   }
 }
+function schoolLearnerSummary(schoolId){
+  return learnerSummaries.filter(r=>String(r.school_id)===String(schoolId));
+}
+function renderSchoolExamChoices(school){
+  const hpt=results.filter(r=>String(r.school_id||'')===String(school.id));
+  const learners=schoolLearnerSummary(school.id);
+  const hptStudents=new Set(hpt.map(resultStudentKey)).size;
+  const learnerAttempts=learners.reduce((n,r)=>n+r.attempt_count,0);
+  const learnerPassed=learners.filter(r=>Number(r.best_score)>=18).length;
+  const root=$('schoolExamChoices');if(!root)return;
+  root.innerHTML=`<div class="examChoiceIntro"><div><div class="eyebrow">SELECT EXAMINATION</div><h3>${esc(school.school_name)}</h3><p>Choose which examination records you want to view.</p></div></div><div class="examChoiceGrid">
+    <button type="button" class="examChoiceCard hpt" data-exam-view="hpt"><span class="examChoiceIcon">🚘</span><span class="examChoiceTitle">HAZARD PERCEPTION TEST</span><strong>${hpt.length.toLocaleString('en-IN')}</strong><small>${hptStudents.toLocaleString('en-IN')} students · ${hpt.filter(isPassed).length} passed</small><span class="examChoiceAction">VIEW HPT STUDENTS →</span></button>
+    <button type="button" class="examChoiceCard learners" data-exam-view="learners"><span class="examChoiceIcon">📋</span><span class="examChoiceTitle">LEARNERS MOCK TEST</span><strong>${learners.length.toLocaleString('en-IN')}</strong><small>${learnerAttempts.toLocaleString('en-IN')} attempts · ${learnerPassed} passed</small><span class="examChoiceAction">VIEW LEARNERS STUDENTS →</span></button>
+  </div>`;
+  root.querySelectorAll('[data-exam-view]').forEach(b=>b.onclick=()=>openExamRecords(b.dataset.examView));
+}
+function openExamRecords(view){
+  selectedExamView=view;
+  $('schoolExamChoices').hidden=true;$('hptExamRecords').hidden=view!=='hpt';$('learnerExamRecords').hidden=view!=='learners';
+  $('backSchoolOverview').hidden=false;
+  if(view==='hpt'){if($('resultsHeading'))$('resultsHeading').textContent='Hazard Perception Test — Students';renderResults()}
+  else{if($('resultsHeading'))$('resultsHeading').textContent='Learners Mock Test — Students';renderLearnerSummaries()}
+}
+function renderLearnerSummaries(){
+  const sid=selectedResultsSchoolId;const q=$('searchLearnerSummary')?.value.trim().toLowerCase()||'';
+  const rows=schoolLearnerSummary(sid).filter(r=>!q||`${r.candidate_name||''} ${r.phone_normalized||''}`.toLowerCase().includes(q)).sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||'')));
+  const status=r=>Number(r.best_score)>=18?'PASS':'NOT PASSED';
+  $('learnerSummaryBody').innerHTML=rows.map(r=>`<tr><td><b>${esc(r.candidate_name||'Student')}</b></td><td>${esc(r.phone_normalized||'—')}</td><td>${r.attempt_count}</td><td class="score">${r.best_score==null?'—':`${r.best_score} / 30`}</td><td class="${Number(r.best_score)>=18?'pass':'fail'}">${r.best_score==null?'NOT ATTEMPTED':status(r)}</td><td>${r.updated_at?new Date(r.updated_at).toLocaleString('en-IN'):'—'}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No Learners Mock Test students found for this school.</td></tr>';
+  $('learnerSummaryMobile').innerHTML=rows.map(r=>`<article class="result-card"><div class="rc-head"><h3>${esc(r.candidate_name||'Student')}</h3><span class="${Number(r.best_score)>=18?'pass':'fail'}">${r.best_score==null?'—':status(r)}</span></div><div class="rc-grid"><div><small>PHONE</small><b>${esc(r.phone_normalized||'—')}</b></div><div><small>ATTEMPTS</small><b>${r.attempt_count}</b></div><div><small>BEST SCORE</small><b>${r.best_score==null?'—':`${r.best_score} / 30`}</b></div><div><small>LAST UPDATED</small><b>${r.updated_at?new Date(r.updated_at).toLocaleDateString('en-IN'):'—'}</b></div></div></article>`).join('')||'<div class="empty">No Learners Mock Test students found for this school.</div>';
+  $('learnerSummaryCount').textContent=`${rows.length} learners`;
+}
 function openSchoolResults(id){
   selectedResultsSchoolId=String(id);
   const school=id==='legacy'?null:schoolDirectory.find(s=>String(s.id)===String(id));
@@ -100,14 +144,16 @@ function openSchoolResults(id){
   if(detail)detail.hidden=false;
   if($('backSchoolOverview'))$('backSchoolOverview').hidden=false;
   if($('exportStudentPdf'))$('exportStudentPdf').hidden=false;
-  if($('resultsHeading'))$('resultsHeading').textContent=school?`${school.school_name} — Students & Results`:'Legacy / Unassigned — Students & Results';
+  selectedExamView=null;
+  if($('schoolExamChoices'))$('schoolExamChoices').hidden=false;if($('hptExamRecords'))$('hptExamRecords').hidden=true;if($('learnerExamRecords'))$('learnerExamRecords').hidden=true;
+  if($('resultsHeading'))$('resultsHeading').textContent=school?`${school.school_name} — Examinations`:'Legacy / Unassigned — Students & Results';
   if($('resultsDescription'))$('resultsDescription').textContent='This view contains only the selected school’s student records, attempts, reports and certificate actions.';
   const select=$('schoolResultsFilter');
   if(select){select.value=id==='legacy'?'legacy':String(id);select.disabled=true}
-  renderResults();
+  if(school){renderSchoolExamChoices(school)}else{openExamRecords('hpt')}
 }
 function closeSchoolResults(){
-  selectedResultsSchoolId=null;
+  selectedResultsSchoolId=null;selectedExamView=null;
   if($('schoolResultsFilter')){$('schoolResultsFilter').disabled=false;$('schoolResultsFilter').value='all'}
   if($('searchResults'))$('searchResults').value='';
   if($('resultFilter'))$('resultFilter').value='all';
@@ -516,7 +562,7 @@ const schoolName=String(school.school_name||'Driving School').toUpperCase();cons
 doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is awarded to',W/2,94,{align:'center'});doc.setTextColor(25,38,51);doc.setFont('helvetica','bold');doc.setFontSize(27);doc.text(String(r.candidate_name||'Candidate'),W/2,112,{align:'center'});doc.setDrawColor(180,188,195);doc.setLineWidth(.35);doc.line(70,118,227,118);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the '+(school.school_name||'Driving School')+' Hazard Perception Test',W/2,131,{align:'center',maxWidth:230});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`SCORE: ${Number(r.total_score||0)} / 100`,W/2,149,{align:'center'});doc.setTextColor(35,126,78);doc.setFontSize(16);doc.text('PASS',W/2,160,{align:'center'});const d=new Date(r.completed_at||r.started_at);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Date: ${d.toLocaleDateString('en-IN')}`,45,181);doc.text(`Certificate No: HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(r.id).slice(0,8).toUpperCase()}`,W-45,181,{align:'right'});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text([schoolName,schoolLocation,school.contact_number].filter(Boolean).join(' • ').slice(0,120),W/2,191,{align:'center',maxWidth:250});doc.save(`${String(school.school_name||'Driving-School').replace(/[^a-z0-9]+/gi,'-')}-HPT-Certificate-${String(r.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`);notice(`Certificate downloaded for ${r.candidate_name}.`)}catch(e){console.error(e);notice('Could not generate the certificate.',true)}finally{if(btn){btn.disabled=false;btn.textContent='PRINT'}}}
 
 function openRequestedAdminTab(){const requested=new URLSearchParams(window.location.search).get('tab');if(requested)document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===requested)t.click()})}
-$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
+$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;$('backExamChoices').onclick=()=>{selectedExamView=null;$('schoolExamChoices').hidden=false;$('hptExamRecords').hidden=true;$('learnerExamRecords').hidden=true;const sc=schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId));if(sc)$('resultsHeading').textContent=`${sc.school_name} — Examinations`;};$('backHptExamChoices').onclick=()=>$('backExamChoices').click();$('searchLearnerSummary').oninput=renderLearnerSummaries;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
 let resultsPoll=null;
 function startResultsPolling(){clearInterval(resultsPoll);resultsPoll=setInterval(async()=>{if(document.hidden||$('dashboard').hidden)return;try{await loadResults();updateStats()}catch(e){console.error('HPT results refresh failed',e)}},5000)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden)loadResults()});

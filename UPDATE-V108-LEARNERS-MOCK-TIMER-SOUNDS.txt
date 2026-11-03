@@ -1,0 +1,21 @@
+HAZARD PERCEPTION TEST WEBSITE — V108 UPDATE
+LEARNERS MOCK TEST TIMER, SOUND & COUNTDOWN FEEDBACK
+
+Changes in this update
+- Added a 30-second countdown for every Learners Mock Test question.
+- When a question reaches zero, it is marked unanswered and the test automatically advances.
+- The final question automatically submits when its 30 seconds expire.
+- Kept the overall 15-minute (900-second) examination limit.
+- Added a short, identical option-selection sound for every answer choice. The sound does not distinguish correct and incorrect answers.
+- Added a quiet clock-like tick once per second during the question countdown.
+- Added a visual warning in the final 10 seconds and a subtle countdown shake in the final 5 seconds.
+- Kept the new sounds local and synthesized with the browser audio engine; no extra audio files or external audio libraries are required.
+
+Scope
+These changes are limited to the Learners Mock Test. The Hazard Perception Test and Learner Practice mode are not changed.
+
+Files updated
+- learner-test.html
+- learner-test.js
+- learner-test.css
+- index.html (cache-busting version for the learner test frame)

@@ -3,7 +3,7 @@
 <meta name="theme-color" content="#061522"><title>Kerala Learner’s Test | School Practice & Mock Exam</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="learner-test.css?v=107"></head><body>
+<link rel="stylesheet" href="learner-test.css?v=109"></head><body>
 <div class="access-gate" id="accessGate" role="dialog" aria-modal="true" aria-labelledby="accessTitle">
   <div class="access-card">
     <div class="access-brand">
@@ -23,7 +23,7 @@
 </div>
 <div class="exam-shell">
 <header class="exam-header"><div class="brand"><img id="schoolLogo" class="school-logo" alt="Driving school logo" hidden><div class="brand-copy"><span id="schoolBrandEyebrow">DRIVING SCHOOL</span><h1 id="schoolBrandName">LEARNER’S TEST</h1><p id="modeSubtitle">Learner Practice</p></div></div>
-<div class="header-actions"><div class="language-switch"><button id="langEn" class="active">ENGLISH</button><button id="langMl">മലയാളം</button></div><div class="timer-box" id="timerBox" hidden><span>◷</span><div><small>TIME LEFT</small><b id="timer">15:00</b></div></div><button class="close-btn" id="exitBtn" aria-label="Exit">×</button></div></header>
+<div class="header-actions"><div class="language-switch"><button id="langEn" class="active">ENGLISH</button><button id="langMl">മലയാളം</button></div><div class="timer-box" id="timerBox" hidden aria-label="Mock examination timers"><span class="timer-clock" aria-hidden="true">◷</span><div class="timer-stat question-timer"><small>QUESTION</small><b id="questionTimer">00:30</b></div><span class="timer-divider" aria-hidden="true"></span><div class="timer-stat total-timer"><small>TOTAL LEFT</small><b id="timer">15:00</b></div></div><button class="close-btn" id="exitBtn" aria-label="Exit">×</button></div></header>
 <nav class="mode-tabs"><button id="practiceTab" class="active">📘 LEARNER PRACTICE</button><button id="mockTab">🧪 MOCK EXAMINATION</button></nav>
 <main class="exam-main">
 <section class="setup" id="setup">
@@ -45,11 +45,35 @@
  <button id="submitBtn" class="submit-btn" type="button" hidden>SUBMIT EXAM ✓</button>
 </div></article>
 </section>
-<section id="result" class="result-panel" hidden aria-live="polite">
- <div class="result-hero"><div class="result-icon" id="resultIcon">✓</div><div class="result-heading"><span class="eyebrow">MOCK EXAMINATION COMPLETED</span><div class="result-status" id="resultStatus">NEEDS MORE PRACTICE</div><h2 id="resultTitle">Keep practising</h2><p id="resultMessage">Review your answers and try again.</p><div id="saveResultStatus" class="result-save-status" role="status"></div></div></div>
- <div class="score-panel"><div class="score" id="score">0 / 30</div><span>YOUR SCORE</span></div>
- <div class="result-stats"><div><b id="correctCount">0</b><span>CORRECT</span></div><div><b id="wrongCount">0</b><span>INCORRECT</span></div><div><b id="skipCount">0</b><span>UNANSWERED</span></div><div><b id="accuracy">0%</b><span>ACCURACY</span></div></div>
- <div class="result-actions"><button id="viewAnswersBtn" class="result-home-btn primary-result-btn">VIEW TEST RESULTS</button><button id="retakeBtn" class="start-btn">RETAKE MOCK EXAM&nbsp; →</button><button id="backHomeBtn" class="result-home-btn">BACK TO LEARNER HOME</button></div>
+<section id="result" class="result-panel" hidden aria-live="polite" aria-labelledby="resultTitle">
+ <div class="result-topline">
+  <div class="result-topline-brand"><span class="result-topline-icon" aria-hidden="true">✓</span><span>LEARNER’S MOCK EXAM · PERFORMANCE REPORT</span></div>
+  <div class="result-status" id="resultStatus">MORE PRACTICE NEEDED</div>
+ </div>
+ <div class="result-overview">
+  <div class="result-hero">
+   <div class="result-icon" id="resultIcon" aria-hidden="true">↻</div>
+   <div class="result-heading"><span class="eyebrow">EXAMINATION COMPLETED</span><h2 id="resultTitle">Keep practising</h2><p id="resultMessage">Review your answers and try again.</p><div id="saveResultStatus" class="result-save-status" role="status"></div></div>
+  </div>
+  <div class="score-panel">
+   <div class="score-panel-heading"><span>YOUR SCORE</span><span class="score-max">OUT OF 30</span></div>
+   <div class="score-value-row"><div class="score" id="score">0 / 30</div><span class="score-points-label">POINTS</span></div>
+   <div class="score-progress-track" role="progressbar" aria-label="Score percentage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="resultScoreProgress"></i><span class="score-pass-marker" aria-hidden="true"></span></div>
+   <div class="score-target-row"><span>PASS MARK</span><strong>18 / 30</strong></div>
+  </div>
+ </div>
+ <div class="result-breakdown-heading"><span>RESULT BREAKDOWN</span><span>YOUR EXAM SNAPSHOT</span></div>
+ <div class="result-stats">
+  <div class="stat-correct"><span class="stat-label">CORRECT ANSWERS</span><b id="correctCount">0</b><small>Well done</small></div>
+  <div class="stat-wrong"><span class="stat-label">INCORRECT ANSWERS</span><b id="wrongCount">0</b><small>Review these answers</small></div>
+  <div class="stat-skipped"><span class="stat-label">UNANSWERED</span><b id="skipCount">0</b><small>Questions not completed</small></div>
+  <div class="stat-accuracy"><span class="stat-label">ACCURACY</span><b id="accuracy">0%</b><small>Overall performance</small></div>
+ </div>
+ <div class="result-actions">
+  <button id="viewAnswersBtn" class="result-home-btn primary-result-btn" type="button"><span aria-hidden="true">▤</span> VIEW ANSWERS</button>
+  <button id="retakeBtn" class="start-btn" type="button">RETAKE MOCK EXAM <span aria-hidden="true">→</span></button>
+  <button id="backHomeBtn" class="result-home-btn" type="button">BACK TO LEARNER HOME</button>
+ </div>
 </section>
 </main>
 <div id="answerReviewModal" class="answerReviewModal" hidden role="dialog" aria-modal="true" aria-labelledby="answerReviewTitle">
@@ -57,4 +81,4 @@
 </div>
 <footer class="exam-footer"><span id="schoolLabel">School access verified</span><span>Official HPT examination remains separate</span></footer>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="hpt-config.js"></script><script src="learner-question-bank.js?v=107"></script><script src="learner-test.js?v=107"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="hpt-config.js"></script><script src="learner-question-bank.js?v=108"></script><script src="learner-test.js?v=109"></script></body></html>
