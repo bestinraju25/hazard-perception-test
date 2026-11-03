@@ -1,0 +1,92 @@
+/* V111 — consistent mobile safe spacing across every major site section.
+   The viewport-fit=cover metadata is present on the main pages, allowing
+   env(safe-area-inset-*) to protect notches, rounded corners and gesture bars. */
+:root {
+  --mobile-safe-top: max(14px, calc(env(safe-area-inset-top, 0px) + 8px));
+  --mobile-safe-bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 10px));
+}
+
+@media (max-width: 800px) {
+  html, body {
+    scroll-padding-top: var(--mobile-safe-top);
+    scroll-padding-bottom: var(--mobile-safe-bottom);
+  }
+
+  /* Main HPT portal and its full-screen candidate exam. Keep the existing
+     compact header sizing, but give the complete app its own safe top/bottom
+     breathing room so sticky headers and bottom HUDs never touch device edges. */
+  #app.app {
+    height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom)) !important;
+    margin-top: var(--mobile-safe-top) !important;
+    margin-bottom: var(--mobile-safe-bottom) !important;
+  }
+
+  /* These values match the existing responsive header layouts in style.css. */
+  #app.app .stage {
+    height: calc(100% - 150px) !important;
+    min-height: 0 !important;
+  }
+
+  /* Provider dashboard and school statistics are document-scrolling pages. */
+  body.provider-admin-page {
+    min-height: 100dvh;
+    padding-top: var(--mobile-safe-top);
+    padding-bottom: var(--mobile-safe-bottom);
+  }
+
+  body.school-stats-page {
+    min-height: 100dvh;
+    padding-top: var(--mobile-safe-top);
+    padding-bottom: var(--mobile-safe-bottom);
+  }
+
+  /* Learners Test is a fixed-height app shell. Shrink the shell rather than
+     overlaying its header/footer, preserving the internal flex layout. */
+  .exam-shell {
+    height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom)) !important;
+    height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom)) !important;
+    margin-top: var(--mobile-safe-top) !important;
+    margin-bottom: var(--mobile-safe-bottom) !important;
+  }
+
+  .access-gate {
+    padding-top: var(--mobile-safe-top) !important;
+    padding-bottom: var(--mobile-safe-bottom) !important;
+    box-sizing: border-box;
+  }
+
+  /* Dialogs stay centered inside the usable area, not under the notch or
+     directly above the gesture indicator. */
+  .answerReviewModal,
+  .testSelectionModal,
+  .modal {
+    padding-top: max(18px, var(--mobile-safe-top)) !important;
+    padding-bottom: max(18px, var(--mobile-safe-bottom)) !important;
+  }
+
+  .answerReviewDialog,
+  .testSelectionCard,
+  .modal-card {
+    max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - 12px) !important;
+  }
+
+  /* Drive Yourself uses a normal scrolling shell with a sticky header. */
+  .app-shell {
+    min-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom));
+    min-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom));
+    margin-top: var(--mobile-safe-top);
+    margin-bottom: var(--mobile-safe-bottom);
+  }
+}
+
+/* The narrow-phone HPT home header is slightly shorter than the tablet
+   header. Keep its stage sizing proportional after adding the outer gaps. */
+@media (max-width: 520px) {
+  #app.app .stage {
+    height: calc(100% - 133px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
