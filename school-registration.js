@@ -200,8 +200,9 @@
       <div class="hptRegEyebrow">REGISTRATION PAYMENT</div>
       <h2 id="hptRegistrationTitle">Pay ₹5,000</h2>
       <p class="hptRegIntro">Scan the QR code using Google Pay, PhonePe, Paytm or any UPI app.</p>
-      <img class="hptPaymentQr" src="assets/gpay-payment-qr.png" alt="UPI QR code for payment to bestinraju25-2@oksbi">
+      <img class="hptPaymentQr" src="assets/gpay-payment-qr.png" alt="UPI QR code with ₹5,000 prefilled for payment to bestinraju25-2@oksbi">
       <div class="hptUpiId">UPI ID: <strong>bestinraju25-2@oksbi</strong></div>
+      <div class="hptFixedPaymentAmount">PAYMENT AMOUNT: <strong>₹5,000.00</strong> <span>Pre-filled in the QR code</span></div>
       <p class="hptPaymentReminder">After completing the payment, press the button below. Your registration will remain pending until the administrator checks the payment and enables the school.</p>
       <div id="hptRegistrationError" class="hptRegError" role="alert" hidden></div>
       <button id="hptPaymentCompleted" class="hptRegPrimary" type="button">PAYMENT COMPLETED <span>✓</span></button>`);

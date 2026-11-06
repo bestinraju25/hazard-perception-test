@@ -43,3 +43,7 @@
 .hptRegForm select{width:100%;min-height:47px;padding:11px 13px;border:1px solid #355568;border-radius:10px;outline:none;background:#06131d;color:#f7fbfd;font:inherit;font-size:14px;appearance:auto}
 
 .hptInlineRecovery{display:inline;border:0;background:transparent;color:#ffd34d;text-decoration:underline;font:inherit;font-weight:900;padding:2px 3px;cursor:pointer}
+
+
+/* V120: emphasise the preset UPI amount shown by the QR */
+.hptFixedPaymentAmount{margin:12px auto 4px;padding:12px 14px;max-width:360px;text-align:center;border:1px solid rgba(16,43,66,.16);border-radius:12px;background:#f2f7fb;color:#23394b;font-size:14px;font-weight:800;letter-spacing:.02em}.hptFixedPaymentAmount strong{display:block;font-size:24px;color:#0b6542;margin:3px 0}.hptFixedPaymentAmount span{display:block;font-size:11px;font-weight:600;color:#6a7886;letter-spacing:0}
