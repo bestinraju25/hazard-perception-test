@@ -65,6 +65,52 @@
         <label>Driving school name
           <input name="schoolName" type="text" maxlength="120" autocomplete="organization" placeholder="Enter driving school name" required>
         </label>
+        <label>State / Union Territory
+          <select name="state" required>
+          <option value="">Select state / union territory</option>
+          <optgroup label="States">
+          <option value="Andhra Pradesh">Andhra Pradesh</option>
+          <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+          <option value="Assam">Assam</option>
+          <option value="Bihar">Bihar</option>
+          <option value="Chhattisgarh">Chhattisgarh</option>
+          <option value="Goa">Goa</option>
+          <option value="Gujarat">Gujarat</option>
+          <option value="Haryana">Haryana</option>
+          <option value="Himachal Pradesh">Himachal Pradesh</option>
+          <option value="Jharkhand">Jharkhand</option>
+          <option value="Karnataka">Karnataka</option>
+          <option value="Kerala" selected>Kerala</option>
+          <option value="Madhya Pradesh">Madhya Pradesh</option>
+          <option value="Maharashtra">Maharashtra</option>
+          <option value="Manipur">Manipur</option>
+          <option value="Meghalaya">Meghalaya</option>
+          <option value="Mizoram">Mizoram</option>
+          <option value="Nagaland">Nagaland</option>
+          <option value="Odisha">Odisha</option>
+          <option value="Punjab">Punjab</option>
+          <option value="Rajasthan">Rajasthan</option>
+          <option value="Sikkim">Sikkim</option>
+          <option value="Tamil Nadu">Tamil Nadu</option>
+          <option value="Telangana">Telangana</option>
+          <option value="Tripura">Tripura</option>
+          <option value="Uttar Pradesh">Uttar Pradesh</option>
+          <option value="Uttarakhand">Uttarakhand</option>
+          <option value="West Bengal">West Bengal</option>
+          </optgroup>
+          <optgroup label="Union Territories">
+          <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+          <option value="Chandigarh">Chandigarh</option>
+          <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+          <option value="Delhi">Delhi</option>
+          <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+          <option value="Ladakh">Ladakh</option>
+          <option value="Lakshadweep">Lakshadweep</option>
+          <option value="Puducherry">Puducherry</option>
+          </optgroup>
+          </select>
+          <span class="hptRegHint">Learner’s Mock Test is available only for schools in Kerala.</span>
+        </label>
         <label>Location
           <input name="location" type="text" maxlength="120" autocomplete="address-level2" placeholder="Town / District" required>
         </label>
@@ -94,10 +140,11 @@
 
     const schoolName = form.elements.schoolName.value.trim();
     const location = form.elements.location.value.trim();
+    const state = form.elements.state.value.trim();
     const contactNumber = form.elements.contactNumber.value.trim();
     const digits = contactNumber.replace(/\D/g, '');
-    if (schoolName.length < 2 || location.length < 2 || digits.length < 10 || digits.length > 15) {
-      return showError('Enter a valid school name, location and contact number.');
+    if (schoolName.length < 2 || location.length < 2 || !state || digits.length < 10 || digits.length > 15) {
+      return showError('Enter a valid school name, state, location and contact number.');
     }
 
     submit.disabled = true;
@@ -120,6 +167,7 @@
       const { data, error } = await supabase.rpc('register_hpt_school', {
         p_school_name: schoolName,
         p_location: location,
+        p_state: state,
         p_contact_number: contactNumber,
         p_logo_url: logoUrl
       });

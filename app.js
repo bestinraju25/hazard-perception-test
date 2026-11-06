@@ -408,6 +408,10 @@ async function beginHPTExam(){buttonFeedback();ensureAudio();if(!video){toast('T
   catch(e){console.warn('School access revalidation failed:',e);toast('Could not verify school access. Please try again.',true);return}
   clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
 updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
+function isKeralaSchool(){
+  // Existing schools are migrated with state='Kerala'; missing state remains Kerala-compatible for older cached sessions.
+  return String(activeSchool?.state||'Kerala').trim().toLowerCase()==='kerala';
+}
 function begin(){
   buttonFeedback();
   const n=$('name').value.trim(),p=$('phone').value.trim();
@@ -416,14 +420,20 @@ function begin(){
   const digits=p.replace(/\D/g,'');
   if(digits.length<10||digits.length>15){toast('Enter a valid mobile number.',true);$('phone').focus();return}
   candidate={name:n,phone:p};
-  try{sessionStorage.setItem('hpt_learner_candidate',JSON.stringify({name:n,phone:p,school_id:activeSchool.id,school_name:activeSchool.school_name,selected_at:new Date().toISOString()}))}catch{}
+  try{sessionStorage.setItem('hpt_learner_candidate',JSON.stringify({name:n,phone:p,school_id:activeSchool.id,school_name:activeSchool.school_name,state:activeSchool.state||'Kerala',selected_at:new Date().toISOString()}))}catch{}
+  if(!isKeralaSchool()){
+    // Schools outside Kerala are offered HPT only; skip the Kerala learner-test selector entirely.
+    beginHPTExam();
+    return;
+  }
   const modal=$('testSelectionModal');if(modal)modal.hidden=false;
 }
 function closeTestSelection(){const modal=$('testSelectionModal');if(modal)modal.hidden=true}
 function chooseHptTest(){closeTestSelection();beginHPTExam()}
 function chooseLearnerTest(){
+  if(!isKeralaSchool()){closeTestSelection();toast('Learner’s Mock Test is currently available only to Kerala driving schools.',true);return}
   closeTestSelection();
-  const learnerCandidate={name:$('name').value.trim(),phone:$('phone').value.trim(),school_id:activeSchool?.id,school_name:activeSchool?.school_name,selected_at:new Date().toISOString(),mode:'mock'};
+  const learnerCandidate={name:$('name').value.trim(),phone:$('phone').value.trim(),school_id:activeSchool?.id,school_name:activeSchool?.school_name,state:activeSchool?.state||'Kerala',selected_at:new Date().toISOString(),mode:'mock'};
   try{sessionStorage.setItem('hpt_learner_candidate',JSON.stringify(learnerCandidate))}catch{}
   if(typeof window.HPTLaunchLearnerTest==='function')window.HPTLaunchLearnerTest();else toast('Learner’s Mock Test could not be opened. Please refresh and try again.',true);
 }

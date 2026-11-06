@@ -1,4 +1,4 @@
-HAZARD PERCEPTION TEST — V117 SCHOOL REGISTRATION UPDATE
+HAZARD PERCEPTION TEST — V118 STATE-BASED TEST AVAILABILITY UPDATE
 =======================================================
 
 This is the updated project package based on the uploaded base ZIP. Existing HPT
@@ -28,8 +28,9 @@ SUPABASE SETUP — REQUIRED ONCE
 3. Run the new file: 19-school-registration-static-upi.sql
 4. Confirm the final verification query reports both RPCs and both status columns
    as true.
-5. Do not rerun the earlier full installer just for this feature. The migration
-   is additive and does not delete existing schools or examination records.
+5. For the state-based feature, run 20-indian-states-and-kerala-only-learners-test.sql AFTER migration 19.
+6. Do not rerun the earlier full installer just for this feature. Both migrations are additive
+   and do not delete existing schools or examination records.
 
 DEPLOYMENT
 ----------
@@ -73,4 +74,16 @@ This ZIP intentionally excludes all videos/ and .git/ content to keep its size l
 The video paths and existing video management code are retained; the videos folder
 should be preserved in your existing clone/deployment as a separate asset folder.
 
-Version: V117 — School Self-Registration / Static UPI / Manual Activation
+Version: V118 — Indian State Selection / Kerala Learner Test Eligibility / HPT for Other States
+
+
+V118 STATE-BASED TEST AVAILABILITY
+--------------------------------
+1. Run 20-indian-states-and-kerala-only-learners-test.sql in Supabase AFTER migration 19.
+2. New school registration now requires State / Union Territory. The form includes all 28 Indian states and all 8 Union Territories.
+3. Existing schools are assigned Kerala by migration because the existing registered schools are Kerala schools. Their learner test choice remains available.
+4. Kerala school login: Continue opens the existing choice between Hazard Perception Test and Learner's Mock Test.
+5. Schools in every other state / UT: Continue starts the Hazard Perception Test directly. The Learner's Mock Test choice is not shown or available.
+6. Admin > Driving Schools now displays state and lets the admin select it when adding/editing a school.
+
+The learner-test restriction is enforced in app.js and learner-test.js based on the state returned by the access-code verification RPC. Directly opening the learner-test page for a non-Kerala school is blocked as well.

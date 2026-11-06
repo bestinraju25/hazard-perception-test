@@ -21,7 +21,7 @@
     img.src=url;$('schoolLogoPreviewName').textContent=name;wrap.hidden=false;
   }
   function resetForm(){
-    $('schoolForm').reset();$('schoolEditId').value='';$('schoolBrandColor').value='#ffc400';$('schoolDarkColor').value='#0b1b29';$('schoolActiveInput').checked=true;
+    $('schoolForm').reset();$('schoolEditId').value='';$('schoolBrandColor').value='#ffc400';$('schoolDarkColor').value='#0b1b29';$('schoolActiveInput').checked=true;$('schoolStateInput').value='Kerala';
     $('schoolFormEyebrow').textContent='NEW SCHOOL';$('schoolFormTitle').textContent='Add a Driving School';$('saveSchoolBtn').textContent='＋ ADD SCHOOL';$('cancelSchoolEdit').hidden=true;
     $('schoolLogoFile').value='';clearPreview();setPreview('');msg('Add the school details and create a unique access code.');
   }
@@ -30,7 +30,7 @@
     $('schoolList').innerHTML=schools.map(s=>`<article class="schoolItem">
       <div class="schoolItemLogo">${s.logo_url?`<img src="${esc(s.logo_url)}" alt="">`:esc(String(s.school_name||'S').trim().slice(0,1).toUpperCase())}</div>
       <div class="schoolItemInfo"><h4>${esc(s.school_name)} <span class="schoolStatus ${s.active?'on':'off'}">● ${s.active?'ACTIVE':'DISABLED'}</span></h4>
-      <p>${esc(s.location||'Location not set')} · ${esc(s.contact_number||'No contact')}</p>
+      <p>${esc(s.state||'Kerala')} · ${esc(s.location||'Location not set')} · ${esc(s.contact_number||'No contact')}</p>
       ${s.registration_status==='pending_approval'?'<p class="schoolRegistrationPending">NEW REGISTRATION · PAYMENT CHECK PENDING · ADMIN APPROVAL REQUIRED</p>':''}
       ${s.payment_status==='pending_manual_verification'?'<p class="schoolPaymentPending">AWAITING CUSTOMER PAYMENT CONFIRMATION</p>':''}
       ${s.payment_status==='customer_confirmed'?`<p class="schoolPaymentConfirmed">CUSTOMER MARKED PAYMENT COMPLETED · VERIFY IN GOPAY${s.payment_confirmed_at?` · ${esc(new Date(s.payment_confirmed_at).toLocaleString('en-IN'))}`:''}</p>`:''}
@@ -46,14 +46,14 @@
     refreshing=true;
     try{
       if(!(await isAdmin())){ $('schoolList').innerHTML='<div class="empty">Sign in with an active manager account to manage schools.</div>';return; }
-      const {data,error}=await sb.from('hpt_schools').select('id,school_name,contact_number,location,access_code,logo_url,brand_color,dark_color,active,registration_status,payment_status,payment_confirmed_at,created_at,updated_at').order('school_name');
+      const {data,error}=await sb.from('hpt_schools').select('id,school_name,contact_number,location,state,access_code,logo_url,brand_color,dark_color,active,registration_status,payment_status,payment_confirmed_at,created_at,updated_at').order('school_name');
       if(error)throw error;schools=data||[];render();
     }catch(e){$('schoolList').innerHTML=`<div class="empty">Could not load schools. ${esc(e.message||'Check that the multi-school SQL migration has been run.')}</div>`;}
     finally{refreshing=false}
   }
   function editSchool(id){
     const s=schools.find(x=>x.id===id);if(!s)return;
-    $('schoolEditId').value=s.id;$('schoolNameInput').value=s.school_name||'';$('schoolContactInput').value=s.contact_number||'';$('schoolLocationInput').value=s.location||'';$('schoolCodeInput').value=s.access_code||'';
+    $('schoolEditId').value=s.id;$('schoolNameInput').value=s.school_name||'';$('schoolContactInput').value=s.contact_number||'';$('schoolLocationInput').value=s.location||'';$('schoolStateInput').value=s.state||'Kerala';$('schoolCodeInput').value=s.access_code||'';
     $('schoolBrandColor').value=s.brand_color||'#ffc400';$('schoolDarkColor').value=s.dark_color||'#0b1b29';$('schoolActiveInput').checked=!!s.active;
     $('schoolLogoFile').value='';clearPreview();setPreview(s.logo_url||'',s.logo_url?'Current school logo':'');
     $('schoolFormEyebrow').textContent='EDIT SCHOOL';$('schoolFormTitle').textContent='Update '+s.school_name;$('saveSchoolBtn').textContent='SAVE SCHOOL CHANGES';$('cancelSchoolEdit').hidden=false;msg('Editing school details. Leave the logo field empty to keep the current logo.');
@@ -74,15 +74,15 @@
     e.preventDefault();
     if(!(await isAdmin())){msg('Your admin session is not active. Sign in again.', 'bad');return;}
     const id=$('schoolEditId').value||((window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():`00000000-0000-4000-8000-${Date.now().toString(16).padStart(12,'0').slice(-12)}`);
-    const name=$('schoolNameInput').value.trim(),contact=$('schoolContactInput').value.trim(),location=$('schoolLocationInput').value.trim(),code=$('schoolCodeInput').value.trim();
-    if(!name||!contact||!location||!code){msg('Enter school name, contact number, location and access code.','bad');return}
+    const name=$('schoolNameInput').value.trim(),contact=$('schoolContactInput').value.trim(),location=$('schoolLocationInput').value.trim(),state=$('schoolStateInput').value.trim(),code=$('schoolCodeInput').value.trim();
+    if(!name||!contact||!location||!state||!code){msg('Enter school name, state, contact number, location and access code.','bad');return}
     if(code.length<4){msg('Access code must be at least 4 characters.','bad');return}
     const file=$('schoolLogoFile').files?.[0]||null;
     $('saveSchoolBtn').disabled=true;$('saveSchoolBtn').textContent='SAVING…';
     try{
       let logoUrl=schools.find(s=>s.id===id)?.logo_url||null;
       if(file){msg('Uploading school logo…');logoUrl=await uploadLogo(file,id)}
-      const payload={id,school_name:name,contact_number:contact,location,access_code:code,logo_url:logoUrl,brand_color:$('schoolBrandColor').value||'#ffc400',dark_color:$('schoolDarkColor').value||'#0b1b29',active:$('schoolActiveInput').checked,updated_at:new Date().toISOString()};
+      const payload={id,school_name:name,contact_number:contact,location,state,access_code:code,logo_url:logoUrl,brand_color:$('schoolBrandColor').value||'#ffc400',dark_color:$('schoolDarkColor').value||'#0b1b29',active:$('schoolActiveInput').checked,updated_at:new Date().toISOString()};
       const existingSchool=schools.find(s=>s.id===id);
       const existing=!!existingSchool;
       if(existingSchool?.registration_status==='pending_approval'&&payload.active){

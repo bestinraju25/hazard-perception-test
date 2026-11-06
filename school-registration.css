@@ -8,8 +8,8 @@
 .hptRegIntro{margin:0 0 19px;color:#b3c4cf;font-size:14px;line-height:1.6}
 .hptRegForm{display:grid;gap:13px;margin-top:19px}
 .hptRegForm label{display:grid;gap:7px;color:#e3edf2;font-size:13px;font-weight:800}
-.hptRegForm input{width:100%;min-height:47px;padding:11px 13px;border:1px solid #355568;border-radius:10px;outline:none;background:#06131d;color:#f7fbfd;font:inherit;font-size:14px}
-.hptRegForm input:focus{border-color:#78dca4;box-shadow:0 0 0 3px rgba(120,220,164,.14)}
+.hptRegForm input,.hptRegForm select{width:100%;min-height:47px;padding:11px 13px;border:1px solid #355568;border-radius:10px;outline:none;background:#06131d;color:#f7fbfd;font:inherit;font-size:14px}
+.hptRegForm input:focus,.hptRegForm select:focus{border-color:#78dca4;box-shadow:0 0 0 3px rgba(120,220,164,.14)}
 .hptRegForm input[type=file]{padding:9px;background:#0a1d2a}
 .hptRegHint{color:#829aa9;font-size:11px;font-weight:500}
 .hptRegPrimary{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:53px;margin-top:7px;padding:13px 17px;border:0;border-radius:11px;background:linear-gradient(100deg,#13a66a,#0b8158);color:#fff;font-size:13px;font-weight:950;letter-spacing:.055em;box-shadow:0 12px 28px rgba(7,142,89,.22);cursor:pointer}
@@ -39,3 +39,5 @@
 .hptForgotAccessBtn{display:block;margin:14px auto 0;border:0;background:transparent;color:#d9b64a;text-decoration:underline;text-underline-offset:3px;font-size:13px;font-weight:800;cursor:pointer}
 .landingRegisterCard .hptForgotAccessBtn{align-self:center}
 @media(max-width:560px){.hptRegistrationModal{padding:10px}.hptRegistrationDialog{max-height:96vh;padding:24px 18px;border-radius:17px}.hptPaymentQr{width:min(100%,315px)}.hptRegForm input{font-size:16px}}
+
+.hptRegForm select{width:100%;min-height:47px;padding:11px 13px;border:1px solid #355568;border-radius:10px;outline:none;background:#06131d;color:#f7fbfd;font:inherit;font-size:14px;appearance:auto}

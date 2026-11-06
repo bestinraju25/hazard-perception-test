@@ -10,6 +10,12 @@
   try{if(school?.id)sessionStorage.setItem('hpt_school_session',JSON.stringify(school));if(candidate?.name)sessionStorage.setItem('hpt_learner_candidate',JSON.stringify(candidate))}catch{}
  }
  if(!school?.id){alert('Please sign in through your driving school first.');if(window.parent!==window)window.parent.postMessage({type:'HPT_LEARNER_EXIT'},'*');else location.replace('index.html');return}
+ // Learner's Test (mock exam and practice hub) is Kerala-specific. Other states use HPT only.
+ if(String(school.state||'Kerala').trim().toLowerCase()!=='kerala'){
+  alert('Learner’s Mock Test is currently available only to driving schools in Kerala. Your school can use the Hazard Perception Test.');
+  if(window.parent!==window)window.parent.postMessage({type:'HPT_LEARNER_EXIT'},'*');else location.replace('index.html');
+  return;
+ }
  const schoolName=school.school_name||'Driving School';
  $('schoolLabel').textContent=schoolName;$('schoolBrandEyebrow').textContent=schoolName.toUpperCase();$('schoolBrandName').textContent='LEARNER’S TEST';document.title=schoolName+' | Kerala Learner’s Test';
  document.documentElement.style.setProperty('--brand',school.brand_color||'#1769cf');
