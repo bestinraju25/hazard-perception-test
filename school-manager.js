@@ -31,8 +31,11 @@
       <div class="schoolItemLogo">${s.logo_url?`<img src="${esc(s.logo_url)}" alt="">`:esc(String(s.school_name||'S').trim().slice(0,1).toUpperCase())}</div>
       <div class="schoolItemInfo"><h4>${esc(s.school_name)} <span class="schoolStatus ${s.active?'on':'off'}">● ${s.active?'ACTIVE':'DISABLED'}</span></h4>
       <p>${esc(s.location||'Location not set')} · ${esc(s.contact_number||'No contact')}</p>
+      ${s.registration_status==='pending_approval'?'<p class="schoolRegistrationPending">NEW REGISTRATION · PAYMENT CHECK PENDING · ADMIN APPROVAL REQUIRED</p>':''}
+      ${s.payment_status==='pending_manual_verification'?'<p class="schoolPaymentPending">AWAITING CUSTOMER PAYMENT CONFIRMATION</p>':''}
+      ${s.payment_status==='customer_confirmed'?`<p class="schoolPaymentConfirmed">CUSTOMER MARKED PAYMENT COMPLETED · VERIFY IN GOPAY${s.payment_confirmed_at?` · ${esc(new Date(s.payment_confirmed_at).toLocaleString('en-IN'))}`:''}</p>`:''}
       <p>ACCESS CODE <span class="schoolCodeChip">${esc(s.access_code)}</span></p></div>
-      <div class="schoolItemActions"><button type="button" class="small" data-school-results="${esc(s.id)}">VIEW STUDENTS</button><button type="button" class="small" data-school-edit="${esc(s.id)}">EDIT</button><button type="button" class="small ${s.active?'danger-outline':''}" data-school-toggle="${esc(s.id)}">${s.active?'DISABLE':'ENABLE'}</button></div>
+      <div class="schoolItemActions"><button type="button" class="small" data-school-results="${esc(s.id)}">VIEW STUDENTS</button><button type="button" class="small" data-school-edit="${esc(s.id)}">EDIT</button><button type="button" class="small ${s.active?'danger-outline':''}" data-school-toggle="${esc(s.id)}">${s.active?'DISABLE':(s.registration_status==='pending_approval'?'APPROVE & ENABLE':'ENABLE')}</button></div>
     </article>`).join('')||'<div class="empty">No schools registered yet. Add the first school using the form.</div>';
     document.querySelectorAll('[data-school-edit]').forEach(b=>b.onclick=()=>editSchool(b.dataset.schoolEdit));
     document.querySelectorAll('[data-school-results]').forEach(b=>b.onclick=()=>window.dispatchEvent(new CustomEvent('hpt:filter-school',{detail:{schoolId:b.dataset.schoolResults}})));
@@ -43,7 +46,7 @@
     refreshing=true;
     try{
       if(!(await isAdmin())){ $('schoolList').innerHTML='<div class="empty">Sign in with an active manager account to manage schools.</div>';return; }
-      const {data,error}=await sb.from('hpt_schools').select('id,school_name,contact_number,location,access_code,logo_url,brand_color,dark_color,active,created_at,updated_at').order('school_name');
+      const {data,error}=await sb.from('hpt_schools').select('id,school_name,contact_number,location,access_code,logo_url,brand_color,dark_color,active,registration_status,payment_status,payment_confirmed_at,created_at,updated_at').order('school_name');
       if(error)throw error;schools=data||[];render();
     }catch(e){$('schoolList').innerHTML=`<div class="empty">Could not load schools. ${esc(e.message||'Check that the multi-school SQL migration has been run.')}</div>`;}
     finally{refreshing=false}
@@ -80,7 +83,14 @@
       let logoUrl=schools.find(s=>s.id===id)?.logo_url||null;
       if(file){msg('Uploading school logo…');logoUrl=await uploadLogo(file,id)}
       const payload={id,school_name:name,contact_number:contact,location,access_code:code,logo_url:logoUrl,brand_color:$('schoolBrandColor').value||'#ffc400',dark_color:$('schoolDarkColor').value||'#0b1b29',active:$('schoolActiveInput').checked,updated_at:new Date().toISOString()};
-      const existing=schools.some(s=>s.id===id);
+      const existingSchool=schools.find(s=>s.id===id);
+      const existing=!!existingSchool;
+      if(existingSchool?.registration_status==='pending_approval'&&payload.active){
+        const confirmed=confirm(`Have you independently checked and received the ₹5,000 payment for ${name}?\n\nThe customer confirmation is not proof of receipt. Confirm only after checking GPay/bank account.\n\nApproving will enable the access code.`);
+        if(!confirmed)return;
+        payload.registration_status='approved';
+        payload.payment_status='verified';
+      }
       const {error}=existing?await sb.from('hpt_schools').update(payload).eq('id',id):await sb.from('hpt_schools').insert({...payload,created_at:new Date().toISOString()});
       if(error)throw error;
       adminNotice(existing?`${name} details updated.`:`${name} added successfully.`);
@@ -90,8 +100,22 @@
   }
   async function toggleSchool(id){
     const s=schools.find(x=>x.id===id);if(!s)return;
-    const verb=s.active?'disable':'enable';if(!confirm(`${verb[0].toUpperCase()+verb.slice(1)} access for ${s.school_name}?`))return;
-    try{const {error}=await sb.from('hpt_schools').update({active:!s.active,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;adminNotice(`${s.school_name} access ${s.active?'disabled':'enabled'}.`);await refresh();}
+    const verb=s.active?'disable':'enable';
+    const confirmText=s.active
+      ? `Disable HPT access for ${s.school_name}?`
+      : (s.registration_status==='pending_approval'
+          ? `Have you independently checked and received the ₹5,000 payment for ${s.school_name}?\n\nThe customer has marked payment completed, but that is not proof of receipt. Confirm only after checking GPay/bank account.\n\nApproving will enable the access code.`
+          : `Enable HPT access for ${s.school_name}?`);
+    if(!confirm(confirmText))return;
+    try{
+      const update={active:!s.active,updated_at:new Date().toISOString()};
+      if(!s.active&&s.registration_status==='pending_approval'){
+        update.registration_status='approved';
+        update.payment_status='verified';
+      }
+      const {error}=await sb.from('hpt_schools').update(update).eq('id',id);if(error)throw error;
+      adminNotice(s.active?`${s.school_name} access disabled.`:`${s.school_name} approved and access enabled.`);await refresh();
+    }
     catch(e){adminNotice(e.message||'Could not update school status.',true)}
   }
   $('schoolForm').addEventListener('submit',save);

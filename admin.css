@@ -209,3 +209,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .examChoiceCard.learners{background:linear-gradient(145deg,#12352f,#071b1b);border-color:#28594a}
 .examChoiceIcon{font-size:28px}.examChoiceTitle{font-size:12px;letter-spacing:1.4px;font-weight:950;color:#b7cad7}.examChoiceCard strong{font-size:38px;line-height:1;color:#ffc629}.examChoiceCard.learners strong{color:#65e4ad}.examChoiceCard small{font-size:12px;color:#9bb0bd}.examChoiceAction{margin-top:8px;font-size:12px;font-weight:950;letter-spacing:.5px;color:#fff}.examRecordsHead{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:8px 0 14px}.examRecordsHead h3{margin:0;font-size:20px}.learnerSummaryFilters{display:grid;grid-template-columns:minmax(220px,1fr) auto;align-items:center;gap:12px;margin-bottom:12px}.learnerSummaryFilters input{min-width:0;min-height:42px;border:1px solid #304c5e;border-radius:10px;background:#071521;color:#edf4f8;padding:9px 11px}
 @media(max-width:650px){.examChoiceGrid{grid-template-columns:1fr}.examChoiceCard{padding:18px}.examRecordsHead{align-items:flex-start;flex-direction:column}.learnerSummaryFilters{grid-template-columns:1fr}}
+
+
+/* HPT V117: registration/payment state markers in Admin > Driving Schools */
+.schoolRegistrationPending,.schoolPaymentPending{display:inline-block;margin:6px 7px 4px 0!important;padding:5px 8px;border:1px solid rgba(244,190,65,.35);border-radius:7px;background:rgba(244,190,65,.09);color:#f0ce79!important;font-size:10px!important;font-weight:900;letter-spacing:.035em;line-height:1.4}
+.schoolPaymentPending{border-color:rgba(255,145,88,.35);background:rgba(255,145,88,.08);color:#ffb08d!important}
+
+.schoolPaymentConfirmed{display:inline-block;margin:6px 7px 4px 0!important;padding:5px 8px;border:1px solid rgba(75,207,145,.35);border-radius:7px;background:rgba(75,207,145,.09);color:#8ee7b1!important;font-size:10px!important;font-weight:900;letter-spacing:.035em;line-height:1.4}
