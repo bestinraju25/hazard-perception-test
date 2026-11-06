@@ -216,3 +216,27 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .schoolPaymentPending{border-color:rgba(255,145,88,.35);background:rgba(255,145,88,.08);color:#ffb08d!important}
 
 .schoolPaymentConfirmed{display:inline-block;margin:6px 7px 4px 0!important;padding:5px 8px;border:1px solid rgba(75,207,145,.35);border-radius:7px;background:rgba(75,207,145,.09);color:#8ee7b1!important;font-size:10px!important;font-weight:900;letter-spacing:.035em;line-height:1.4}
+
+
+/* V119 — make the registered-student total the primary school KPI. */
+.schoolResultMetrics{display:grid;grid-template-columns:1fr;gap:9px;margin:15px 0 13px;align-items:stretch}
+.schoolStudentsHero{width:100%;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:15px 8px;border:1px solid #705a18;border-radius:12px;background:linear-gradient(145deg,#2a2613,#101b20);text-align:center}
+.schoolStudentsHero strong{display:block;color:#ffd33c;font-size:48px;line-height:1;font-weight:1000}
+.schoolStudentsHero small{display:block;margin-top:7px;color:#f0cd58;font-size:9px;font-weight:1000;letter-spacing:1px}
+.schoolResultSubMetrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;min-width:0}
+.schoolResultSubMetrics>div{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 5px;border:1px solid #203c4d;border-radius:10px;background:#071722;text-align:center}
+.schoolResultSubMetrics strong{display:block;color:#ffc629;font-size:24px;line-height:1.1;font-weight:1000}
+.schoolResultSubMetrics small{display:block;margin-top:5px;color:#8199a8;font-size:8px;font-weight:900;letter-spacing:.7px}
+.schoolResultSubMetrics .good strong{color:#4ade91}
+.schoolResultSubMetrics .bad strong{color:#ff7889}
+.learnerDeleteBtn{white-space:nowrap}
+.schoolItemActions{max-width:none;min-width:142px}
+.schoolItemActions .delete-school-btn{color:#ff8795;border-color:#71414a}
+.schoolItemActions .delete-school-btn:hover{background:#381923;border-color:#ff7181}
+@media(max-width:520px){.schoolResultMetrics{grid-template-columns:1fr;gap:7px}.schoolStudentsHero{padding:13px}.schoolStudentsHero strong{font-size:38px}.schoolResultSubMetrics{gap:5px}.schoolResultSubMetrics strong{font-size:21px}.schoolResultSubMetrics small{font-size:7px;letter-spacing:.35px}.schoolItem{grid-template-columns:42px minmax(0,1fr)}.schoolItemActions{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}.schoolItemActions .small{width:100%}}
+
+/* V119: keep the single HPT card balanced for schools outside Kerala. */
+.examChoiceGrid.single{grid-template-columns:minmax(0,1fr);max-width:66%;}
+.learnerDeleteBtn{white-space:nowrap;}
+#learnerSummaryBody td:last-child{white-space:nowrap;}
+@media(max-width:760px){.examChoiceGrid.single{max-width:100%;}}

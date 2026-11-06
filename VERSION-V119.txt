@@ -1,0 +1,1 @@
+V119 — School overview student-first metrics, learner record deletion, school deletion, unique school contact mobile numbers, and canonical student identity/latest name per school and mobile. Apply migration 21 after migrations 17–20. See README-V119-ADMIN-MOBILE-IDENTITY.txt.

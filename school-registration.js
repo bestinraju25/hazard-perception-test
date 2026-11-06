@@ -48,10 +48,15 @@
     if ($('hptRegistrationModal')) $('hptRegistrationModal').hidden = true;
   }
 
-  function showError(message) {
+  function showError(message, offerRecovery = false) {
     const box = $('hptRegistrationError');
     if (box) {
-      box.textContent = message || 'Something went wrong. Please try again.';
+      box.replaceChildren(document.createTextNode(message || 'Something went wrong. Please try again.'));
+      if (offerRecovery) {
+        box.appendChild(document.createTextNode(' '));
+        const link=document.createElement('button');link.type='button';link.className='hptInlineRecovery';link.textContent='Forgot Access Code?';
+        link.addEventListener('click',forgotAccessCode);box.appendChild(link);
+      }
       box.hidden = false;
     }
   }
@@ -178,8 +183,13 @@
       }
       paymentScreen(result);
     } catch (error) {
+      if (uploadedLogoPath) {
+        try { await getSupabase().storage.from('hpt-school-logos').remove([uploadedLogoPath]); }
+        catch (cleanupError) { console.warn('Could not remove the unregistered school logo:', cleanupError); }
+      }
       console.error('HPT school registration failed:', error);
-      showError(error?.message || 'Registration failed. Please try again.');
+      const duplicateMobile=/mobile number is already registered|contact number is already registered/i.test(error?.message||'');
+      showError(duplicateMobile ? 'This mobile number is already registered. Please use a different mobile number, or recover the existing access code.' : (error?.message || 'Registration failed. Please try again.'), duplicateMobile);
       submit.disabled = false;
       submit.innerHTML = 'CONTINUE TO PAYMENT <span>→</span>';
     }

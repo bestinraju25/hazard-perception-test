@@ -35,11 +35,12 @@
       ${s.payment_status==='pending_manual_verification'?'<p class="schoolPaymentPending">AWAITING CUSTOMER PAYMENT CONFIRMATION</p>':''}
       ${s.payment_status==='customer_confirmed'?`<p class="schoolPaymentConfirmed">CUSTOMER MARKED PAYMENT COMPLETED · VERIFY IN GOPAY${s.payment_confirmed_at?` · ${esc(new Date(s.payment_confirmed_at).toLocaleString('en-IN'))}`:''}</p>`:''}
       <p>ACCESS CODE <span class="schoolCodeChip">${esc(s.access_code)}</span></p></div>
-      <div class="schoolItemActions"><button type="button" class="small" data-school-results="${esc(s.id)}">VIEW STUDENTS</button><button type="button" class="small" data-school-edit="${esc(s.id)}">EDIT</button><button type="button" class="small ${s.active?'danger-outline':''}" data-school-toggle="${esc(s.id)}">${s.active?'DISABLE':(s.registration_status==='pending_approval'?'APPROVE & ENABLE':'ENABLE')}</button></div>
+      <div class="schoolItemActions"><button type="button" class="small" data-school-results="${esc(s.id)}">VIEW STUDENTS</button><button type="button" class="small" data-school-edit="${esc(s.id)}">EDIT</button><button type="button" class="small ${s.active?'danger-outline':''}" data-school-toggle="${esc(s.id)}">${s.active?'DISABLE':(s.registration_status==='pending_approval'?'APPROVE & ENABLE':'ENABLE')}</button><button type="button" class="small danger-outline delete-school-btn" data-school-delete="${esc(s.id)}">DELETE SCHOOL</button></div>
     </article>`).join('')||'<div class="empty">No schools registered yet. Add the first school using the form.</div>';
     document.querySelectorAll('[data-school-edit]').forEach(b=>b.onclick=()=>editSchool(b.dataset.schoolEdit));
     document.querySelectorAll('[data-school-results]').forEach(b=>b.onclick=()=>window.dispatchEvent(new CustomEvent('hpt:filter-school',{detail:{schoolId:b.dataset.schoolResults}})));
     document.querySelectorAll('[data-school-toggle]').forEach(b=>b.onclick=()=>toggleSchool(b.dataset.schoolToggle));
+    document.querySelectorAll('[data-school-delete]').forEach(b=>b.onclick=()=>deleteSchool(b.dataset.schoolDelete));
   }
   async function refresh(){
     if(refreshing||el.hidden)return;
@@ -77,6 +78,11 @@
     const name=$('schoolNameInput').value.trim(),contact=$('schoolContactInput').value.trim(),location=$('schoolLocationInput').value.trim(),state=$('schoolStateInput').value.trim(),code=$('schoolCodeInput').value.trim();
     if(!name||!contact||!location||!state||!code){msg('Enter school name, state, contact number, location and access code.','bad');return}
     if(code.length<4){msg('Access code must be at least 4 characters.','bad');return}
+    const contactDigits=contact.replace(/\D/g,'');
+    if(contactDigits.length<10||contactDigits.length>15){msg('Enter a valid mobile number with 10 to 15 digits.','bad');return}
+    const mobileKey=contactDigits.slice(-10);
+    const duplicateMobile=schools.find(s=>String(s.id)!==String(id)&&s.contact_number&&String(s.contact_number).replace(/\D/g,'').slice(-10)===mobileKey);
+    if(duplicateMobile){msg(`This mobile number is already registered for ${duplicateMobile.school_name}. Use a different mobile number. If you need the existing access code, use “Forgot Access Code?” on the landing page.`,'bad');return}
     const file=$('schoolLogoFile').files?.[0]||null;
     $('saveSchoolBtn').disabled=true;$('saveSchoolBtn').textContent='SAVING…';
     try{
@@ -95,7 +101,7 @@
       if(error)throw error;
       adminNotice(existing?`${name} details updated.`:`${name} added successfully.`);
       await refresh();resetForm();
-    }catch(err){const m=String(err?.message||'Could not save school.');msg(m.toLowerCase().includes('duplicate')||m.toLowerCase().includes('unique')?'That access code is already assigned to another school. Choose a unique code.':m,'bad');adminNotice(err?.message||'Could not save school.',true)}
+    }catch(err){const m=String(err?.message||'Could not save school.');const low=m.toLowerCase();msg(low.includes('hpt_schools_contact_mobile_unique')||low.includes('contact_mobile')||low.includes('mobile number is already registered')?'This mobile number is already registered. Use a different mobile number.':(low.includes('duplicate')||low.includes('unique')?'That access code is already assigned to another school. Choose a unique code.':m),'bad');adminNotice(err?.message||'Could not save school.',true)}
     finally{$('saveSchoolBtn').disabled=false;$('saveSchoolBtn').textContent=$('schoolEditId').value?'SAVE SCHOOL CHANGES':'＋ ADD SCHOOL'}
   }
   async function toggleSchool(id){
@@ -117,6 +123,20 @@
       adminNotice(s.active?`${s.school_name} access disabled.`:`${s.school_name} approved and access enabled.`);await refresh();
     }
     catch(e){adminNotice(e.message||'Could not update school status.',true)}
+  }
+  async function deleteSchool(id){
+    const school=schools.find(s=>String(s.id)===String(id));if(!school)return;
+    const prompt=`Permanently delete ${school.school_name}?\n\nThis will delete this school and ALL of its related HPT attempts/responses, Learners Mock Test summaries and student identity records. Shared HPT videos will NOT be deleted.\n\nThis action cannot be undone.`;
+    if(!confirm(prompt))return;
+    try{
+      const {data,error}=await sb.rpc('hpt_admin_delete_school',{p_school_id:school.id});
+      if(error)throw error;
+      if(!data?.deleted)throw new Error(data?.message||'The school was not deleted.');
+      if(school.logo_url){try{const marker='/storage/v1/object/public/hpt-school-logos/';const path=decodeURIComponent(new URL(school.logo_url).pathname.split(marker)[1]||'');if(path)await sb.storage.from('hpt-school-logos').remove([path])}catch(_){}}
+      adminNotice(`${school.school_name} and its school records were deleted.`);
+      await refresh();
+      window.dispatchEvent(new CustomEvent('hpt:school-deleted',{detail:{schoolId:school.id}}));
+    }catch(error){adminNotice(error.message||'Could not delete school. Run migration 21 first.',true)}
   }
   $('schoolForm').addEventListener('submit',save);
   $('cancelSchoolEdit').onclick=resetForm;

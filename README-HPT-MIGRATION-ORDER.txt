@@ -29,3 +29,18 @@ After the V117 registration migration (19-school-registration-static-upi.sql), r
 20-indian-states-and-kerala-only-learners-test.sql once. This adds school state,
 assigns existing schools to Kerala, updates school verification to return state,
 and enables the Kerala-only Learner's Mock Test rule.
+
+
+V119 MOBILE IDENTITY AND ADMIN RECORD MANAGEMENT
+------------------------------------------------
+After migrations 17, 18, 19 and 20 have been successfully applied, back up the
+Supabase database and run 21-admin-delete-and-student-mobile-uniqueness.sql once.
+This adds a unique registered-school mobile number index, a shared student identity
+per school/mobile number, latest-name synchronization across HPT and Learner reports,
+Learner summary deletion and permanent school deletion.
+
+Before running V119, the migration checks for existing duplicate school contact numbers.
+If it reports duplicates, resolve those school contact records first; it will not merge
+or delete schools automatically. Student mobile uniqueness is scoped to a school, so a
+student can have one profile per school while the same number is shared across HPT and
+Learner Mock Test within that school.

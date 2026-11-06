@@ -41,3 +41,5 @@
 @media(max-width:560px){.hptRegistrationModal{padding:10px}.hptRegistrationDialog{max-height:96vh;padding:24px 18px;border-radius:17px}.hptPaymentQr{width:min(100%,315px)}.hptRegForm input{font-size:16px}}
 
 .hptRegForm select{width:100%;min-height:47px;padding:11px 13px;border:1px solid #355568;border-radius:10px;outline:none;background:#06131d;color:#f7fbfd;font:inherit;font-size:14px;appearance:auto}
+
+.hptInlineRecovery{display:inline;border:0;background:transparent;color:#ffd34d;text-decoration:underline;font:inherit;font-weight:900;padding:2px 3px;cursor:pointer}

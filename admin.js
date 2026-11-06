@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const C=window.RAJU_HPT_CONFIG; const sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey); const $=id=>document.getElementById(id);
-let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',editingGitHubFilePath='',schoolDirectory=[],learnerSummaries=[],selectedResultsSchoolId=null,selectedExamView=null;
+let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',editingGitHubFilePath='',schoolDirectory=[],learnerSummaries=[],studentDirectory=[],selectedResultsSchoolId=null,selectedExamView=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>{s=Math.max(0,Number(s)||0);return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}.${Math.floor((s%1)*10)}`};
 const notice=(t,bad=false)=>{const e=$('notice');e.hidden=false;e.textContent=t;e.className='notice '+(bad?'bad':'good');clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,6000)};
@@ -9,9 +9,16 @@ function showLogin(){ $('login').hidden=false;$('dashboard').hidden=true;$('logo
 function showDash(a){ $('login').hidden=true;$('dashboard').hidden=false;$('logoutBtn').hidden=false;$('adminIdentity').hidden=false;$('adminIdentity').textContent=a?.full_name||a?.email||'' }
 async function guard(){const {data:{session}}=await sb.auth.getSession();if(!session){showLogin();return null}const {data:admin,error}=await sb.from('admin_users').select('id,full_name,email').eq('id',session.user.id).eq('active',true).maybeSingle();if(error||!admin){await sb.auth.signOut();showLogin();$('loginMsg').textContent='This account is not an active provider administrator. Contact the platform provider.';return null}return {session,admin}}
 async function login(){const email=$('email').value.trim(),password=$('password').value;if(!email||!password){$('loginMsg').textContent='Enter email and password.';return}$('loginBtn').disabled=true;$('loginMsg').textContent='Signing in…';const {error}=await sb.auth.signInWithPassword({email,password});if(error){$('loginMsg').textContent=error.message;$('loginBtn').disabled=false;return}const a=await guard();$('loginBtn').disabled=false;if(a){showDash(a.admin);await refreshAll();openRequestedAdminTab()}}
-async function refreshAll(){const a=await guard();if(!a)return;await Promise.all([loadResults(),loadLearnerSummaries(),loadVideos(),loadAccessCode()]);if(selectedResultsSchoolId&&schoolDirectory.some(x=>String(x.id)===String(selectedResultsSchoolId)))renderSchoolExamChoices(schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId)));if(window.HPTSchoolManager?.refresh)await window.HPTSchoolManager.refresh();updateStats()}
+async function refreshAll(){const a=await guard();if(!a)return;await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries(),loadVideos(),loadAccessCode()]);if(selectedResultsSchoolId&&schoolDirectory.some(x=>String(x.id)===String(selectedResultsSchoolId)))renderSchoolExamChoices(schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId)));if(window.HPTSchoolManager?.refresh)await window.HPTSchoolManager.refresh();updateStats()}
 async function loadAccessCode(){const e=$('adminAccessCode'),m=$('accessCodeMsg');if(!e)return;try{const {data,error}=await sb.from('hpt_settings').select('access_code').eq('id',1).maybeSingle();if(error)throw error;e.value=data?.access_code||'1234';m.textContent=data?'':'Run the included supabase-hpt-v21-access-code.sql migration once to enable persistent access-code changes.';m.className='message '+(data?'good':'bad')}catch(err){e.value='1234';m.textContent='Access-code settings are not configured yet. Run supabase-hpt-v21-access-code.sql in Supabase.';m.className='message bad'}}
 async function saveAccessCode(){const e=$('adminAccessCode'),m=$('accessCodeMsg');const code=e.value.trim();if(!code){m.textContent='Enter an access code.';m.className='message bad';return}if(code.length<4){m.textContent='Access code must be at least 4 characters.';m.className='message bad';return}const a=await guard();if(!a)return;$('saveAccessCode').disabled=true;$('saveAccessCode').textContent='SAVING…';try{const {error}=await sb.from('hpt_settings').update({access_code:code,updated_at:new Date().toISOString()}).eq('id',1);if(error)throw error;m.textContent='✓ Candidate access code updated.';m.className='message good';notice('Candidate HPT access code updated.')}catch(err){m.textContent=err.message||'Could not update access code.';m.className='message bad';notice(err.message||'Could not update access code.',true)}finally{$('saveAccessCode').disabled=false;$('saveAccessCode').textContent='SAVE ACCESS CODE'}}
+function canonicalPhone(value){const digits=String(value||'').replace(/\D/g,'');return digits.length>=10?digits.slice(-10):digits}
+function studentDirectoryKey(schoolId,phone){return `${String(schoolId||'')}|${canonicalPhone(phone)}`}
+function latestStudentName(schoolId,phone,fallback){const key=studentDirectoryKey(schoolId,phone);const row=studentDirectory.find(x=>studentDirectoryKey(x.school_id,x.phone_normalized)===key);return row?.candidate_name||fallback||'Student'}
+async function loadStudentDirectory(){
+  try{const {data,error}=await sb.rpc('hpt_admin_list_student_directory');if(error)throw error;studentDirectory=data||[];}
+  catch(error){studentDirectory=[];console.warn('Current student-name registry is unavailable:',error);}
+}
 async function loadResults(){
   const all=[];const pageSize=1000;let includeLearnerScore=true;
   for(let from=0;;from+=pageSize){
@@ -28,10 +35,10 @@ async function loadResults(){
     all.push(...(data||[]).map(row=>({...row,learner_score:row.learner_score==null?null:Number(row.learner_score)})));if(!data||data.length<pageSize)break;
   }
   const {data:schoolRows,error:schoolError}=await sb.from('hpt_schools')
-    .select('id,school_name,contact_number,location,logo_url,brand_color,dark_color,active').order('school_name');
+    .select('id,school_name,contact_number,location,state,logo_url,brand_color,dark_color,active').order('school_name');
   schoolDirectory=schoolRows||[];
   const schoolById=new Map(schoolDirectory.map(s=>[s.id,s]));
-  results=all.map(r=>({...r,hpt_schools:schoolById.get(r.school_id)||null}));
+  results=all.map(r=>({...r,candidate_name:latestStudentName(r.school_id,r.phone,r.candidate_name),hpt_schools:schoolById.get(r.school_id)||null}));
   populateSchoolFilter();
   if(schoolError)notice(`Results loaded, but school details could not be loaded: ${schoolError.message}`,true);
   if(selectedResultsSchoolId && schoolDirectory.some(s=>String(s.id)===String(selectedResultsSchoolId))){
@@ -46,7 +53,7 @@ async function loadLearnerSummaries(){
   try{
     const {data,error}=await sb.rpc('hpt_admin_list_learner_summaries');
     if(error)throw error;
-    learnerSummaries=(data||[]).map(r=>({...r,attempt_count:Number(r.attempt_count||0),best_score:r.best_score==null?null:Number(r.best_score)}));
+    learnerSummaries=(data||[]).map(r=>({...r,candidate_name:latestStudentName(r.school_id,r.phone_normalized,r.candidate_name),attempt_count:Number(r.attempt_count||0),best_score:r.best_score==null?null:Number(r.best_score)}));
   }catch(error){
     learnerSummaries=[];
     console.error('Learner summaries could not be loaded:',error);
@@ -55,12 +62,14 @@ async function loadLearnerSummaries(){
 }
 
 function resultStudentKey(r){
-  const phone=String(r.phone||'').replace(/\D/g,'');
+  const phone=canonicalPhone(r.phone);
   return phone||String(r.candidate_name||'').trim().toLowerCase()||String(r.id);
 }
 function schoolResultSummary(schoolId){
   const rows=results.filter(r=>String(r.school_id||'')===String(schoolId));
   const students=new Set(rows.map(resultStudentKey));
+  // Count students registered for either examination, without double-counting a shared mobile.
+  schoolLearnerSummary(schoolId).forEach(r=>students.add(canonicalPhone(r.phone_normalized)||String(r.candidate_name||'').trim().toLowerCase()));
   const passed=rows.filter(isPassed).length;
   return {rows,students:students.size,attempts:rows.length,passed,failed:rows.length-passed};
 }
@@ -78,14 +87,16 @@ function renderSchoolOverview(){
     return `<article class="schoolResultCard">
       <div class="schoolResultCardHead">
         <div class="schoolResultAvatar">${s.logo_url?`<img src="${esc(s.logo_url)}" alt="">`:`<span>${esc(String(s.school_name||'S').trim().slice(0,1).toUpperCase())}</span>`}</div>
-        <div class="schoolResultName"><h3>${esc(s.school_name)}</h3><p>${esc(s.location||'Location not set')}</p></div>
+        <div class="schoolResultName"><h3>${esc(s.school_name)}</h3><p>${esc(s.state||'Kerala')} · ${esc(s.location||'Location not set')}</p></div>
         <span class="schoolResultStatus ${s.active?'on':'off'}">${s.active?'ACTIVE':'DISABLED'}</span>
       </div>
       <div class="schoolResultMetrics">
-        <div><strong>${sum.students.toLocaleString('en-IN')}</strong><small>STUDENTS</small></div>
-        <div><strong>${sum.attempts.toLocaleString('en-IN')}</strong><small>ATTEMPTS</small></div>
-        <div class="good"><strong>${sum.passed.toLocaleString('en-IN')}</strong><small>PASSED</small></div>
-        <div class="bad"><strong>${sum.failed.toLocaleString('en-IN')}</strong><small>FAILED</small></div>
+        <div class="schoolStudentsHero"><strong>${sum.students.toLocaleString('en-IN')}</strong><small>REGISTERED STUDENTS</small></div>
+        <div class="schoolResultSubMetrics">
+          <div><strong>${sum.attempts.toLocaleString('en-IN')}</strong><small>ATTEMPTS</small></div>
+          <div class="good"><strong>${sum.passed.toLocaleString('en-IN')}</strong><small>PASSED</small></div>
+          <div class="bad"><strong>${sum.failed.toLocaleString('en-IN')}</strong><small>FAILED</small></div>
+        </div>
       </div>
       <button class="btn schoolResultOpen" type="button" data-open-school-results="${esc(s.id)}">VIEW STUDENTS & RESULTS <span>→</span></button>
     </article>`;
@@ -95,7 +106,7 @@ function renderSchoolOverview(){
     const students=new Set(legacy.map(resultStudentKey)),passed=legacy.filter(isPassed).length;
     return `<article class="schoolResultCard legacy">
       <div class="schoolResultCardHead"><div class="schoolResultAvatar">L</div><div class="schoolResultName"><h3>Legacy / Unassigned</h3><p>Records created before multi-school assignment</p></div><span class="schoolResultStatus off">LEGACY</span></div>
-      <div class="schoolResultMetrics"><div><strong>${students.size}</strong><small>STUDENTS</small></div><div><strong>${legacy.length}</strong><small>ATTEMPTS</small></div><div class="good"><strong>${passed}</strong><small>PASSED</small></div><div class="bad"><strong>${legacy.length-passed}</strong><small>FAILED</small></div></div>
+      <div class="schoolResultMetrics"><div class="schoolStudentsHero"><strong>${students.size}</strong><small>REGISTERED STUDENTS</small></div><div class="schoolResultSubMetrics"><div><strong>${legacy.length}</strong><small>ATTEMPTS</small></div><div class="good"><strong>${passed}</strong><small>PASSED</small></div><div class="bad"><strong>${legacy.length-passed}</strong><small>FAILED</small></div></div></div>
       <button class="btn schoolResultOpen" type="button" data-open-school-results="legacy">VIEW STUDENTS & RESULTS <span>→</span></button>
     </article>`;
   })():'';
@@ -114,9 +125,10 @@ function renderSchoolExamChoices(school){
   const learnerAttempts=learners.reduce((n,r)=>n+r.attempt_count,0);
   const learnerPassed=learners.filter(r=>Number(r.best_score)>=18).length;
   const root=$('schoolExamChoices');if(!root)return;
-  root.innerHTML=`<div class="examChoiceIntro"><div><div class="eyebrow">SELECT EXAMINATION</div><h3>${esc(school.school_name)}</h3><p>Choose which examination records you want to view.</p></div></div><div class="examChoiceGrid">
+  const kerala=String(school.state||'Kerala').trim().toLowerCase()==='kerala';
+  root.innerHTML=`<div class="examChoiceIntro"><div><div class="eyebrow">SELECT EXAMINATION</div><h3>${esc(school.school_name)}</h3><p>${kerala?'Choose which examination records you want to view.':'This school is registered outside Kerala. Only HPT records are available.'}</p></div></div><div class="examChoiceGrid ${kerala?'':'single'}">
     <button type="button" class="examChoiceCard hpt" data-exam-view="hpt"><span class="examChoiceIcon">🚘</span><span class="examChoiceTitle">HAZARD PERCEPTION TEST</span><strong>${hpt.length.toLocaleString('en-IN')}</strong><small>${hptStudents.toLocaleString('en-IN')} students · ${hpt.filter(isPassed).length} passed</small><span class="examChoiceAction">VIEW HPT STUDENTS →</span></button>
-    <button type="button" class="examChoiceCard learners" data-exam-view="learners"><span class="examChoiceIcon">📋</span><span class="examChoiceTitle">LEARNERS MOCK TEST</span><strong>${learners.length.toLocaleString('en-IN')}</strong><small>${learnerAttempts.toLocaleString('en-IN')} attempts · ${learnerPassed} passed</small><span class="examChoiceAction">VIEW LEARNERS STUDENTS →</span></button>
+    ${kerala?`<button type="button" class="examChoiceCard learners" data-exam-view="learners"><span class="examChoiceIcon">📋</span><span class="examChoiceTitle">LEARNERS MOCK TEST</span><strong>${learners.length.toLocaleString('en-IN')}</strong><small>${learnerAttempts.toLocaleString('en-IN')} attempts · ${learnerPassed} passed</small><span class="examChoiceAction">VIEW LEARNERS STUDENTS →</span></button>`:''}
   </div>`;
   root.querySelectorAll('[data-exam-view]').forEach(b=>b.onclick=()=>openExamRecords(b.dataset.examView));
 }
@@ -129,11 +141,27 @@ function openExamRecords(view){
 }
 function renderLearnerSummaries(){
   const sid=selectedResultsSchoolId;const q=$('searchLearnerSummary')?.value.trim().toLowerCase()||'';
-  const rows=schoolLearnerSummary(sid).filter(r=>!q||`${r.candidate_name||''} ${r.phone_normalized||''}`.toLowerCase().includes(q)).sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||'')));
+  const rows=schoolLearnerSummary(sid).filter(r=>!q||`${latestStudentName(r.school_id,r.phone_normalized,r.candidate_name)||''} ${r.phone_normalized||''}`.toLowerCase().includes(q)).sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||'')));
   const status=r=>Number(r.best_score)>=18?'PASS':'NOT PASSED';
-  $('learnerSummaryBody').innerHTML=rows.map(r=>`<tr><td><b>${esc(r.candidate_name||'Student')}</b></td><td>${esc(r.phone_normalized||'—')}</td><td>${r.attempt_count}</td><td class="score">${r.best_score==null?'—':`${r.best_score} / 30`}</td><td class="${Number(r.best_score)>=18?'pass':'fail'}">${r.best_score==null?'NOT ATTEMPTED':status(r)}</td><td>${r.updated_at?new Date(r.updated_at).toLocaleString('en-IN'):'—'}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No Learners Mock Test students found for this school.</td></tr>';
-  $('learnerSummaryMobile').innerHTML=rows.map(r=>`<article class="result-card"><div class="rc-head"><h3>${esc(r.candidate_name||'Student')}</h3><span class="${Number(r.best_score)>=18?'pass':'fail'}">${r.best_score==null?'—':status(r)}</span></div><div class="rc-grid"><div><small>PHONE</small><b>${esc(r.phone_normalized||'—')}</b></div><div><small>ATTEMPTS</small><b>${r.attempt_count}</b></div><div><small>BEST SCORE</small><b>${r.best_score==null?'—':`${r.best_score} / 30`}</b></div><div><small>LAST UPDATED</small><b>${r.updated_at?new Date(r.updated_at).toLocaleDateString('en-IN'):'—'}</b></div></div></article>`).join('')||'<div class="empty">No Learners Mock Test students found for this school.</div>';
+  $('learnerSummaryBody').innerHTML=rows.map(r=>`<tr><td><b>${esc(latestStudentName(r.school_id,r.phone_normalized,r.candidate_name)||'Student')}</b></td><td>${esc(r.phone_normalized||'—')}</td><td>${r.attempt_count}</td><td class="score">${r.best_score==null?'—':`${r.best_score} / 30`}</td><td class="${Number(r.best_score)>=18?'pass':'fail'}">${r.best_score==null?'NOT ATTEMPTED':status(r)}</td><td>${r.updated_at?new Date(r.updated_at).toLocaleString('en-IN'):'—'}</td><td><button class="small danger-outline learnerDeleteBtn" data-delete-learner="${esc(r.phone_normalized)}">DELETE</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">No Learners Mock Test students found for this school.</td></tr>';
+  $('learnerSummaryMobile').innerHTML=rows.map(r=>`<article class="result-card"><div class="rc-head"><h3>${esc(latestStudentName(r.school_id,r.phone_normalized,r.candidate_name)||'Student')}</h3><span class="${Number(r.best_score)>=18?'pass':'fail'}">${r.best_score==null?'—':status(r)}</span></div><div class="rc-grid"><div><small>PHONE</small><b>${esc(r.phone_normalized||'—')}</b></div><div><small>ATTEMPTS</small><b>${r.attempt_count}</b></div><div><small>BEST SCORE</small><b>${r.best_score==null?'—':`${r.best_score} / 30`}</b></div><div><small>LAST UPDATED</small><b>${r.updated_at?new Date(r.updated_at).toLocaleDateString('en-IN'):'—'}</b></div></div><div class="rc-actions"><button class="small danger-outline learnerDeleteBtn" data-delete-learner="${esc(r.phone_normalized)}">DELETE LEARNER RECORD</button></div></article>`).join('')||'<div class="empty">No Learners Mock Test students found for this school.</div>';
+  document.querySelectorAll('[data-delete-learner]').forEach(b=>b.onclick=()=>deleteLearnerSummary(b.dataset.deleteLearner));
   $('learnerSummaryCount').textContent=`${rows.length} learners`;
+}
+async function deleteLearnerSummary(phone){
+  const school=schoolDirectory.find(s=>String(s.id)===String(selectedResultsSchoolId));
+  if(!school||!phone)return;
+  const row=schoolLearnerSummary(school.id).find(r=>canonicalPhone(r.phone_normalized)===canonicalPhone(phone));
+  const label=row?latestStudentName(row.school_id,row.phone_normalized,row.candidate_name):'this learner';
+  if(!confirm(`Delete ${label} (${phone}) from ${school.school_name} Learners Mock Test records?\n\nThis removes the learner's lifetime attempt count and best score. HPT examination records will remain. This cannot be undone.`))return;
+  try{
+    const {data,error}=await sb.rpc('hpt_admin_delete_learner_summary',{p_school_id:school.id,p_phone:phone});
+    if(error)throw error;
+    const outcome=Array.isArray(data)?data[0]:data;
+    if(!outcome?.deleted)throw new Error('No Learners Mock Test record was found for this mobile number.');
+    await loadLearnerSummaries();await loadStudentDirectory();renderLearnerSummaries();
+    notice(`${label}'s Learners Mock Test record was deleted.`);
+  }catch(error){notice(error.message||'Could not delete the learner record. Run migration 21 first.',true)}
 }
 function openSchoolResults(id){
   selectedResultsSchoolId=String(id);
@@ -337,7 +365,7 @@ function buildPerformanceGroups(rows,grain){
     if(!groups.has(key))groups.set(key,{label,rows:[]});groups.get(key).rows.push(r);
   });
   return [...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([,g])=>{
-    const rs=g.rows,passed=rs.filter(isPassed).length,unique=new Set(rs.map(r=>String(r.phone||r.candidate_name).replace(/\D/g,'')||String(r.candidate_name||'').toLowerCase()));
+    const rs=g.rows,passed=rs.filter(isPassed).length,unique=new Set(rs.map(r=>canonicalPhone(r.phone)||String(r.candidate_name||'').trim().toLowerCase()));
     const scores=rs.map(r=>Number(r.total_score)||0);
     return {label:g.label,attempts:rs.length,students:unique.size,passed,failed:rs.length-passed,rate:rs.length?passed/rs.length*100:0,average:scores.length?scores.reduce((x,y)=>x+y,0)/scores.length:0,highest:Math.max(0,...scores)};
   });
@@ -562,9 +590,9 @@ const schoolName=String(school.school_name||'Driving School').toUpperCase();cons
 doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is awarded to',W/2,94,{align:'center'});doc.setTextColor(25,38,51);doc.setFont('helvetica','bold');doc.setFontSize(27);doc.text(String(r.candidate_name||'Candidate'),W/2,112,{align:'center'});doc.setDrawColor(180,188,195);doc.setLineWidth(.35);doc.line(70,118,227,118);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the '+(school.school_name||'Driving School')+' Hazard Perception Test',W/2,131,{align:'center',maxWidth:230});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`SCORE: ${Number(r.total_score||0)} / 100`,W/2,149,{align:'center'});doc.setTextColor(35,126,78);doc.setFontSize(16);doc.text('PASS',W/2,160,{align:'center'});const d=new Date(r.completed_at||r.started_at);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Date: ${d.toLocaleDateString('en-IN')}`,45,181);doc.text(`Certificate No: HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(r.id).slice(0,8).toUpperCase()}`,W-45,181,{align:'right'});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text([schoolName,schoolLocation,school.contact_number].filter(Boolean).join(' • ').slice(0,120),W/2,191,{align:'center',maxWidth:250});doc.save(`${String(school.school_name||'Driving-School').replace(/[^a-z0-9]+/gi,'-')}-HPT-Certificate-${String(r.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`);notice(`Certificate downloaded for ${r.candidate_name}.`)}catch(e){console.error(e);notice('Could not generate the certificate.',true)}finally{if(btn){btn.disabled=false;btn.textContent='PRINT'}}}
 
 function openRequestedAdminTab(){const requested=new URLSearchParams(window.location.search).get('tab');if(requested)document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===requested)t.click()})}
-$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;$('backExamChoices').onclick=()=>{selectedExamView=null;$('schoolExamChoices').hidden=false;$('hptExamRecords').hidden=true;$('learnerExamRecords').hidden=true;const sc=schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId));if(sc)$('resultsHeading').textContent=`${sc.school_name} — Examinations`;};$('backHptExamChoices').onclick=()=>$('backExamChoices').click();$('searchLearnerSummary').oninput=renderLearnerSummaries;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
+$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;$('backExamChoices').onclick=()=>{selectedExamView=null;$('schoolExamChoices').hidden=false;$('hptExamRecords').hidden=true;$('learnerExamRecords').hidden=true;const sc=schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId));if(sc)$('resultsHeading').textContent=`${sc.school_name} — Examinations`;};$('backHptExamChoices').onclick=()=>$('backExamChoices').click();$('searchLearnerSummary').oninput=renderLearnerSummaries;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});window.addEventListener('hpt:school-deleted',async()=>{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
 let resultsPoll=null;
-function startResultsPolling(){clearInterval(resultsPoll);resultsPoll=setInterval(async()=>{if(document.hidden||$('dashboard').hidden)return;try{await loadResults();updateStats()}catch(e){console.error('HPT results refresh failed',e)}},5000)}
+function startResultsPolling(){clearInterval(resultsPoll);resultsPoll=setInterval(async()=>{if(document.hidden||$('dashboard').hidden)return;try{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()}catch(e){console.error('HPT results refresh failed',e)}},5000)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden)loadResults()});
 (async()=>{const a=await guard();if(a){showDash(a.admin);await refreshAll();startResultsPolling();openRequestedAdminTab()}})();
 })();
