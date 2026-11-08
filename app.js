@@ -358,6 +358,10 @@ async function enterSchool(){
     applySchoolBranding(school,true);
     codeInput.value='';
     setGateMessage('');
+    // Personalized cinematic welcome after the access code has been verified.
+    if(window.HPTExperience?.showSchoolWelcome){
+      try{await window.HPTExperience.showSchoolWelcome(school)}catch(welcomeError){console.warn('School welcome animation skipped:',welcomeError)}
+    }
     show('schoolGate',false);show('startScreen',true);show('examScreen',false);show('resultScreen',false);
     safeText('candName','Candidate');safeText('candPhone','');
     updateFullscreenButtons();
@@ -372,7 +376,7 @@ async function enterSchool(){
     setGateMessage(message,true);
   }finally{
     button.disabled=false;
-    if(buttonLabel)buttonLabel.textContent='CONTINUE TO TEST';
+    if(buttonLabel)buttonLabel.textContent='LOGIN TO SCHOOL';
   }
 }
 async function bootSchoolSession(){

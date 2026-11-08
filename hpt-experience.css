@@ -1,0 +1,557 @@
+/* HPT cinematic intro, leaderboard scenes, school welcome, and premium landing polish. */
+html.hpt-intro-pending #app{visibility:hidden!important}
+html.hpt-intro-pending,html.hpt-intro-pending body{overflow:hidden!important}
+#hptIntroRoot,#hptSchoolWelcome{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;box-sizing:border-box}
+#hptIntroRoot *,#hptSchoolWelcome *{box-sizing:border-box}
+#hptIntroRoot{position:fixed;inset:0;z-index:2147483600;overflow:hidden;background:#071823;color:#fff;opacity:1;visibility:visible;transition:opacity .48s ease,visibility .48s ease}
+#hptIntroRoot[hidden],#hptSchoolWelcome[hidden]{display:none!important}
+#hptIntroRoot.hpt-intro-leaving{opacity:0;visibility:hidden;pointer-events:none}
+.hpt-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:clamp(24px,5vw,72px);opacity:0;visibility:hidden;transform:scale(1.02);transition:opacity .55s ease,transform .75s cubic-bezier(.2,.75,.2,1),visibility .55s}
+.hpt-scene.is-active{opacity:1;visibility:visible;transform:scale(1)}
+.hpt-scene:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,14,22,.64),rgba(4,14,22,.24) 57%,rgba(4,14,22,.48)),linear-gradient(0deg,rgba(2,9,15,.66),transparent 55%);pointer-events:none}
+.hpt-scene-loading,.hpt-scene-champion,.hpt-scene-topten{background-image:url("assets/hpt-road-desktop.webp");background-size:cover;background-position:center 55%}
+.hpt-skip{position:absolute;right:clamp(16px,3.5vw,52px);top:clamp(16px,3vh,32px);z-index:5;display:inline-flex;align-items:center;gap:10px;padding:11px 17px;border-radius:999px;border:1px solid rgba(255,255,255,.58);background:rgba(7,19,29,.46);color:#fff;backdrop-filter:blur(14px);font-size:11px;font-weight:850;letter-spacing:.11em;cursor:pointer;transition:background .2s,transform .2s}
+.hpt-skip:hover{background:rgba(255,255,255,.18);transform:translateY(-1px)}
+.hpt-skip svg{width:16px;height:16px}
+.hpt-brand-block{position:relative;z-index:2;text-align:center;width:min(800px,90vw);margin-top:-5vh;text-shadow:0 5px 30px rgba(0,0,0,.52)}
+.hpt-brand-mark{display:block;width:clamp(190px,28vw,385px);height:auto;margin:0 auto 6px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.3))}
+.hpt-brand-title{font-size:clamp(25px,4vw,52px);font-weight:950;font-style:italic;letter-spacing:.015em;line-height:1.03;text-transform:uppercase}
+.hpt-brand-subtitle{margin-top:13px;font-size:clamp(10px,1.15vw,14px);font-weight:850;letter-spacing:.34em;color:#ffe1a4}
+.hpt-intro-pillars{display:flex;justify-content:center;align-items:center;gap:clamp(10px,2vw,24px);margin-top:25px;color:#f7f9fa;font-size:11px;font-weight:750;letter-spacing:.13em}
+.hpt-intro-pillars span{display:inline-flex;align-items:center;gap:7px}.hpt-intro-pillars i{width:4px;height:4px;background:#efbd5a;border-radius:50%}
+.hpt-loading-block{position:absolute;z-index:3;left:50%;bottom:13%;transform:translateX(-50%);width:min(420px,76vw);text-align:center}
+.hpt-loading-label{font-size:14px;font-weight:750;margin-bottom:13px;letter-spacing:.06em;text-shadow:0 2px 10px #000}
+.hpt-progress-track{height:12px;border:1px solid rgba(255,255,255,.9);border-radius:99px;background:rgba(2,19,31,.72);padding:2px;overflow:hidden;box-shadow:0 5px 18px rgba(0,0,0,.25)}
+.hpt-progress-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#007fe9,#10d8ff);box-shadow:0 0 18px rgba(0,196,255,.86);transition:width .08s linear}
+.hpt-progress-number{margin-top:10px;font-size:16px;font-weight:900;color:#fff;text-shadow:0 2px 9px #000}
+.hpt-progress-number small{font-size:10px;margin-left:2px;color:#ffe4ac}
+.hpt-road-footer{position:absolute;z-index:2;left:0;right:0;bottom:3.5%;display:flex;align-items:center;justify-content:center;gap:13px;color:rgba(255,255,255,.94);font-size:10px;font-weight:850;letter-spacing:.17em;text-shadow:0 2px 10px #000}
+.hpt-road-footer b{width:4px;height:4px;border-radius:50%;background:#eab94b}
+
+/* Champion presentation */
+.hpt-scene-champion:before{background:linear-gradient(90deg,rgba(3,11,18,.62),rgba(3,11,18,.35)),linear-gradient(0deg,rgba(3,9,14,.48),transparent 65%)}
+.hpt-champion-layout{position:relative;z-index:2;width:min(1120px,92vw);display:grid;grid-template-columns:minmax(190px,.85fr) minmax(0,1.35fr);align-items:center;gap:clamp(20px,4vw,58px)}
+.hpt-champion-trophy{width:min(100%,300px);justify-self:center;filter:drop-shadow(0 14px 28px rgba(255,181,53,.55));animation:hpt-trophy-float 2.6s ease-in-out infinite}
+.hpt-champion-copy{text-align:center}
+.hpt-scene-kicker{font-size:clamp(21px,3.1vw,39px);font-weight:950;letter-spacing:.045em;text-transform:uppercase;color:#fff;text-shadow:0 3px 15px #000}
+.hpt-month-ribbon{display:inline-flex;align-items:center;justify-content:center;margin:15px 0 22px;padding:9px 24px;border-radius:999px;background:linear-gradient(90deg,#d89d2e,#ffe18a,#c88c20);color:#21190e;font-size:12px;font-weight:950;letter-spacing:.16em;box-shadow:0 7px 24px rgba(237,174,60,.3)}
+.hpt-champion-card{position:relative;display:grid;grid-template-columns:90px minmax(0,1fr);gap:18px;align-items:center;padding:24px 26px;border-radius:22px;border:1px solid rgba(255,220,151,.78);background:linear-gradient(135deg,rgba(27,43,53,.88),rgba(20,32,40,.72));backdrop-filter:blur(18px);box-shadow:0 18px 55px rgba(0,0,0,.4),inset 0 1px rgba(255,255,255,.35);animation:hpt-reveal .7s both}
+.hpt-champion-medal{width:76px;height:76px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#fff2bc,#d99928 65%,#754008);box-shadow:0 0 24px rgba(255,196,75,.5)}
+.hpt-champion-medal img{width:59px;height:59px}
+.hpt-winner-kicker{font-size:9px;letter-spacing:.22em;font-weight:900;color:#ffd987}
+.hpt-winner-name{margin:5px 0 7px;font-size:clamp(27px,3.4vw,43px);font-weight:950;line-height:1.08}
+.hpt-winner-school{display:flex;align-items:center;justify-content:center;gap:9px;color:#e9f0f2;font-size:clamp(12px,1.4vw,16px);font-weight:650;line-height:1.35}
+.hpt-winner-school img{width:23px;height:23px;filter:brightness(0) invert(1);flex:none}
+.hpt-winner-score{margin-top:13px;color:#fff}
+.hpt-winner-score strong{font-size:clamp(45px,6vw,67px);line-height:1;color:#ffdf74;font-weight:950}
+.hpt-winner-score span{font-size:19px;margin-left:5px;font-weight:850}
+.hpt-empty-state{padding:34px 24px;border:1px solid rgba(255,255,255,.35);border-radius:18px;background:rgba(11,26,36,.68);backdrop-filter:blur(16px)}
+.hpt-empty-icon{display:block;color:#ffd46e;font-size:35px;margin-bottom:8px}.hpt-empty-state strong{font-size:14px;letter-spacing:.1em}.hpt-empty-state p{font-size:13px;color:#dae3e7;margin:10px 0 0}
+
+/* Top ten scene */
+.hpt-scene-topten:before{background:linear-gradient(90deg,rgba(3,12,19,.78),rgba(3,12,19,.52)),linear-gradient(0deg,rgba(3,9,14,.58),transparent 60%)}
+.hpt-topten-panel{position:relative;z-index:2;width:min(1160px,94vw);padding:clamp(15px,2.4vh,28px) clamp(14px,2.8vw,36px);border:1px solid rgba(255,255,255,.53);border-radius:24px;background:rgba(8,24,36,.79);backdrop-filter:blur(23px);box-shadow:0 24px 72px rgba(0,0,0,.46),inset 0 1px rgba(255,255,255,.23);text-align:center}
+.hpt-topten-heading{font-size:clamp(22px,3.2vw,39px);font-weight:950;letter-spacing:.045em;text-transform:uppercase;text-shadow:0 3px 16px #000}
+.hpt-topten-heading .gold-star{color:#ffd66d;margin:0 8px}
+.hpt-topten-panel .hpt-month-ribbon{margin:9px 0 14px;padding:7px 21px;font-size:10px}
+.hpt-topten-table-wrap{width:100%;overflow:visible}
+.hpt-topten-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;text-align:left}
+.hpt-topten-table th{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.28);font-size:10px;font-weight:900;letter-spacing:.14em;color:#ffe5ad}
+.hpt-topten-table td{padding:clamp(7px,1.08vh,11px) 12px;border-bottom:1px solid rgba(255,255,255,.13);font-size:clamp(12px,1.18vw,15px);line-height:1.13;color:#fff;font-weight:650}
+.hpt-topten-table tr:last-child td{border-bottom:0}
+.hpt-topten-table th:first-child,.hpt-topten-table td:first-child{width:8%;text-align:center}
+.hpt-topten-table th:nth-child(2),.hpt-topten-table td:nth-child(2){width:27%}
+.hpt-topten-table th:nth-child(3),.hpt-topten-table td:nth-child(3){width:auto}
+.hpt-topten-table th:last-child,.hpt-topten-table td:last-child{width:12%;text-align:right}
+.hpt-student-cell{font-weight:850!important}
+.hpt-school-cell{font-size:.92em!important;color:#dfe8ec!important;overflow-wrap:anywhere}
+.hpt-score-cell strong{font-size:1.2em;color:#ffe29a}.hpt-score-cell small{font-size:.72em;margin-left:2px;color:#ffffffb3}
+.hpt-rank-number{display:inline-grid;place-items:center;width:27px;height:27px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);font-weight:950;font-size:12px}
+.hpt-leader-row{animation:hpt-row-enter .42s both;animation-delay:var(--row-delay)}
+.hpt-rank-1{background:linear-gradient(90deg,rgba(214,161,37,.46),rgba(150,103,15,.08))}.hpt-rank-1 .hpt-rank-number{background:linear-gradient(140deg,#fff0a7,#d59a22);color:#2d2007;border:1px solid #fff0af;box-shadow:0 0 15px #eab94b66}
+.hpt-rank-2{background:linear-gradient(90deg,rgba(180,194,205,.29),transparent)}.hpt-rank-2 .hpt-rank-number{background:linear-gradient(140deg,#f5f8fa,#82939f);color:#15232a}
+.hpt-rank-3{background:linear-gradient(90deg,rgba(177,108,65,.32),transparent)}.hpt-rank-3 .hpt-rank-number{background:linear-gradient(140deg,#f5bd8b,#9e562b);color:#2c160c}
+.hpt-table-empty{text-align:center!important;padding:30px 12px!important;color:#f4dfb8!important;font-size:14px!important}
+.hpt-topten-foot{margin-top:11px;color:#ffffffa8;font-size:8px;font-weight:850;letter-spacing:.18em}
+
+/* School success / portal loading after access-code validation */
+#hptSchoolWelcome{position:fixed;inset:0;z-index:2147483601;display:grid;place-items:center;padding:20px;background:linear-gradient(90deg,rgba(4,13,20,.8),rgba(4,13,20,.56)),url("assets/hpt-road-desktop.webp") center/cover no-repeat;color:#fff;opacity:1;visibility:visible;transition:opacity .38s ease,visibility .38s ease}
+#hptSchoolWelcome.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
+.hpt-welcome-card{width:min(520px,92vw);padding:clamp(24px,4vw,38px);border:1px solid rgba(255,255,255,.48);border-radius:26px;text-align:center;background:linear-gradient(135deg,rgba(22,43,52,.87),rgba(15,28,37,.77));backdrop-filter:blur(22px);box-shadow:0 20px 70px #0008,inset 0 1px #ffffff4d;animation:hpt-reveal .5s both}
+.hpt-welcome-state{display:inline-flex;align-items:center;gap:8px;margin-bottom:17px;font-size:10px;font-weight:950;letter-spacing:.2em;color:#8cf0b0}
+.hpt-welcome-state:before{content:"";width:7px;height:7px;background:#49e28b;border-radius:50%;box-shadow:0 0 12px #49e28b}
+.hpt-welcome-logo{display:block;width:68px;height:68px;object-fit:contain;border-radius:50%;margin:0 auto 13px;background:#ffffff14;border:1px solid #fff5}
+.hpt-welcome-brand{font-size:10px;letter-spacing:.22em;font-weight:850;color:#c8d8df}
+.hpt-welcome-title{font-size:clamp(25px,5vw,38px);font-weight:950;line-height:1.1;margin:9px auto 8px;overflow-wrap:anywhere}
+.hpt-welcome-location{min-height:20px;color:#f5d58f;font-size:14px;font-weight:750}
+.hpt-welcome-loading{font-size:12px;color:#edf3f6;margin:25px 0 11px}
+.hpt-welcome-percent{font-size:12px;font-weight:950;margin-top:9px;color:#d8f5ff}
+.hpt-welcome-percent small{font-size:9px;color:#b2c6d0;margin-left:3px}
+
+/* Landing page — compact school-first glass panel, no oversized clipped heading. */
+#schoolGate.schoolGateLanding{position:relative;isolation:isolate;min-height:100svh!important;overflow:hidden!important;background-image:linear-gradient(90deg,rgba(4,13,20,.38),rgba(4,13,20,.2)),linear-gradient(0deg,rgba(4,13,20,.48),rgba(4,13,20,.15)),url("assets/hpt-road-desktop.webp")!important;background-size:cover!important;background-position:center 55%!important;background-attachment:scroll!important}
+#schoolGate.schoolGateLanding .gateGlow{display:none!important}
+#schoolGate.schoolGateLanding .landingHero{position:relative;z-index:1;width:min(1180px,94vw)!important;max-width:none!important;min-height:100svh;padding:clamp(34px,7vh,76px) 0 35px!important;margin:0 auto!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:clamp(20px,4vh,36px)!important}
+#schoolGate.schoolGateLanding .landingIntro{text-align:center!important;margin:0 auto!important;max-width:780px!important;padding:0 10px!important}
+#schoolGate.schoolGateLanding .gateEyebrow{justify-content:center!important;color:#ffe2a8!important;font-size:10px!important;letter-spacing:.28em!important;font-weight:900!important}
+#schoolGate.schoolGateLanding .landingIntro h1{font-size:clamp(31px,4vw,52px)!important;line-height:1.02!important;letter-spacing:-.035em!important;font-weight:950!important;color:#fff!important;margin:10px 0 9px!important;text-shadow:0 4px 22px #0007!important;max-width:none!important}
+#schoolGate.schoolGateLanding .landingIntro p{font-size:clamp(13px,1.25vw,16px)!important;line-height:1.5!important;color:#f0f6f8!important;margin:0 auto!important;max-width:650px!important;text-shadow:0 2px 10px #0008!important}
+#schoolGate.schoolGateLanding .landingColumns{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:13px!important;width:100%!important;margin:0 auto!important}
+#schoolGate.schoolGateLanding .landingLoginCard{width:min(520px,92vw)!important;max-width:520px!important;padding:clamp(22px,3vw,34px)!important;border-radius:25px!important;border:1px solid rgba(255,255,255,.68)!important;background:linear-gradient(135deg,rgba(245,250,252,.88),rgba(225,235,239,.74))!important;color:#132b38!important;backdrop-filter:blur(22px)!important;box-shadow:0 25px 72px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.8)!important}
+#schoolGate.schoolGateLanding .gateCardTop{justify-content:center!important;text-align:center!important;margin-bottom:18px!important}
+#schoolGate.schoolGateLanding .gateIcon{display:none!important}
+#schoolGate.schoolGateLanding .gateCardTop .gateKicker{font-size:10px!important;letter-spacing:.2em!important;color:#667c85!important;font-weight:900!important}
+#schoolGate.schoolGateLanding .gateCardTop h2{font-size:clamp(24px,3vw,31px)!important;font-weight:950!important;color:#142c38!important;margin:5px 0 0!important}
+#schoolGate.schoolGateLanding .landingLoginCard>label{display:block!important;margin:0 0 8px!important;font-size:11px!important;letter-spacing:.15em!important;font-weight:900!important;color:#294450!important;text-transform:uppercase!important}
+#schoolGate.schoolGateLanding #schoolAccessCode{width:100%!important;min-height:58px!important;border-radius:13px!important;border:1px solid rgba(48,77,90,.25)!important;background:rgba(255,255,255,.96)!important;color:#17313e!important;text-align:center!important;letter-spacing:.45em!important;font-weight:900!important;font-size:24px!important;box-shadow:inset 0 2px 6px rgba(15,43,56,.05)!important}
+#schoolGate.schoolGateLanding #schoolAccessCode::placeholder{font-size:14px!important;letter-spacing:.02em!important;font-weight:600!important;color:#80919a!important}
+#schoolGate.schoolGateLanding #schoolGateMsg{margin:7px 0!important;color:#9d2630!important;font-size:11px!important;text-align:center!important}
+#schoolGate.schoolGateLanding #enterSchoolBtn{width:100%!important;min-height:55px!important;border:0!important;border-radius:13px!important;background:linear-gradient(100deg,#ed2532,#c90b20)!important;color:#fff!important;font-size:14px!important;font-weight:950!important;letter-spacing:.075em!important;box-shadow:0 9px 22px rgba(195,0,20,.25)!important;transition:transform .18s,box-shadow .18s!important}
+#schoolGate.schoolGateLanding #enterSchoolBtn:hover{transform:translateY(-2px)!important;box-shadow:0 13px 28px rgba(195,0,20,.34)!important}
+#schoolGate.schoolGateLanding .landingCardNote{margin:12px 0 0!important;text-align:center!important;color:#526a73!important;font-size:11px!important}
+#schoolGate.schoolGateLanding .landingRegisterCard{width:min(520px,92vw)!important;max-width:520px!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:13px 17px!important;border-radius:15px!important;border:1px solid rgba(255,255,255,.35)!important;background:rgba(11,30,42,.45)!important;color:#fff!important;backdrop-filter:blur(16px)!important;box-shadow:0 8px 25px rgba(0,0,0,.17)!important}
+#schoolGate.schoolGateLanding .landingRegisterCard .registerIcon,#schoolGate.schoolGateLanding .landingRegisterCard .gateKicker,#schoolGate.schoolGateLanding .landingRegisterCard h2,#schoolGate.schoolGateLanding .landingRegisterCard p,#schoolGate.schoolGateLanding .landingRegisterCard small{display:none!important}
+#schoolGate.schoolGateLanding #hptGetAccess{order:2!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;min-height:38px!important;padding:8px 15px!important;border-radius:999px!important;border:1px solid rgba(255,222,143,.82)!important;background:rgba(255,255,255,.12)!important;color:#ffe4a7!important;font-size:11px!important;font-weight:900!important;letter-spacing:.04em!important;box-shadow:none!important;white-space:nowrap!important}
+#schoolGate.schoolGateLanding #hptGetAccess span{display:inline!important}
+#schoolGate.schoolGateLanding .hpt-new-school-label{order:1!important;font-size:10px!important;font-weight:850!important;letter-spacing:.04em!important;color:#fff!important;white-space:nowrap!important}
+#schoolGate.schoolGateLanding #hptGetAccess b{font-size:15px!important}
+#schoolGate.schoolGateLanding #hptForgotAccess{order:3!important;display:inline-flex!important;border:0!important;background:transparent!important;color:#fff!important;text-decoration:underline!important;text-underline-offset:3px!important;font-size:10px!important;font-weight:750!important;padding:6px!important}
+#schoolGate.schoolGateLanding .globalLeaderboardCard{width:min(1060px,94vw)!important;margin:24px auto 0!important;position:relative!important;z-index:1}
+#schoolGate.schoolGateLanding .landingTrust{color:#ffffffd9!important;text-shadow:0 2px 10px #000!important;margin-top:14px!important}
+#schoolGate.schoolGateLanding .landingSeo{max-width:980px!important;margin:35px auto!important;padding:25px!important;border-radius:18px!important;background:rgba(7,20,30,.78)!important;color:#eaf1f4!important;backdrop-filter:blur(14px)!important}
+#schoolGate.schoolGateLanding .landingSeo h2{color:#ffe0a0!important}
+#schoolGate.schoolGateLanding .landingSeo p{color:#dbe5e9!important}
+#schoolGate.schoolGateLanding .gateFooter{position:relative!important;z-index:2;color:#fff!important}
+
+@media(max-width:760px){
+ .hpt-scene{padding:58px 13px 24px}
+ .hpt-scene-loading,.hpt-scene-champion,.hpt-scene-topten{background-image:url("assets/hpt-road-mobile.webp");background-position:center center}
+ .hpt-scene:before{background:linear-gradient(180deg,rgba(4,14,22,.36),rgba(4,14,22,.28) 45%,rgba(4,14,22,.68))}
+ .hpt-skip{top:max(12px,env(safe-area-inset-top));right:13px;padding:9px 13px;font-size:10px}
+ .hpt-brand-block{width:100%;margin:-7vh auto 0}
+ .hpt-brand-mark{width:clamp(205px,62vw,310px);margin-bottom:5px}
+ .hpt-brand-title{font-size:clamp(25px,7.7vw,37px);line-height:1.02;max-width:340px;margin:auto}
+ .hpt-brand-subtitle{font-size:9px;letter-spacing:.16em;margin-top:13px}
+ .hpt-intro-pillars{gap:10px;margin-top:22px;font-size:9px;letter-spacing:.03em}
+ .hpt-intro-pillars span{gap:4px}
+ .hpt-loading-block{bottom:max(17%,calc(env(safe-area-inset-bottom) + 115px));width:min(78vw,360px)}
+ .hpt-loading-label{font-size:15px}.hpt-progress-track{height:12px}.hpt-progress-number{font-size:17px}
+ .hpt-road-footer{bottom:max(27px,env(safe-area-inset-bottom));gap:8px;font-size:8px;letter-spacing:.1em}
+ .hpt-champion-layout{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:5px;padding-top:30px}
+ .hpt-champion-trophy{width:clamp(125px,38vw,185px);margin:0 auto 3px}
+ .hpt-champion-copy{width:100%;max-width:460px}
+ .hpt-scene-kicker{font-size:clamp(24px,7.2vw,34px);line-height:1.03}
+ .hpt-month-ribbon{margin:11px 0 15px;padding:8px 18px;font-size:10px}
+ .hpt-champion-card{grid-template-columns:58px minmax(0,1fr);gap:10px;padding:18px 14px;border-radius:19px}
+ .hpt-champion-medal{width:52px;height:52px}.hpt-champion-medal img{width:43px;height:43px}
+ .hpt-winner-kicker{font-size:7px;letter-spacing:.13em}.hpt-winner-name{font-size:clamp(25px,7.5vw,36px);margin:4px 0}
+ .hpt-winner-school{font-size:clamp(11px,3.5vw,15px);justify-content:flex-start;text-align:left}
+ .hpt-winner-school img{width:18px;height:18px}.hpt-winner-score{margin-top:8px;text-align:left}.hpt-winner-score strong{font-size:clamp(43px,12vw,56px)}.hpt-winner-score span{font-size:16px}
+ .hpt-topten-panel{width:100%;max-width:550px;max-height:calc(100dvh - 82px);padding:14px 8px 12px;border-radius:18px;display:flex;flex-direction:column;justify-content:center}
+ .hpt-topten-heading{font-size:clamp(22px,6.7vw,31px);line-height:1.06}
+ .hpt-topten-heading .gold-star{margin:0 4px}
+ .hpt-topten-panel .hpt-month-ribbon{margin:8px 0 10px;padding:7px 15px;font-size:9px}
+ .hpt-topten-table{table-layout:fixed;width:100%}
+ .hpt-topten-table th{font-size:clamp(7px,2.1vw,9px);letter-spacing:0;padding:7px 3px;white-space:nowrap}
+ .hpt-topten-table td{font-size:clamp(9px,2.65vw,12px);padding:clamp(6px,1.1vh,9px) 3px;line-height:1.08}
+ .hpt-topten-table th:first-child,.hpt-topten-table td:first-child{width:9%}
+ .hpt-topten-table th:nth-child(2),.hpt-topten-table td:nth-child(2){width:26%}
+ .hpt-topten-table th:last-child,.hpt-topten-table td:last-child{width:14%;text-align:right}
+ .hpt-school-cell{font-size:clamp(8px,2.35vw,10px)!important}
+ .hpt-rank-number{width:20px;height:20px;font-size:9px}
+ .hpt-topten-foot{font-size:6px;letter-spacing:.09em;margin-top:8px}
+ #hptSchoolWelcome{background-image:linear-gradient(180deg,rgba(4,13,20,.4),rgba(4,13,20,.72)),url("assets/hpt-road-mobile.webp");background-position:center;background-size:cover}
+ .hpt-welcome-card{padding:25px 20px;border-radius:23px}
+ #schoolGate.schoolGateLanding{background-image:linear-gradient(180deg,rgba(4,13,20,.22),rgba(4,13,20,.3)),url("assets/hpt-road-mobile.webp")!important;background-position:center!important}
+ #schoolGate.schoolGateLanding .landingHero{width:100%!important;min-height:100svh;padding:max(42px,calc(env(safe-area-inset-top) + 30px)) 0 30px!important;gap:18px!important}
+ #schoolGate.schoolGateLanding .landingIntro{max-width:420px!important}
+ #schoolGate.schoolGateLanding .landingIntro h1{font-size:clamp(29px,8.2vw,39px)!important;margin:8px 0 7px!important}
+ #schoolGate.schoolGateLanding .landingIntro p{font-size:12px!important;max-width:345px!important}
+ #schoolGate.schoolGateLanding .landingIntro .gateEyebrow{font-size:8px!important;letter-spacing:.17em!important}
+ #schoolGate.schoolGateLanding .landingLoginCard{width:min(92vw,460px)!important;padding:22px 18px!important;border-radius:22px!important}
+ #schoolGate.schoolGateLanding .gateCardTop{margin-bottom:15px!important}
+ #schoolGate.schoolGateLanding .gateCardTop h2{font-size:26px!important}
+ #schoolGate.schoolGateLanding #schoolAccessCode{min-height:55px!important;font-size:22px!important}
+ #schoolGate.schoolGateLanding #enterSchoolBtn{min-height:53px!important;font-size:13px!important}
+ #schoolGate.schoolGateLanding .landingRegisterCard{width:min(92vw,460px)!important;padding:11px 13px!important;gap:6px!important}
+ #schoolGate.schoolGateLanding #hptGetAccess{font-size:10px!important;padding:8px 11px!important}
+ #schoolGate.schoolGateLanding #hptForgotAccess{font-size:9px!important}
+ #schoolGate.schoolGateLanding .globalLeaderboardCard{margin-top:8px!important}
+ #schoolGate.schoolGateLanding .landingTrust{font-size:7px!important;letter-spacing:.04em!important}
+ #schoolGate.schoolGateLanding .landingSeo{margin:22px auto!important;width:92vw!important;padding:16px!important}
+}
+@media(max-width:370px){
+ .hpt-topten-table td{padding-left:2px;padding-right:2px;font-size:8.5px}
+ .hpt-school-cell{font-size:7.5px!important}
+ .hpt-champion-card{grid-template-columns:48px minmax(0,1fr);padding:14px 11px}
+ .hpt-champion-medal{width:44px;height:44px}.hpt-champion-medal img{width:36px;height:36px}
+ #schoolGate.schoolGateLanding .landingRegisterCard{flex-direction:column!important}
+}
+@media(max-height:670px) and (max-width:760px){
+ .hpt-brand-block{margin:-4vh auto 0}.hpt-intro-pillars{margin-top:12px}
+ .hpt-champion-layout{padding-top:14px;gap:0}.hpt-champion-trophy{width:105px}
+ .hpt-champion-card{padding:12px}.hpt-month-ribbon{margin:7px 0 9px}
+ .hpt-topten-panel{max-height:calc(100dvh - 68px);padding-top:9px;padding-bottom:8px}
+ .hpt-topten-table td{padding-top:5px;padding-bottom:5px}
+}
+@keyframes hpt-trophy-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes hpt-reveal{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes hpt-row-enter{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#hptIntroRoot *,#hptSchoolWelcome *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+#schoolGate.schoolGateLanding .hpt-landing-logo{display:block;width:clamp(150px,18vw,220px);height:auto;margin:0 auto 7px;filter:drop-shadow(0 7px 15px rgba(0,0,0,.35))}
+#schoolGate.schoolGateLanding .hpt-login-heading{width:100%;display:flex;flex-direction:column;align-items:center}
+#schoolGate.schoolGateLanding .hpt-lock-mark{display:grid;place-items:center;width:43px;height:43px;margin-bottom:10px;border-radius:13px;background:linear-gradient(140deg,#f6d98e,#d69a2b);color:#25313a;font-size:25px;font-weight:950;box-shadow:0 8px 18px rgba(155,106,23,.23)}
+@media(max-width:760px){#schoolGate.schoolGateLanding .hpt-landing-logo{width:clamp(135px,43vw,180px);margin-bottom:4px}#schoolGate.schoolGateLanding .hpt-lock-mark{width:38px;height:38px;margin-bottom:7px}}
+
+/* HPT LANDING PAGE LAYOUT REPAIR — keep access controls visible and allow natural page scrolling.
+   This intentionally overrides the earlier full-viewport overflow:hidden landing treatment. */
+body:not(.school-selected) .stage{
+  height:100dvh!important;
+  min-height:100dvh!important;
+  overflow:hidden!important;
+}
+#schoolGate.schoolGateLanding{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  display:block!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(226,190,113,.72) rgba(7,19,27,.24);
+  padding:clamp(16px,2.6vh,28px) clamp(16px,4vw,60px) 30px!important;
+  justify-content:flex-start!important;
+  background-position:center 48%!important;
+  background-attachment:scroll!important;
+}
+#schoolGate.schoolGateLanding::-webkit-scrollbar{width:9px}
+#schoolGate.schoolGateLanding::-webkit-scrollbar-track{background:rgba(7,19,27,.2)}
+#schoolGate.schoolGateLanding::-webkit-scrollbar-thumb{background:rgba(226,190,113,.58);border:2px solid rgba(7,19,27,.35);border-radius:20px}
+#schoolGate.schoolGateLanding .landingHero{
+  width:min(1120px,100%)!important;
+  min-height:0!important;
+  height:auto!important;
+  max-width:1120px!important;
+  margin:0 auto!important;
+  padding:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  align-items:stretch!important;
+  gap:clamp(12px,1.8vh,19px)!important;
+}
+#schoolGate.schoolGateLanding .landingIntro{
+  width:100%!important;
+  max-width:780px!important;
+  margin:0 auto!important;
+  padding:0 12px!important;
+  text-align:center!important;
+}
+#schoolGate.schoolGateLanding .landingIntro .gateEyebrow{
+  font-size:9px!important;
+  letter-spacing:.23em!important;
+  line-height:1.3!important;
+  margin:0 auto 5px!important;
+}
+#schoolGate.schoolGateLanding .hpt-landing-logo{
+  width:clamp(104px,11vw,142px)!important;
+  max-height:76px!important;
+  object-fit:contain!important;
+  margin:0 auto 2px!important;
+}
+#schoolGate.schoolGateLanding .landingIntro h1{
+  font-size:clamp(30px,3.2vw,43px)!important;
+  line-height:1.04!important;
+  letter-spacing:-.035em!important;
+  margin:3px 0 6px!important;
+}
+#schoolGate.schoolGateLanding .landingIntro>p{
+  max-width:620px!important;
+  font-size:clamp(12px,1.05vw,14px)!important;
+  line-height:1.42!important;
+  margin:0 auto!important;
+}
+#schoolGate.schoolGateLanding .landingColumns{
+  width:100%!important;
+  max-width:560px!important;
+  margin:0 auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:10px!important;
+}
+#schoolGate.schoolGateLanding .landingLoginCard{
+  width:100%!important;
+  max-width:560px!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:clamp(18px,2.1vw,25px) clamp(20px,2.5vw,30px)!important;
+  margin:0!important;
+  border-radius:22px!important;
+  background:linear-gradient(145deg,rgba(248,251,252,.94),rgba(224,234,238,.88))!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  color:#17303b!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.9)!important;
+}
+#schoolGate.schoolGateLanding .gateCardTop{
+  justify-content:center!important;
+  margin:0 0 12px!important;
+  text-align:center!important;
+}
+#schoolGate.schoolGateLanding .hpt-login-heading{gap:0!important}
+#schoolGate.schoolGateLanding .hpt-lock-mark{
+  width:34px!important;height:34px!important;min-height:34px!important;
+  margin:0 auto 6px!important;border-radius:11px!important;font-size:19px!important;
+}
+#schoolGate.schoolGateLanding .gateCardTop .gateKicker{
+  font-size:9px!important;letter-spacing:.18em!important;color:#637d87!important;
+}
+#schoolGate.schoolGateLanding .gateCardTop h2{
+  color:#142f3b!important;font-size:clamp(22px,2.2vw,28px)!important;
+  line-height:1.05!important;margin:3px 0 0!important;
+}
+#schoolGate.schoolGateLanding .landingLoginCard>label{
+  display:block!important;margin:0 0 7px!important;
+  font-size:10px!important;letter-spacing:.13em!important;
+  line-height:1.35!important;color:#294955!important;
+}
+#schoolGate.schoolGateLanding #schoolAccessCode{
+  min-height:52px!important;height:52px!important;
+  padding:0 16px!important;border-radius:12px!important;
+  font-size:21px!important;letter-spacing:.38em!important;
+}
+#schoolGate.schoolGateLanding #schoolAccessCode::placeholder{
+  font-size:13px!important;letter-spacing:0!important;
+}
+#schoolGate.schoolGateLanding #schoolGateMsg{
+  min-height:0!important;margin:5px 0 0!important;font-size:11px!important;
+}
+#schoolGate.schoolGateLanding #enterSchoolBtn{
+  min-height:49px!important;height:49px!important;margin-top:10px!important;
+  border-radius:12px!important;font-size:13px!important;letter-spacing:.055em!important;
+}
+#schoolGate.schoolGateLanding .landingCardNote{
+  margin:7px 0 0!important;font-size:10px!important;line-height:1.35!important;
+  color:#58717a!important;
+}
+#schoolGate.schoolGateLanding .landingRegisterCard{
+  width:100%!important;max-width:560px!important;min-height:0!important;height:auto!important;
+  margin:0!important;padding:9px 13px!important;border-radius:13px!important;
+  display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+  align-items:center!important;justify-content:center!important;gap:8px 16px!important;
+  background:rgba(9,25,35,.58)!important;border:1px solid rgba(255,255,255,.33)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.16)!important;
+}
+#schoolGate.schoolGateLanding .hpt-new-school-label{
+  order:1!important;display:inline-flex!important;color:#fff!important;
+  font-size:11px!important;font-weight:800!important;white-space:nowrap!important;
+}
+#schoolGate.schoolGateLanding #hptGetAccess{
+  order:2!important;min-height:34px!important;padding:7px 13px!important;
+  font-size:10px!important;border-radius:999px!important;
+}
+#schoolGate.schoolGateLanding #hptForgotAccess{
+  order:3!important;font-size:10px!important;padding:5px 7px!important;
+  color:#ffe2a4!important;white-space:nowrap!important;
+}
+#schoolGate.schoolGateLanding .globalLeaderboardCard{
+  width:min(1060px,100%)!important;margin:clamp(22px,3vh,32px) auto 0!important;
+}
+#schoolGate.schoolGateLanding .landingTrust{
+  margin:14px auto 0!important;gap:9px!important;font-size:8px!important;
+}
+#schoolGate.schoolGateLanding .landingSeo{
+  width:min(980px,100%)!important;margin:26px auto 20px!important;
+}
+#schoolGate.schoolGateLanding .gateFooter{
+  width:min(1120px,100%)!important;margin:12px auto 0!important;
+  padding-bottom:8px!important;
+}
+
+/* Short desktop/laptop viewports: slightly tighter vertical rhythm, still scrollable. */
+@media (min-width:761px) and (max-height:820px){
+  #schoolGate.schoolGateLanding{padding-top:12px!important;padding-bottom:20px!important}
+  #schoolGate.schoolGateLanding .landingHero{gap:10px!important}
+  #schoolGate.schoolGateLanding .hpt-landing-logo{width:100px!important;max-height:58px!important}
+  #schoolGate.schoolGateLanding .landingIntro h1{font-size:32px!important;margin:2px 0 4px!important}
+  #schoolGate.schoolGateLanding .landingIntro>p{font-size:12px!important}
+  #schoolGate.schoolGateLanding .landingLoginCard{padding:15px 24px!important}
+  #schoolGate.schoolGateLanding .gateCardTop{margin-bottom:8px!important}
+  #schoolGate.schoolGateLanding .hpt-lock-mark{width:29px!important;height:29px!important;min-height:29px!important;margin-bottom:4px!important}
+  #schoolGate.schoolGateLanding #schoolAccessCode{height:47px!important;min-height:47px!important}
+  #schoolGate.schoolGateLanding #enterSchoolBtn{height:45px!important;min-height:45px!important;margin-top:8px!important}
+}
+
+/* Phone and tablet: readable login card, with all secondary actions below it in the scroll flow. */
+@media(max-width:760px){
+  #schoolGate.schoolGateLanding{
+    padding:max(15px,env(safe-area-inset-top)) 13px max(25px,env(safe-area-inset-bottom))!important;
+    background-position:center!important;
+  }
+  #schoolGate.schoolGateLanding .landingHero{width:100%!important;gap:13px!important}
+  #schoolGate.schoolGateLanding .landingIntro{padding:0 6px!important}
+  #schoolGate.schoolGateLanding .landingIntro .gateEyebrow{font-size:8px!important;letter-spacing:.16em!important;margin-bottom:4px!important}
+  #schoolGate.schoolGateLanding .hpt-landing-logo{width:112px!important;max-height:65px!important;margin-bottom:1px!important}
+  #schoolGate.schoolGateLanding .landingIntro h1{font-size:clamp(27px,7.8vw,36px)!important;margin:3px 0 5px!important}
+  #schoolGate.schoolGateLanding .landingIntro>p{font-size:11px!important;line-height:1.4!important;max-width:360px!important}
+  #schoolGate.schoolGateLanding .landingColumns{width:100%!important;gap:9px!important}
+  #schoolGate.schoolGateLanding .landingLoginCard{width:100%!important;padding:17px 16px!important;border-radius:19px!important}
+  #schoolGate.schoolGateLanding .gateCardTop{margin-bottom:10px!important}
+  #schoolGate.schoolGateLanding .hpt-lock-mark{width:31px!important;height:31px!important;min-height:31px!important;margin-bottom:5px!important}
+  #schoolGate.schoolGateLanding .gateCardTop h2{font-size:23px!important}
+  #schoolGate.schoolGateLanding .landingLoginCard>label{font-size:9px!important;margin-bottom:6px!important}
+  #schoolGate.schoolGateLanding #schoolAccessCode{height:49px!important;min-height:49px!important;font-size:20px!important}
+  #schoolGate.schoolGateLanding #enterSchoolBtn{height:48px!important;min-height:48px!important;font-size:12px!important;margin-top:9px!important}
+  #schoolGate.schoolGateLanding .landingRegisterCard{padding:9px 10px!important;gap:7px 11px!important}
+  #schoolGate.schoolGateLanding .hpt-new-school-label{font-size:10px!important}
+  #schoolGate.schoolGateLanding #hptGetAccess{font-size:9px!important;min-height:32px!important;padding:6px 10px!important}
+  #schoolGate.schoolGateLanding #hptForgotAccess{font-size:9px!important}
+  #schoolGate.schoolGateLanding .globalLeaderboardCard{margin-top:18px!important}
+  #schoolGate.schoolGateLanding .landingTrust{font-size:7px!important;margin-top:11px!important}
+  #schoolGate.schoolGateLanding .landingSeo{width:100%!important;margin:18px auto 12px!important;padding:15px!important}
+  #schoolGate.schoolGateLanding .gateFooter{margin-top:10px!important;padding-bottom:12px!important}
+}
+@media(max-width:370px){
+  #schoolGate.schoolGateLanding .landingIntro>p{font-size:10px!important}
+  #schoolGate.schoolGateLanding .landingLoginCard{padding:15px 13px!important}
+  #schoolGate.schoolGateLanding .landingRegisterCard{gap:6px!important}
+  #schoolGate.schoolGateLanding #hptForgotAccess{flex-basis:100%!important;justify-content:center!important}
+}
+
+/* ================================================================
+   V122 — SCHOOL STATE + ACCESS PORTAL VISUAL REFINEMENT
+   Explicitly honour the native hidden attribute. The scroll-layout
+   rules above intentionally set display:block on the access portal;
+   without this state-specific override it can cover the school home.
+   ================================================================ */
+#app main.stage > #schoolGate.schoolGateLanding[hidden],
+#app main.stage > #startScreen[hidden],
+#app main.stage > #examScreen[hidden],
+#app main.stage > #resultScreen[hidden]{
+  display:none !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+body.school-selected #app main.stage > #schoolGate.schoolGateLanding[hidden]{
+  display:none !important;
+}
+body.school-selected #app main.stage > #startScreen:not([hidden]){
+  display:block !important;
+  visibility:visible !important;
+}
+
+/* The public access page: unified midnight glass, no isolated white card. */
+#schoolGate.schoolGateLanding .landingLoginCard{
+  position:relative !important;
+  overflow:hidden !important;
+  background:
+    radial-gradient(ellipse at 50% -18%,rgba(30,177,226,.18),transparent 52%),
+    linear-gradient(145deg,rgba(9,28,41,.91),rgba(5,16,26,.89)) !important;
+  border:1px solid rgba(176,213,228,.42) !important;
+  color:#f4f8fb !important;
+  box-shadow:0 24px 70px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.14) !important;
+  backdrop-filter:blur(22px) saturate(135%) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(135%) !important;
+}
+#schoolGate.schoolGateLanding .landingLoginCard:before{
+  content:"" !important;
+  position:absolute !important;left:22px !important;right:22px !important;top:0 !important;
+  height:2px !important;
+  background:linear-gradient(90deg,transparent,#28c5f3,#f3bd55,transparent) !important;
+  opacity:.95 !important;
+}
+#schoolGate.schoolGateLanding .gateCardTop .gateKicker{color:#8fdcf1 !important}
+#schoolGate.schoolGateLanding .gateCardTop h2{color:#fff !important;text-shadow:0 3px 16px rgba(0,0,0,.2) !important}
+#schoolGate.schoolGateLanding .landingLoginCard>label{color:#d5e4eb !important}
+#schoolGate.schoolGateLanding .hpt-lock-mark{
+  background:linear-gradient(145deg,rgba(255,207,112,.24),rgba(217,151,43,.12)) !important;
+  border:1px solid rgba(255,215,143,.58) !important;
+  color:#ffd982 !important;
+  box-shadow:0 8px 24px rgba(205,145,45,.15),inset 0 1px rgba(255,255,255,.18) !important;
+}
+#schoolGate.schoolGateLanding #schoolAccessCode{
+  color:#fff !important;
+  background:rgba(2,12,20,.78) !important;
+  border:1px solid rgba(142,183,203,.56) !important;
+  box-shadow:inset 0 2px 9px rgba(0,0,0,.22) !important;
+  text-align:center !important;
+}
+#schoolGate.schoolGateLanding #schoolAccessCode::placeholder{color:#8ea8b6 !important}
+#schoolGate.schoolGateLanding #schoolAccessCode:focus{
+  border-color:#20c0f2 !important;
+  box-shadow:0 0 0 3px rgba(32,192,242,.14),inset 0 2px 9px rgba(0,0,0,.22) !important;
+}
+#schoolGate.schoolGateLanding #schoolGateMsg{color:#ffb2b9 !important}
+#schoolGate.schoolGateLanding .landingCardNote{color:#9cb4c1 !important}
+#schoolGate.schoolGateLanding #enterSchoolBtn{
+  background:linear-gradient(100deg,#e51f37,#c90e2b) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+  box-shadow:0 12px 28px rgba(195,11,42,.25),inset 0 1px rgba(255,255,255,.2) !important;
+}
+#schoolGate.schoolGateLanding #enterSchoolBtn:hover{filter:brightness(1.08) !important;transform:translateY(-1px) !important}
+#schoolGate.schoolGateLanding .landingRegisterCard{
+  background:linear-gradient(145deg,rgba(10,28,40,.78),rgba(5,16,25,.72)) !important;
+  border:1px solid rgba(179,207,220,.35) !important;
+  border-radius:16px !important;
+  box-shadow:0 13px 36px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.08) !important;
+  backdrop-filter:blur(17px) !important;
+  -webkit-backdrop-filter:blur(17px) !important;
+}
+#schoolGate.schoolGateLanding .hpt-new-school-label{color:#e7eef2 !important}
+#schoolGate.schoolGateLanding #hptGetAccess{
+  color:#ffe2a6 !important;
+  border-color:rgba(255,214,145,.68) !important;
+  background:rgba(255,255,255,.055) !important;
+}
+#schoolGate.schoolGateLanding #hptGetAccess:hover{background:rgba(255,213,142,.13) !important}
+#schoolGate.schoolGateLanding #hptForgotAccess{color:#ffd98d !important}
+
+/* Keep the school portal visually independent from the public access page. */
+body.school-selected #app main.stage{
+  background-image:
+    linear-gradient(105deg,rgba(4,13,20,.84),rgba(6,20,29,.62) 52%,rgba(3,10,16,.77)),
+    url('home-background.jpg') !important;
+  background-position:center !important;
+  background-size:cover !important;
+}
+body.school-selected .start.panel{
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+body.school-selected .homeStats div,
+body.school-selected .homeTip,
+body.school-selected .topScorersCard{
+  background:linear-gradient(145deg,rgba(9,27,40,.84),rgba(4,15,24,.82)) !important;
+  border-color:rgba(137,181,201,.34) !important;
+  box-shadow:0 14px 38px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.065) !important;
+  backdrop-filter:blur(14px) !important;
+}
+body.school-selected .examCard{
+  background:linear-gradient(145deg,rgba(10,28,41,.92),rgba(4,14,22,.94)) !important;
+  border-color:rgba(134,183,204,.48) !important;
+  box-shadow:0 25px 70px rgba(0,0,0,.4),inset 0 1px rgba(255,255,255,.09) !important;
+}
+body.school-selected .examCard .fields input{
+  background:rgba(2,12,20,.82) !important;
+  border-color:rgba(116,161,183,.48) !important;
+}
+body.school-selected .examCard .fields input:focus{
+  border-color:var(--yellow) !important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--yellow) 18%,transparent) !important;
+}
+body.school-selected .topScorersCard{border-radius:20px !important}
+
+@media(max-width:760px){
+  #schoolGate.schoolGateLanding .landingLoginCard{padding:20px 17px !important}
+  #schoolGate.schoolGateLanding .landingRegisterCard{padding:11px 12px !important}
+  body.school-selected #app main.stage{background-position:58% center !important}
+}
+#schoolGate.schoolGateLanding .hpt-lock-mark svg{display:block;width:21px;height:21px}
