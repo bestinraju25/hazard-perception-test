@@ -1,131 +1,93 @@
-/* HPT Premium Intro + School Welcome Experience
-   Uses the current HPT Supabase project and the public-safe top-ten RPC.
-   Does not alter exam scoring, candidate records, admin or school-manager flows.
-*/
+/* HPT cinematic opening + school welcome.
+   One continuous progress animation; the live monthly podium is hydrated by app.js. */
 (() => {
   'use strict';
-
-  const CFG = window.RAJU_HPT_CONFIG || {};
   const reducedMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const $ = (id) => document.getElementById(id);
-  const escapeHTML = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const monthText = new Intl.DateTimeFormat('en-IN', { month:'long', year:'numeric', timeZone:'Asia/Kolkata' }).format(new Date());
-  const monthTextCaps = monthText.toUpperCase();
-  let leaderboardRows = [];
-  let leaderboardFailed = false;
+  const $ = id => document.getElementById(id);
   let finished = false;
-  let timers = [];
-  let frame = 0;
+  let animationFrame = 0;
+  let finishTimer = 0;
+  let welcomeFrame = 0;
 
-  function supabaseClient() {
-    if (window._sb) return window._sb;
-    if (!window.supabase?.createClient || !CFG.supabaseUrl || !CFG.supabaseAnonKey) throw new Error('Supabase client is not available.');
-    window._sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
-    return window._sb;
+  function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[char]));
   }
 
-  async function fetchLeaderboard() {
-    try {
-      const { data, error } = await supabaseClient().rpc('hpt_global_monthly_top_ten');
-      if (error) throw error;
-      leaderboardRows = (Array.isArray(data) ? data : []).filter(row =>
-        row && typeof row.display_name === 'string' && typeof row.school_name === 'string' &&
-        Number.isFinite(Number(row.total_score))
-      ).slice(0, 10);
-    } catch (error) {
-      leaderboardFailed = true;
-      console.warn('[HPT intro] Global monthly leaderboard could not be loaded:', error?.message || error);
+  function renderIntroPodium(rows, unavailable = false) {
+    const host = $('hptIntroPodium');
+    const month = $('hptIntroPodiumMonth');
+    if (!host) return;
+    if (month) {
+      month.textContent = new Intl.DateTimeFormat('en-IN', {
+        month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata'
+      }).format(new Date());
     }
-    paintLeaderboard();
+    if (unavailable) {
+      host.innerHTML = `<div class="hpt-podium-empty"><strong>THE PODIUM IS WAITING.</strong><span>Complete your test and take your shot at the Global Top 5.</span></div>`;
+      return;
+    }
+    const leaders = Array.isArray(rows) ? rows.slice(0, 3) : [];
+    if (!leaders.length) {
+      host.innerHTML = `<div class="hpt-podium-empty"><strong>THE PODIUM IS OPEN.</strong><span>Your name could be here. Complete an HPT this month and join the leaders.</span></div>`;
+      return;
+    }
+    const visualOrder = [
+      { row: leaders[1], rank: 2, medal: '🥈' },
+      { row: leaders[0], rank: 1, medal: '🥇' },
+      { row: leaders[2], rank: 3, medal: '🥉' }
+    ].filter(item => item.row);
+    host.innerHTML = visualOrder.map(({row, rank, medal}) => {
+      const score = Math.max(0, Math.min(100, Number(row.total_score) || 0));
+      return `<article class="hpt-podium-card hpt-podium-rank-${rank}" style="--podium-order:${rank===2?1:rank===1?2:3}">
+        <div class="hpt-podium-rankline"><span class="hpt-podium-medal">${medal}</span><span class="hpt-podium-ranklabel">${rank===1?'1ST PLACE':rank===2?'2ND PLACE':'3RD PLACE'}</span></div>
+        <strong class="hpt-podium-student">${escapeHTML(row.display_name || 'Student')}</strong>
+        <span class="hpt-podium-school" title="${escapeHTML(row.school_name || '')}">${escapeHTML(row.school_name || 'Participating school')}</span>
+        <span class="hpt-podium-score">${score}<small>/100</small></span>
+      </article>`;
+    }).join('');
   }
 
-  function emptyMessage() {
-    return leaderboardFailed
-      ? 'Monthly results are temporarily unavailable.'
-      : 'No completed tests have been recorded this month yet.';
-  }
-
-  function championMarkup() {
-    const first = leaderboardRows[0];
-    if (!first) return `<div class="hpt-empty-state"><span class="hpt-empty-icon">✦</span><strong>THE MONTH IS STILL UNFOLDING</strong><p>${escapeHTML(emptyMessage())}</p></div>`;
-    return `<div class="hpt-champion-card">
-      <div class="hpt-champion-medal"><img src="assets/icon-trophy.svg" alt="" aria-hidden="true"></div>
-      <div class="hpt-champion-details">
-        <div class="hpt-winner-kicker">THIS MONTH'S LEADING STUDENT</div>
-        <div class="hpt-winner-name">${escapeHTML(first.display_name)}</div>
-        <div class="hpt-winner-school"><img src="assets/icon-school.svg" alt="" aria-hidden="true"><span>${escapeHTML(first.school_name)}</span></div>
-        <div class="hpt-winner-score"><strong>${Number(first.total_score)}</strong><span>/ 100</span></div>
-      </div>
-    </div>`;
-  }
-
-  function topTenMarkup() {
-    if (!leaderboardRows.length) return `<tr><td colspan="4" class="hpt-table-empty">${escapeHTML(emptyMessage())}</td></tr>`;
-    return leaderboardRows.map((row, index) => `
-      <tr class="hpt-leader-row hpt-rank-${index + 1}" style="--row-delay:${index * 55}ms">
-        <td class="hpt-rank-cell"><span class="hpt-rank-number">${index + 1}</span></td>
-        <td class="hpt-student-cell">${escapeHTML(row.display_name)}</td>
-        <td class="hpt-school-cell">${escapeHTML(row.school_name)}</td>
-        <td class="hpt-score-cell"><strong>${Number(row.total_score)}</strong><small>/100</small></td>
-      </tr>`).join('');
-  }
-
-  function paintLeaderboard() {
-    const month = $('hptIntroMonthChampion');
-    const monthTop = $('hptIntroMonthTopTen');
-    if (month) month.textContent = monthTextCaps;
-    if (monthTop) monthTop.textContent = monthTextCaps;
-    const champ = $('hptChampionLiveData');
-    const rows = $('hptTopTenLiveRows');
-    if (champ) champ.innerHTML = championMarkup();
-    if (rows) rows.innerHTML = topTenMarkup();
-  }
-
-  function showScene(sceneName) {
+  function finishIntro() {
+    if (finished) return;
+    finished = true;
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    if (finishTimer) clearTimeout(finishTimer);
     const root = $('hptIntroRoot');
-    if (!root) return;
-    root.querySelectorAll('[data-hpt-scene]').forEach(scene => {
-      const active = scene.dataset.hptScene === sceneName;
-      scene.classList.toggle('is-active', active);
-      scene.setAttribute('aria-hidden', active ? 'false' : 'true');
-    });
-  }
-
-  function schedule(callback, delay) {
-    const id = window.setTimeout(() => { if (!finished) callback(); }, delay);
-    timers.push(id);
+    if (root) {
+      root.classList.add('hpt-intro-leaving');
+      window.setTimeout(() => { root.hidden = true; }, reducedMotion ? 0 : 420);
+    }
+    document.documentElement.classList.remove('hpt-intro-pending');
+    document.body.classList.remove('hpt-intro-running');
   }
 
   function animateProgress(duration) {
     const fill = $('hptIntroProgressFill');
     const percent = $('hptIntroProgressPercent');
-    if (frame) cancelAnimationFrame(frame);
+    const status = $('hptIntroStatus');
     const start = performance.now();
     const step = now => {
       if (finished) return;
       const progress = Math.min(100, Math.round(((now - start) / duration) * 100));
       if (fill) fill.style.width = `${progress}%`;
       if (percent) percent.textContent = String(progress);
-      if (progress < 100) frame = requestAnimationFrame(step);
+      if (status) {
+        if (progress < 34) status.textContent = 'Preparing your HPT experience';
+        else if (progress < 76) status.textContent = 'Setting this month’s podium';
+        else status.textContent = 'Opening school access';
+      }
+      if (progress < 100) animationFrame = requestAnimationFrame(step);
+      else finishIntro();
     };
     if (reducedMotion) {
       if (fill) fill.style.width = '100%';
       if (percent) percent.textContent = '100';
-    } else frame = requestAnimationFrame(step);
-  }
-
-  function finishIntro() {
-    if (finished) return;
-    finished = true;
-    timers.forEach(clearTimeout);
-    if (frame) cancelAnimationFrame(frame);
-    const root = $('hptIntroRoot');
-    if (root) {
-      root.classList.add('hpt-intro-leaving');
-      window.setTimeout(() => { root.hidden = true; }, reducedMotion ? 0 : 520);
+      finishTimer = window.setTimeout(finishIntro, 650);
+    } else {
+      animationFrame = requestAnimationFrame(step);
     }
-    document.documentElement.classList.remove('hpt-intro-pending');
-    document.body.classList.remove('hpt-intro-running');
   }
 
   function startIntro() {
@@ -136,33 +98,31 @@
     }
     document.body.classList.add('hpt-intro-running');
     root.hidden = false;
-    root.querySelectorAll('[data-hpt-skip]').forEach(button => button.addEventListener('click', finishIntro, { once:true }));
-    paintLeaderboard();
-
-    const loadingMs = reducedMotion ? 450 : 2050;
-    const championMs = reducedMotion ? 600 : 2750;
-    const topTenMs = reducedMotion ? 750 : 4200;
-    showScene('loading');
-    animateProgress(loadingMs);
-    schedule(() => showScene('champion'), loadingMs);
-    schedule(() => showScene('topten'), loadingMs + championMs);
-    schedule(finishIntro, loadingMs + championMs + topTenMs);
+    root.querySelectorAll('[data-hpt-skip]').forEach(button => {
+      button.addEventListener('click', finishIntro, { once: true });
+    });
+    const fill = $('hptIntroProgressFill');
+    const percent = $('hptIntroProgressPercent');
+    if (fill) fill.style.width = '0%';
+    if (percent) percent.textContent = '0';
+    // A slightly longer, smooth intro gives visitors time to see the real podium.
+    // The Top 5 fetch runs in parallel; the animation never waits indefinitely for Supabase.
+    animateProgress(reducedMotion ? 650 : 3900);
+    finishTimer = window.setTimeout(finishIntro, reducedMotion ? 1400 : 6200);
   }
 
   function showSchoolWelcome(school) {
     return new Promise(resolve => {
       const overlay = $('hptSchoolWelcome');
       if (!overlay) { resolve(); return; }
-      const name = String(school?.school_name || 'Your Driving School');
-      const location = String(school?.location || school?.state || '');
       const title = $('hptWelcomeSchoolName');
       const place = $('hptWelcomeSchoolLocation');
       const logo = $('hptWelcomeSchoolLogo');
       const progress = $('hptWelcomeProgressFill');
       const percent = $('hptWelcomePercent');
       const state = $('hptWelcomeState');
-      if (title) title.textContent = name;
-      if (place) place.textContent = location;
+      if (title) title.textContent = String(school?.school_name || 'Your Driving School');
+      if (place) place.textContent = String(school?.location || school?.state || '');
       if (logo) {
         logo.hidden = true;
         logo.removeAttribute('src');
@@ -177,36 +137,45 @@
       if (state) state.textContent = 'ACCESS VERIFIED';
       overlay.hidden = false;
       overlay.classList.remove('is-leaving');
-      // Fullscreen request is still initiated by the user's login click in app.js.
       const duration = reducedMotion ? 500 : 1550;
       const begin = performance.now();
       const animate = now => {
-        const p = Math.min(100, Math.round(((now - begin) / duration) * 100));
-        if (progress) progress.style.width = `${p}%`;
-        if (percent) percent.textContent = String(p);
-        if (p < 100) requestAnimationFrame(animate);
+        const value = Math.min(100, Math.round(((now - begin) / duration) * 100));
+        if (progress) progress.style.width = `${value}%`;
+        if (percent) percent.textContent = String(value);
+        if (value < 100) welcomeFrame = requestAnimationFrame(animate);
       };
-      requestAnimationFrame(animate);
+      welcomeFrame = requestAnimationFrame(animate);
       window.setTimeout(() => {
         overlay.classList.add('is-leaving');
-        window.setTimeout(() => { overlay.hidden = true; overlay.classList.remove('is-leaving'); resolve(); }, reducedMotion ? 0 : 380);
+        window.setTimeout(() => {
+          overlay.hidden = true;
+          overlay.classList.remove('is-leaving');
+          if (welcomeFrame) cancelAnimationFrame(welcomeFrame);
+          resolve();
+        }, reducedMotion ? 0 : 380);
       }, duration + 100);
     });
   }
 
   function init() {
-    const skip = $('hptIntroSkip');
-    if (skip) skip.addEventListener('click', finishIntro);
-    // Load the real monthly leaderboard in parallel with the loading scene.
-    fetchLeaderboard();
+    window.HPTExperience = {
+      showSchoolWelcome,
+      finishIntro,
+      renderIntroPodium,
+      refreshLeaderboard: () => window.HPTLeaderboardReady || Promise.resolve()
+    };
+    // Handle both timings: the RPC may resolve before or after this script starts.
+    if (Array.isArray(window.HPTGlobalTopFive)) renderIntroPodium(window.HPTGlobalTopFive);
+    else if (window.HPTLeaderboardReady?.then) {
+      window.HPTLeaderboardReady.then(() => renderIntroPodium(window.HPTGlobalTopFive || [], !!window.HPTLeaderboardUnavailable))
+        .catch(() => renderIntroPodium(null, true));
+    }
     startIntro();
-    // A defensive recovery prevents a missing/blocked script from hiding the website forever.
     window.setTimeout(() => {
       if (document.documentElement.classList.contains('hpt-intro-pending')) finishIntro();
-    }, 16000);
+    }, 9000);
   }
-
-  window.HPTExperience = { showSchoolWelcome, finishIntro, refreshLeaderboard: fetchLeaderboard };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once:true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
 })();

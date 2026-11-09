@@ -33,7 +33,7 @@
 <link rel="stylesheet" href="style.css?v=100">
 <link rel="stylesheet" href="school-registration.css?v=3">
 <link rel="stylesheet" href="mobile-safe-area.css?v=113">
-<link rel="stylesheet" href="hpt-experience.css?v=3">
+<link rel="stylesheet" href="hpt-experience.css?v=124">
 
 <script src="hpt-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -82,27 +82,37 @@
 </head><body>
 <div id="hptIntroRoot" role="dialog" aria-modal="true" aria-label="Hazard Perception Test introduction">
   <section class="hpt-scene hpt-scene-loading is-active" data-hpt-scene="loading" aria-hidden="false">
-    <button class="hpt-skip" id="hptIntroSkip" type="button" data-hpt-skip>SKIP INTRO <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3v14l9-7zM15 3h2v14h-2z" fill="currentColor"/></svg></button>
-    <div class="hpt-brand-block">
-      <img class="hpt-brand-mark" src="assets/hpt-mark.svg" alt="HPT">
-      <div class="hpt-brand-title">HAZARD PERCEPTION TEST</div>
-      <div class="hpt-brand-subtitle">DIGITAL ROAD SAFETY LEARNING</div>
-      <div class="hpt-intro-pillars"><span>◉ SEE</span><i></i><span>⌖ IDENTIFY</span><i></i><span>↯ REACT</span><i></i><span>✓ DRIVE SAFER</span></div>
+    <button class="hpt-skip" id="hptIntroSkip" type="button" data-hpt-skip>
+      SKIP INTRO <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3v14l9-7zM15 3h2v14h-2z" fill="currentColor"/></svg>
+    </button>
+    <div class="hpt-opening-stack">
+      <div class="hpt-brand-block">
+        <div class="hpt-intro-eyebrow"><span></span>DIGITAL ROAD SAFETY LEARNING<span></span></div>
+        <img class="hpt-brand-mark" src="assets/hpt-mark.svg" alt="HPT">
+        <div class="hpt-brand-title">HAZARD PERCEPTION TEST</div>
+        <div class="hpt-brand-subtitle">SEE THE HAZARD · IDENTIFY · REACT · DRIVE SAFER</div>
+      </div>
+      <div class="hpt-motivation-block">
+        <div class="hpt-motivation-title">YOUR NEXT TEST COULD PUT YOU ON THE PODIUM.</div>
+        <p>Spot hazards early. Stay sharp. Climb this month’s Global Top 5.</p>
+      </div>
+      <section class="hpt-podium-wrap" aria-label="This month’s top three students">
+        <div class="hpt-podium-heading">
+          <span class="hpt-podium-heading-icon">🏆</span>
+          <strong>THIS MONTH’S TOP 3</strong>
+          <span class="hpt-podium-month" id="hptIntroPodiumMonth"></span>
+        </div>
+        <div id="hptIntroPodium" class="hpt-intro-podium" aria-live="polite">
+          <div class="hpt-podium-loading"><i></i><span>Bringing this month’s leaders into view…</span></div>
+        </div>
+      </section>
     </div>
-    <div class="hpt-loading-block"><div class="hpt-loading-label">Loading Experience…</div><div class="hpt-progress-track"><div class="hpt-progress-fill" id="hptIntroProgressFill"></div></div><div class="hpt-progress-number"><span id="hptIntroProgressPercent">0</span><small>%</small></div></div>
-    <div class="hpt-road-footer"><span>ROAD AWARENESS</span><b></b><span>REACTION</span><b></b><span>ROAD SAFETY</span></div>
-  </section>
-  <section class="hpt-scene hpt-scene-champion" data-hpt-scene="champion" aria-hidden="true">
-    <button class="hpt-skip" type="button" data-hpt-skip>SKIP INTRO <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3v14l9-7zM15 3h2v14h-2z" fill="currentColor"/></svg></button>
-    <div class="hpt-champion-layout">
-      <img class="hpt-champion-trophy" src="assets/icon-trophy.svg" alt="Monthly champion trophy">
-      <div class="hpt-champion-copy"><div class="hpt-scene-kicker">MONTHLY GLOBAL CHAMPION</div><div class="hpt-month-ribbon" id="hptIntroMonthChampion">CURRENT MONTH</div><div id="hptChampionLiveData"><div class="hpt-empty-state"><strong>LOADING MONTHLY CHAMPION…</strong></div></div></div>
-    </div>
-  </section>
-  <section class="hpt-scene hpt-scene-topten" data-hpt-scene="topten" aria-hidden="true">
-    <button class="hpt-skip" type="button" data-hpt-skip>SKIP INTRO <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3v14l9-7zM15 3h2v14h-2z" fill="currentColor"/></svg></button>
-    <div class="hpt-topten-panel"><div class="hpt-topten-heading"><span class="gold-star">✦</span> GLOBAL TOP 10 STUDENTS <span class="gold-star">✦</span></div><div class="hpt-month-ribbon" id="hptIntroMonthTopTen">CURRENT MONTH</div>
-      <div class="hpt-topten-table-wrap"><table class="hpt-topten-table" aria-label="Monthly global top ten students"><thead><tr><th>RANK</th><th>STUDENT NAME</th><th>DRIVING SCHOOL</th><th>SCORE</th></tr></thead><tbody id="hptTopTenLiveRows"><tr><td colspan="4" class="hpt-table-empty">Loading monthly results…</td></tr></tbody></table></div><div class="hpt-topten-foot">BEST MONTHLY RESULT · ACTIVE PARTICIPATING SCHOOLS</div>
+    <div class="hpt-loading-block" aria-label="Loading progress">
+      <div class="hpt-loading-row">
+        <span class="hpt-loading-label" id="hptIntroStatus">Preparing your HPT experience</span>
+        <strong class="hpt-progress-number"><span id="hptIntroProgressPercent">0</span><small>%</small></strong>
+      </div>
+      <div class="hpt-progress-track"><div class="hpt-progress-fill" id="hptIntroProgressFill"></div></div>
     </div>
   </section>
 </div>
@@ -153,17 +163,17 @@
     <section id="globalLeaderboard" class="globalLeaderboardCard" aria-labelledby="globalLeaderboardTitle">
       <div class="globalLeaderboardHeader">
         <div>
-          <div class="globalLeaderboardEyebrow">MONTHLY CHAMPIONS · ALL PARTICIPATING SCHOOLS</div>
-          <h2 id="globalLeaderboardTitle">🏆 Global Top 3 <span id="globalLeaderboardMonth">(October 2026)</span></h2>
-          <p>Celebrating the three highest-scoring students across participating driving schools.</p>
+          <div class="globalLeaderboardEyebrow">MONTHLY GLOBAL RANKINGS · ACTIVE PARTICIPATING SCHOOLS</div>
+          <h2 id="globalLeaderboardTitle">GLOBAL TOP 5 STUDENTS <span id="globalLeaderboardMonth">(CURRENT MONTH)</span></h2>
+          <p>Five standout performances from this month’s completed Hazard Perception Tests.</p>
         </div>
         <span class="globalLeaderboardLive"><i></i> LIVE</span>
       </div>
-      <div id="globalPodium" class="globalPodium" aria-live="polite" aria-label="Top three students across all participating driving schools">
-        <div class="globalPodiumLoading">Loading this month’s global champions…</div>
+      <div id="globalPodium" class="globalTopFiveHost" aria-live="polite" aria-label="Top five students across all participating driving schools">
+        <div class="globalPodiumLoading">Loading this month’s Global Top 5…</div>
       </div>
-      <div class="globalLeaderboardFooter"><span id="globalLeaderboardUpdated">Updated just now</span><span>Ranked by score, then average reaction time</span></div>
-      <p class="globalLeaderboardPrivacy">Student surnames are partially hidden for privacy. Monthly rankings include active participating schools only.</p>
+      <div class="globalLeaderboardFooter"><span id="globalLeaderboardUpdated">Updated just now</span><span>Best score first · average correct-response reaction time breaks ties</span></div>
+      <p class="globalLeaderboardPrivacy">Student surnames are partially hidden for privacy. Only active participating schools are included.</p>
     </section>
     <div class="landingTrust"><span>●</span> VIDEO-BASED LEARNING <i></i><span>●</span> SCHOOL-LEVEL ACCESS <i></i><span>●</span> STUDENT PERFORMANCE</div>
   </div>
@@ -301,9 +311,9 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=119"></script>
+<script src="app.js?v=124"></script>
 <script src="school-registration.js?v=119"></script>
-<script src="hpt-experience.js?v=1"></script><script>
+<script src="hpt-experience.js?v=124"></script><script>
 (()=>{
  let learnerLayer=null,learnerFrame=null,wasFullscreenBeforeLearner=false;
  function sameOriginMessage(event){return location.origin==='null'?event.origin==='null':event.origin===location.origin}

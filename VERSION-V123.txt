@@ -1,0 +1,9 @@
+V123 — SINGLE INTRO + GLOBAL TOP 5
+
+- Removed the separate Monthly Global Champion and Global Top 10 intro scenes.
+- Replaced the multi-scene intro with one continuous loading progress screen.
+- Loading screen runs for approximately 2.45 seconds, with skip and reduced-motion support.
+- Global Top 5 now appears on the public landing page.
+- Top 5 data uses hpt_global_monthly_top_ten(), which returns masked public-safe results.
+- Ranking remains: current India calendar month, best result per student, active schools only, score then average correct-response reaction time.
+- Existing exam scoring, access verification, registration, payment, school welcome, reports, admin and manager logic unchanged.
