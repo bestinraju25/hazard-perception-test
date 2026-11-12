@@ -240,3 +240,27 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .learnerDeleteBtn{white-space:nowrap;}
 #learnerSummaryBody td:last-child{white-space:nowrap;}
 @media(max-width:760px){.examChoiceGrid.single{max-width:100%;}}
+
+
+/* HPT Global Maintenance Mode control */
+.maintenance-mode-panel{border-color:#4a3d1d;background:linear-gradient(145deg,rgba(34,29,17,.55),rgba(5,15,22,.84))}
+.maintenance-mode-head{align-items:flex-start}
+.maintenance-mode-head h2{margin:4px 0 6px}
+.maintenance-mode-head p{max-width:720px;margin:0;color:#91a5b1;font-size:12px;line-height:1.55}
+.maintenance-mode-badge{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;padding:8px 11px;border:1px solid #285c42;border-radius:999px;background:#0d2a1c;color:#86efb1;font-size:9px;font-weight:1000;letter-spacing:.8px;white-space:nowrap}
+.maintenance-mode-badge.maintenance-on{border-color:#784b27;background:#301d10;color:#ffc477}
+.maintenance-mode-badge.setup-required{border-color:#74404a;background:#2a131a;color:#ff9aa8}
+.maintenance-mode-grid{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(280px,1.2fr);gap:12px;margin:14px 0}
+.maintenance-mode-grid label{display:block;min-width:0;color:#c8d6de;font-size:11px;font-weight:900}
+.maintenance-mode-grid input,.maintenance-mode-grid textarea{display:block;width:100%;margin-top:7px;padding:11px 12px;border:1px solid #385063;border-radius:10px;background:#07111a;color:#f4f7f9;outline:none;font:500 13px/1.5 inherit}
+.maintenance-mode-grid textarea{resize:vertical;min-height:82px}
+.maintenance-mode-grid input:focus,.maintenance-mode-grid textarea:focus{border-color:#ffc629;box-shadow:0 0 0 2px #ffc62922}
+.maintenance-mode-actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.maintenance-mode-actions .btn{min-height:44px;font-size:11px;font-weight:1000;letter-spacing:.45px}
+.maintenance-enable{border-color:#9d7923!important;background:#ffc629!important;color:#111!important}
+.maintenance-enable:hover{background:#ffda65!important}
+.maintenance-disable{border-color:#367a56!important;background:#0d7443!important;color:#fff!important}
+.maintenance-mode-status{color:#93aab8;font-size:11px;line-height:1.5}
+.maintenance-mode-warning{margin:12px 0 0;color:#b69b6c;font-size:10px;line-height:1.55}
+.maintenance-mode-panel .message{margin-top:9px}
+@media(max-width:700px){.maintenance-mode-head{flex-direction:column}.maintenance-mode-grid{grid-template-columns:1fr}.maintenance-mode-actions{align-items:stretch;flex-direction:column}.maintenance-mode-actions .btn{width:100%;white-space:normal}.maintenance-mode-badge{align-self:flex-start}}
