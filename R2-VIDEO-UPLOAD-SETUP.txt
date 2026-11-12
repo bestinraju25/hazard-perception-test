@@ -1,0 +1,57 @@
+HPT CLOUDFLARE R2 — WEBSITE UPDATE AND FIRST-UPLOAD GUIDE
+=======================================================
+
+ARCHITECTURE
+------------
+- GitHub Pages continues to host the HPT website code and non-video assets.
+- Supabase continues to store schools, students, attempts, responses, exam scores, video metadata and hazard timestamps.
+- Cloudflare R2 stores new examination videos and JPEG thumbnails.
+- The existing Supabase Edge Function name and URL remain unchanged: hpt-publish-video.
+
+WHAT CHANGED IN THIS PACKAGE
+----------------------------
+- Admin Video Library now reads clip records from Supabase only. It no longer scans GitHub for videos.
+- Admin requests a short-lived signed upload URL from hpt-publish-video, then uploads the actual video directly from the browser to R2.
+- Supabase stores the resulting R2 public URL in hpt_videos.video_path.
+- Hazard timestamps continue to be stored in hpt_hazards.
+- Exam playback reads active clip rows from Supabase and plays the R2 URL.
+- Exam scoring logic and response-mark calculations are not changed.
+- The old videos/ and thumbnails/ folders are intentionally omitted from this package.
+
+IMPORTANT DEPLOYMENT ORDER
+-------------------------
+1. Confirm in Supabase Edge Functions that hpt-publish-video has been updated successfully.
+2. Confirm these Edge Function secrets exist with the exact names: HPT_R2_ACCOUNT_ID, HPT_R2_BUCKET, HPT_R2_ACCESS_KEY_ID, HPT_R2_SECRET_ACCESS_KEY, HPT_R2_PUBLIC_BASE_URL.
+3. Confirm R2 bucket hpt-videos has the saved CORS policy allowing your website origins and PUT/GET/HEAD.
+4. Back up the current GitHub repository and Supabase database.
+5. Decide whether to run RESET-HPT-VIDEO-LIBRARY-FOR-R2.sql. Run it only if you want the old clip catalogue removed and numbering restarted from 01.
+6. Publish the contents of this package to the same GitHub Pages repository/root. This package excludes videos/, thumbnails/ and .git/. Do not remove learner-question-assets/, audio/, fonts/, assets/, or other application folders.
+7. After GitHub Pages finishes deploying, open the live Admin page and test adding ONE clip.
+8. Confirm the video and thumbnail objects appear in R2, the Supabase hpt_videos row contains an R2 URL, and hpt_hazards contains the selected timestamps.
+9. Run a test examination and confirm the uploaded video plays and score is saved.
+10. Only after successful testing should you remove obsolete GitHub video objects or retire old GitHub upload secrets.
+
+R2 OBJECT LAYOUT
+----------------
+clips/01.mp4
+clips/02.mp4
+thumbnails/01.jpg
+thumbnails/02.jpg
+
+SUPABASE EDGE FUNCTION
+---------------------
+Function: hpt-publish-video
+URL: https://nceufqdvuuztdfyesbxx.supabase.co/functions/v1/hpt-publish-video
+Supported actions: presign_upload, delete_clip.
+The code source in this package is the Web Crypto implementation of AWS Signature V4 and has no aws4fetch/AWS SDK dependency.
+
+SECURITY
+--------
+- Never place the R2 secret access key in hpt-config.js, admin.js, or any public GitHub file.
+- Keep the R2 API token scoped only to the hpt-videos bucket.
+- The R2 custom domain is public-read for video playback; anyone who obtains a direct object URL may play that video.
+- Admin upload/delete requests still require a valid Supabase session and an active admin_users row.
+
+LOCAL PREVIEW
+-------------
+Use the live HTTPS website for upload testing. The R2 CORS policy does not permit file:// origins.

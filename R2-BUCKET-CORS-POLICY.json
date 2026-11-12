@@ -1,0 +1,24 @@
+[
+  {
+    "AllowedOrigins": [
+      "https://hazardperceptiontest.co.in",
+      "https://www.hazardperceptiontest.co.in"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "HEAD",
+      "PUT"
+    ],
+    "AllowedHeaders": [
+      "Content-Type",
+      "Range"
+    ],
+    "ExposeHeaders": [
+      "ETag",
+      "Content-Length",
+      "Accept-Ranges",
+      "Content-Range"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]

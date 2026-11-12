@@ -163,32 +163,34 @@ function responseLimitWarning(){const m=$('responseLimitModal');if(!m)return;sho
 function update(){const d=Math.min(C.clipLimitSeconds,video.duration||C.clipLimitSeconds);const shown=Math.min(pos+1,order.length);$('clipNo').textContent=`${shown} / ${order.length}`;$('clipNo2').textContent=`${shown} / ${order.length}`;$('timer').textContent=fmt(Math.max(0,C.clipLimitSeconds-video.currentTime));$('elapsed').textContent=fmt(video.currentTime);$('duration').textContent=fmt(d);$('respCount').textContent=`${responses.length} / ${C.maxResponsesPerClip}`;const pct=d?Math.min(100,Math.max(0,(video.currentTime/d)*100)):0;const fill=$('progressFill');const head=$('playHead');if(fill)fill.style.width=pct+'%';if(head)head.style.left=pct+'%'}
 function timeline(){const t=$('track');if(!t)return;const d=Math.max(1,Math.min(C.clipLimitSeconds,video.duration||C.clipLimitSeconds));t.querySelectorAll('.mark').forEach(e=>e.remove());responses.forEach((r,i)=>{const m=document.createElement('div');m.className='mark';m.style.left=Math.min(100,Math.max(0,(Number(r.t)||0)/d*100))+'%';m.title=`Response ${i+1}`;m.setAttribute('aria-label',`Response ${i+1}`);m.innerHTML='<span></span>';t.appendChild(m)})}
 function resetClip(){responses=[];responseLocked=false;finishing=false;timeline();update()}
-function staticHazards(code){return (C.staticHazards?.[String(code).padStart(2,'0')]||[]).map((h,i)=>({...h,hazard_no:i+1}))}
+function staticHazards(code){return [];}
 async function supabase(){if(window._sb)return window._sb;try{if(!window.supabase?.createClient)return null;window._sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey);return window._sb}catch{return null}}
+function resolveHptVideoUrl(path){
+  if(!path)return '';
+  if(/^https?:\/\//i.test(path))return path;
+  let clean=String(path).replace(/^\.\//,'').replace(/^\/+/, '');
+  if(clean.startsWith('videos/'))clean='clips/'+clean.slice('videos/'.length);
+  return C.videoBase+clean.split('/').map(encodeURIComponent).join('/');
+}
 async function loadClips(){
-  // Bundled clips must have a playable `file` path even if Supabase has no video rows.
-  clips=(C.staticClips||[]).map(x=>({...x,
-    file:(/^https?:\/\//i.test(x.video_path||''))?x.video_path:
-      ((x.video_path||'').startsWith('./')?x.video_path:C.videoBase+String(x.video_path||'').replace(/^\.?\/?videos\//,'')),
-    hazards:staticHazards(x.clip_code)
-  }));
+  clips=[];
   const sb=await supabase();
-  if(sb){
-    try{
-      const {data:vs,error:videoError}=await sb.from('hpt_videos').select('id,clip_code,title,video_path,duration_seconds,active').eq('active',true);
-      if(!videoError&&vs?.length){
-        const {data:hs,error:hazardError}=await sb.from('hpt_hazards').select('video_id,hazard_no,timestamp_seconds,label');
-        if(!hazardError){
-          const by={};(hs||[]).forEach(h=>(by[h.video_id]??=[]).push({t:Number(h.timestamp_seconds),label:h.label||`Hazard ${h.hazard_no}`,hazard_no:h.hazard_no}));
-          const remote=vs.map(v=>({...v,file:/^https?:\/\//i.test(v.video_path||'')?v.video_path:((v.video_path||'').startsWith('./')?v.video_path:C.videoBase+String(v.video_path||'').replace(/^\.?\/?videos\//,'')),hazards:(by[v.id]||[])})).filter(v=>v.active&&v.video_path&&v.hazards.length>=1);
-          const merged=[...clips];
-          remote.forEach(v=>{const i=merged.findIndex(x=>String(x.clip_code).padStart(2,'0')===String(v.clip_code).padStart(2,'0'));if(i>=0)merged[i]=v;else merged.push(v)});
-          clips=merged;
-        }
-      }
-    }catch(e){console.warn('Could not load Supabase video metadata; using bundled clips and hazard timings.',e)}
-  }
-  return clips.filter(c=>c.active&&c.video_path&&c.file&&c.hazards?.length>=1);
+  if(!sb)return clips;
+  const {data:vs,error:videoError}=await sb.from('hpt_videos')
+    .select('id,clip_code,title,video_path,duration_seconds,active')
+    .eq('active',true).order('clip_code');
+  if(videoError){console.error('Could not load HPT video catalogue from Supabase:',videoError);return clips;}
+  if(!vs?.length)return clips;
+  const {data:hs,error:hazardError}=await sb.from('hpt_hazards')
+    .select('video_id,hazard_no,timestamp_seconds,label');
+  if(hazardError){console.error('Could not load HPT hazard timestamps from Supabase:',hazardError);return clips;}
+  const by={};
+  (hs||[]).forEach(h=>(by[h.video_id]??=[]).push({
+    t:Number(h.timestamp_seconds),label:h.label||`Hazard ${h.hazard_no}`,hazard_no:h.hazard_no
+  }));
+  clips=vs.map(v=>({...v,file:resolveHptVideoUrl(v.video_path),hazards:(by[v.id]||[]).sort((a,b)=>Number(a.hazard_no)-Number(b.hazard_no))}))
+    .filter(v=>v.active&&v.video_path&&v.file&&v.hazards.length>=1);
+  return clips;
 }
 async function saveAttempt(completedAt){const sb=await supabase();if(!sb)return {ok:false,error:'Supabase is not available.'};
   if(activeSchool?.id){const {error:identityError}=await sb.rpc('hpt_upsert_student_identity',{p_candidate_name:candidate.name,p_phone:candidate.phone,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode});if(identityError)return {ok:false,error:identityError.message||'Could not update the student record.'}}
@@ -542,16 +544,16 @@ async function buildHistoricalExam(r){
   const raw=r.report_data||{};
   let available=clips?.length?clips:[];
   if(!available.length){try{available=await loadClips()}catch{available=[]}}
-  const fallback=Array.isArray(C.staticClips)?C.staticClips.map(x=>({...x,hazards:staticHazards(x.clip_code)})):[];
-  const source=available.length?available:fallback;
+  const fallback=[];
+  const source=available.length?available:[];
   const byCode=new Map(source.map(c=>[String(c.clip_code).padStart(2,'0'),c]));
   const clipOrder=Array.isArray(raw.clip_order)?raw.clip_order.map(x=>String(x).padStart(2,'0')):source.slice(0,C.examClipCount).map(c=>String(c.clip_code).padStart(2,'0'));
   const responseRows=Array.isArray(raw.responses)?raw.responses:[];
   const clipsOut=clipOrder.map(code=>{
-    const base=byCode.get(code)||fallback.find(c=>String(c.clip_code).padStart(2,'0')===code)||{clip_code:code,title:`Hazard Perception Clip ${code}`,file:`videos/${Number(code)}.webm`,hazards:staticHazards(code)};
+    const base=byCode.get(code)||{clip_code:code,title:`Hazard Perception Clip ${code}`,file:`${C.videoBase}clips/${code}.mp4`,hazards:[]};
     const rs=responseRows.filter(x=>String(x.clip_code||'').padStart(2,'0')===code).map(x=>({response_no:Number(x.response_no||1),t:Number(x.click_time_seconds||0),hazard_no:x.hazard_no==null?null:Number(x.hazard_no),points:Number(x.awarded_marks||0),frameData:null}));
-    const hs=(base.hazards||staticHazards(code)||[]).map((h,i)=>({hazard_no:Number(h.hazard_no||i+1),t:Number(h.t),label:h.label||`Hazard ${i+1}`}));
-    return {clip_code:code,title:base.title||`Hazard Perception Clip ${code}`,file:base.file||base.video_path||`videos/${Number(code)}.webm`,hazards:hs,responses:rs,score:0};
+    const hs=(base.hazards||[]).map((h,i)=>({hazard_no:Number(h.hazard_no||i+1),t:Number(h.t),label:h.label||`Hazard ${i+1}`}));
+    return {clip_code:code,title:base.title||`Hazard Perception Clip ${code}`,file:base.file||base.video_path||`${C.videoBase}clips/${code}.mp4`,hazards:hs,responses:rs,score:0};
   });
   clipsOut.forEach(c=>{c.score=c.responses.reduce((sum,x)=>sum+Number(x.points||0),0)});
   return {id:r.id,total:Number(r.total_score||0),total_score:Number(r.total_score||0),passed:!!r.passed,candidate_name:r.candidate_name,phone:r.phone,started_at:r.started_at,completed_at:r.completed_at,school:schoolBrand(),clips:clipsOut};

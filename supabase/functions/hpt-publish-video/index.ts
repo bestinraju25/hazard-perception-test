@@ -1,6 +1,17 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const cors = {
+/**
+ * HPT video publisher — Cloudflare R2 edition.
+ * Deploy under the existing function name: hpt-publish-video.
+ *
+ * Actions:
+ *   presign_upload - return a short-lived signed PUT URL for direct browser uploads.
+ *   delete_clip    - delete the clip and its thumbnail from R2.
+ *
+ * R2 credentials remain server-side in Supabase Edge Function secrets.
+ */
+
+const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-api-version, x-requested-with',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -8,145 +19,286 @@ const cors = {
   'Vary': 'Origin',
 };
 
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+const DEFAULT_BUCKET = 'hpt-videos';
+const PUBLIC_BASE_URL = 'https://videos.hazardperceptiontest.co.in';
+const PRESIGNED_URL_TTL_SECONDS = 900;
+const MAX_VIDEO_BYTES = 512 * 1024 * 1024;
+const MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024;
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
-  if (req.method !== 'POST') return json({ error: 'POST required' }, 405);
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
+function requiredEnv(name: string): string {
+  const value = Deno.env.get(name)?.trim();
+  if (!value) throw new Error(`Missing Edge Function secret: ${name}`);
+  return value;
+}
+
+function optionalEnv(...names: string[]): string | undefined {
+  for (const name of names) {
+    const value = Deno.env.get(name)?.trim();
+    if (value) return value;
+  }
+  return undefined;
+}
+
+function getConfig() {
+  const accountId = requiredEnv('HPT_R2_ACCOUNT_ID');
+  const accessKeyId = requiredEnv('HPT_R2_ACCESS_KEY_ID');
+  const secretAccessKey = requiredEnv('HPT_R2_SECRET_ACCESS_KEY');
+  const bucket = optionalEnv('HPT_R2_BUCKET', 'HPT_R2_BUCKET_NAME') || DEFAULT_BUCKET;
+  const publicBaseUrl = (optionalEnv('HPT_R2_PUBLIC_BASE_URL', 'HPT_R2_PUBLIC_URL') || PUBLIC_BASE_URL).replace(/\/+$/, '');
+  const endpoint = optionalEnv('HPT_R2_ENDPOINT') || `https://${accountId}.r2.cloudflarestorage.com`;
+
+  if (publicBaseUrl !== PUBLIC_BASE_URL) {
+    throw new Error(`HPT_R2_PUBLIC_BASE_URL must be ${PUBLIC_BASE_URL}.`);
+  }
+  return { accountId, accessKeyId, secretAccessKey, bucket, publicBaseUrl, endpoint };
+}
+
+function cleanClipCode(value: unknown): string | null {
+  const code = String(value ?? '').trim();
+  if (!/^\d{1,4}$/.test(code)) return null;
+  return code.padStart(2, '0');
+}
+
+function awsEncode(value: string): string {
+  return encodeURIComponent(value).replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
+}
+
+function encodeObjectKey(key: string): string {
+  return key.split('/').map(awsEncode).join('/');
+}
+
+function bytesToHex(bytes: ArrayBuffer): string {
+  return Array.from(new Uint8Array(bytes)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return bytesToHex(digest);
+}
+
+async function hmacSha256(key: ArrayBuffer | Uint8Array, value: string): Promise<Uint8Array> {
+  const keyBytes = key instanceof Uint8Array ? key : new Uint8Array(key);
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyBytes,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(value));
+  return new Uint8Array(signature);
+}
+
+async function signingKey(secretAccessKey: string, dateStamp: string): Promise<Uint8Array> {
+  const kDate = await hmacSha256(new TextEncoder().encode(`AWS4${secretAccessKey}`), dateStamp);
+  const kRegion = await hmacSha256(kDate, 'auto');
+  const kService = await hmacSha256(kRegion, 's3');
+  return await hmacSha256(kService, 'aws4_request');
+}
+
+function utcAmzTimestamp(date: Date): { dateStamp: string; amzDate: string } {
+  const iso = date.toISOString().replace(/[:-]|\.\d{3}/g, '');
+  return { dateStamp: iso.slice(0, 8), amzDate: iso.replace(/Z$/, 'Z') };
+}
+
+async function presignR2Url(
+  config: ReturnType<typeof getConfig>,
+  method: 'PUT' | 'DELETE',
+  objectKey: string,
+  contentType?: string,
+): Promise<string> {
+  const endpointUrl = new URL(config.endpoint);
+  const canonicalUri = `/${awsEncode(config.bucket)}/${encodeObjectKey(objectKey)}`;
+  const now = new Date();
+  const { dateStamp, amzDate } = utcAmzTimestamp(now);
+  const credentialScope = `${dateStamp}/auto/s3/aws4_request`;
+  const signedHeaders = method === 'PUT' ? 'content-type;host' : 'host';
+  const query: Array<[string, string]> = [
+    ['X-Amz-Algorithm', 'AWS4-HMAC-SHA256'],
+    ['X-Amz-Credential', `${config.accessKeyId}/${credentialScope}`],
+    ['X-Amz-Date', amzDate],
+    ['X-Amz-Expires', String(PRESIGNED_URL_TTL_SECONDS)],
+    ['X-Amz-SignedHeaders', signedHeaders],
+  ];
+  const canonicalQuery = query
+    .map(([key, value]) => [awsEncode(key), awsEncode(value)] as [string, string])
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('&');
+
+  const canonicalHeaders = method === 'PUT'
+    ? `content-type:${String(contentType || '').trim()}\nhost:${endpointUrl.host}\n`
+    : `host:${endpointUrl.host}\n`;
+  const canonicalRequest = [
+    method,
+    canonicalUri,
+    canonicalQuery,
+    canonicalHeaders,
+    signedHeaders,
+    'UNSIGNED-PAYLOAD',
+  ].join('\n');
+
+  const stringToSign = [
+    'AWS4-HMAC-SHA256',
+    amzDate,
+    credentialScope,
+    await sha256Hex(canonicalRequest),
+  ].join('\n');
+
+  const key = await signingKey(config.secretAccessKey, dateStamp);
+  const signatureBytes = await hmacSha256(key, stringToSign);
+  const signature = Array.from(signatureBytes).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  const finalQuery = `${canonicalQuery}&X-Amz-Signature=${signature}`;
+  return `${endpointUrl.origin}${canonicalUri}?${finalQuery}`;
+}
+
+function publicObjectUrl(publicBaseUrl: string, objectKey: string): string {
+  return `${publicBaseUrl}/${encodeObjectKey(objectKey)}`;
+}
+
+function resolveDeleteKey(videoPath: string, clipCode: string, publicBaseUrl: string): string | null {
+  try {
+    let key = videoPath.trim();
+    if (/^https?:\/\//i.test(key)) {
+      const parsed = new URL(key);
+      if (parsed.origin !== publicBaseUrl) return null;
+      key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ''));
+    } else {
+      key = decodeURIComponent(key.replace(/^\/+/, ''));
+    }
+    const escapedCode = clipCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const expected = new RegExp(`^clips/${escapedCode}\\.(mp4|webm|m4v|mov)$`, 'i');
+    return expected.test(key) ? key : null;
+  } catch {
+    return null;
+  }
+}
+
+async function verifyActiveAdmin(request: Request): Promise<{ userId: string } | { error: string; status: number }> {
+  const authorization = request.headers.get('Authorization') || '';
+  const accessToken = authorization.replace(/^Bearer\s+/i, '').trim();
+  if (!accessToken) return { error: 'Admin session is required. Please sign in again.', status: 401 };
+
+  const supabaseUrl = requiredEnv('SUPABASE_URL');
+  const serviceRoleKey = requiredEnv('SUPABASE_SERVICE_ROLE_KEY');
+  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
+  if (userError || !userData.user) return { error: 'Your admin session is invalid or expired. Please sign in again.', status: 401 };
+
+  const { data: admin, error: adminError } = await adminClient
+    .from('admin_users')
+    .select('id, active')
+    .eq('id', userData.user.id)
+    .eq('active', true)
+    .maybeSingle();
+
+  if (adminError || !admin) return { error: 'This account is not an active HPT administrator.', status: 403 };
+  return { userId: userData.user.id };
+}
+
+Deno.serve(async (request: Request) => {
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
+  if (request.method !== 'POST') return jsonResponse({ error: 'POST required' }, 405);
 
   try {
-    const auth = req.headers.get('Authorization') || '';
-    const token = auth.replace(/^Bearer\s+/i, '').trim();
-    if (!token) return json({ error: 'Admin session is required.' }, 401);
+    const adminCheck = await verifyActiveAdmin(request);
+    if ('error' in adminCheck) return jsonResponse({ error: adminCheck.error }, adminCheck.status);
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const githubToken = Deno.env.get('HPT_GITHUB_TOKEN');
-    const repo = Deno.env.get('HPT_GITHUB_REPO') || 'bestinraju25/hazard-perception-test';
-    const branch = Deno.env.get('HPT_GITHUB_BRANCH') || 'main';
-    if (!supabaseUrl || !serviceKey) return json({ error: 'Supabase server credentials are missing from the Edge Function environment.' }, 500);
-    if (!githubToken) return json({ error: 'HPT_GITHUB_TOKEN is not configured in Supabase Edge Function secrets.' }, 500);
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return jsonResponse({ error: 'A valid JSON request body is required.' }, 400);
+    }
 
-    const adminClient = createClient(supabaseUrl, serviceKey);
-    const { data: userData, error: userError } = await adminClient.auth.getUser(token);
-    if (userError || !userData.user) return json({ error: 'Your admin session is invalid or expired. Please sign in again.' }, 401);
+    const config = getConfig();
+    const action = String(body.action || '').trim().toLowerCase();
 
-    const { data: admin, error: adminError } = await adminClient
-      .from('admin_users').select('id,active').eq('id', userData.user.id).eq('active', true).maybeSingle();
-    if (adminError || !admin) return json({ error: 'This account is not an active Raju Driving School admin.' }, 403);
+    if (action === 'presign_upload') {
+      const clipCode = cleanClipCode(body.clip_code);
+      const kind = String(body.kind || '').trim().toLowerCase();
+      const filename = String(body.filename || '').trim();
+      const sizeBytes = Number(body.size_bytes || 0);
+      if (!clipCode) return jsonResponse({ error: 'Clip number must contain 1–4 digits.' }, 400);
+      if (!filename || filename.length > 180 || /[\\/]/.test(filename)) return jsonResponse({ error: 'A valid filename is required.' }, 400);
+      if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 1) return jsonResponse({ error: 'The selected file is empty or has an invalid size.' }, 400);
 
-    const form = await req.formData();
-    const action = String(form.get('action') || 'publish').trim().toLowerCase();
-    const pathValue = String(form.get('path') || '').trim();
-    const message = String(form.get('commit_message') || `HPT: ${action} video`).trim();
-
-    const headers = {
-      'Authorization': `Bearer ${githubToken}`,
-      'Accept': 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'Content-Type': 'application/json',
-      'User-Agent': 'Raju-HPT-Admin',
-    };
-
-    // Discover every numbered video in the repository. The admin library uses this
-    // list in addition to hpt_videos so GitHub clips without hazard metadata are
-    // visible and can be configured instead of silently disappearing.
-    if (action === 'list_videos') {
-      // Contents API returns at most 100 entries per page. Paginate so the
-      // manager library does not stop at the first page as the clip catalogue grows.
-      const entries: any[] = [];
-      for (let page = 1; page <= 10; page++) {
-        const listingUrl = `https://api.github.com/repos/${repo}/contents/videos?ref=${encodeURIComponent(branch)}&per_page=100&page=${page}`;
-        const listing = await fetch(listingUrl, { headers });
-        if (!listing.ok) {
-          const err = await listing.text();
-          return json({ error: `GitHub video library lookup failed (${listing.status}, page ${page}). ${err.slice(0, 600)}` }, 502);
+      let objectKey = '';
+      let contentType = '';
+      if (kind === 'video') {
+        const extensionMatch = filename.match(/\.([a-z0-9]+)$/i);
+        const extension = (extensionMatch?.[1] || '').toLowerCase();
+        // Use an explicit switch here so the Supabase dashboard editor can
+        // parse this section without ambiguity while pasting the function.
+        switch (extension) {
+          case 'mp4': contentType = 'video/mp4'; break;
+          case 'webm': contentType = 'video/webm'; break;
+          case 'm4v': contentType = 'video/x-m4v'; break;
+          case 'mov': contentType = 'video/quicktime'; break;
+          default: contentType = ''; break;
         }
-        const batch = await listing.json();
-        if (!Array.isArray(batch)) return json({ error: 'GitHub did not return a videos directory listing.' }, 502);
-        entries.push(...batch);
-        if (batch.length < 100) break;
+        if (!contentType) return jsonResponse({ error: 'Unsupported video format. Choose MP4, WebM, M4V or MOV.' }, 415);
+        if (sizeBytes > MAX_VIDEO_BYTES) return jsonResponse({ error: 'Video exceeds the 512 MB upload limit.' }, 413);
+        objectKey = `clips/${clipCode}.${extension}`;
+      } else if (kind === 'thumbnail') {
+        if (!/\.jpe?g$/i.test(filename)) return jsonResponse({ error: 'Video thumbnail must be a JPEG file.' }, 415);
+        if (sizeBytes > MAX_THUMBNAIL_BYTES) return jsonResponse({ error: 'Thumbnail exceeds the 5 MB upload limit.' }, 413);
+        contentType = 'image/jpeg';
+        objectKey = `thumbnails/${clipCode}.jpg`;
+      } else {
+        return jsonResponse({ error: 'Upload kind must be video or thumbnail.' }, 400);
       }
-      const videos = entries
-        .filter((item: any) => item?.type === 'file' && /^\d+\.(webm|mp4|m4v|mov)$/i.test(String(item.name || '')))
-        .map((item: any) => ({ name: item.name, path: item.path, size: Number(item.size || 0), sha: item.sha || null, download_url: item.download_url || null }))
-        .sort((a: any, b: any) => Number(a.name.replace(/\D/g, '')) - Number(b.name.replace(/\D/g, '')));
-      return json({ ok: true, repo, branch, count: videos.length, videos });
-    }
 
-    if (!pathValue) return json({ error: 'Video path is required.' }, 400);
-
-    // The live Pages site is bestinraju25.github.io/hazard-perception-test,
-    // whose repository root contains videos/ and thumbnails/. Accept only a single
-    // safe filename in either directory; never let the client write elsewhere.
-    const rawPath = pathValue.replace(/\\/g, '/').replace(/^\/+/, '');
-    if (rawPath.split('/').some(part => part === '..' || part === '.')) {
-      return json({ error: 'Invalid video path.' }, 400);
-    }
-    const cleanPath = rawPath.replace(/^hazard-perception-test\//, ''); // accept legacy client paths, map to repo root
-    const allowedVideo = /^videos\/[A-Za-z0-9._-]+\.(webm|mp4|m4v|mov)$/i.test(cleanPath);
-    const allowedThumbnail = /^thumbnails\/[A-Za-z0-9._-]+\.(jpg|jpeg|png|webp)$/i.test(cleanPath);
-    if (!allowedVideo && !allowedThumbnail) {
-      return json({ error: 'Path must be a video inside videos/ or a thumbnail inside thumbnails/.' }, 400);
-    }
-    const repoPath = cleanPath;
-    const api = `https://api.github.com/repos/${repo}/contents/${repoPath}`;
-    if (action === 'delete') {
-      const existing = await fetch(`${api}?ref=${encodeURIComponent(branch)}`, { headers });
-      if (existing.status === 404) {
-        return json({ ok: true, deleted: false, missing: true, path: repoPath });
-      }
-      if (!existing.ok) {
-        const err = await existing.text();
-        return json({ error: `GitHub lookup failed (${existing.status}). ${err.slice(0, 400)}` }, 502);
-      }
-      const current = await existing.json();
-      if (!current?.sha) return json({ error: 'GitHub did not return the video file SHA needed for deletion.' }, 502);
-      const del = await fetch(api, {
-        method: 'DELETE', headers,
-        body: JSON.stringify({ message, sha: current.sha, branch }),
+      const uploadUrl = await presignR2Url(config, 'PUT', objectKey, contentType);
+      return jsonResponse({
+        ok: true,
+        object_key: objectKey,
+        upload_url: uploadUrl,
+        public_url: publicObjectUrl(config.publicBaseUrl, objectKey),
+        content_type: contentType,
+        expires_in: PRESIGNED_URL_TTL_SECONDS,
       });
-      if (!del.ok) {
-        const err = await del.text();
-        return json({ error: `GitHub delete failed (${del.status}). ${err.slice(0, 600)}` }, 502);
+    }
+
+    if (action === 'delete_clip') {
+      const clipCode = cleanClipCode(body.clip_code);
+      const videoPath = String(body.video_path || '').trim();
+      if (!clipCode || !videoPath) return jsonResponse({ error: 'A valid clip number and video path are required.' }, 400);
+      const objectKey = resolveDeleteKey(videoPath, clipCode, config.publicBaseUrl);
+      if (!objectKey) return jsonResponse({ error: 'The saved video URL does not match this HPT R2 domain and clip number. No objects were deleted.' }, 400);
+
+      const videoDeleteUrl = await presignR2Url(config, 'DELETE', objectKey);
+      const videoDeleteResponse = await fetch(videoDeleteUrl, { method: 'DELETE' });
+      if (!videoDeleteResponse.ok) {
+        const detail = (await videoDeleteResponse.text()).slice(0, 500);
+        return jsonResponse({ error: `R2 video delete failed (${videoDeleteResponse.status}). ${detail}` }, 502);
       }
-      const result = await del.json();
-      return json({ ok: true, deleted: true, missing: false, path: repoPath, commit: result.commit?.sha || null });
+
+      const thumbnailDeleteUrl = await presignR2Url(config, 'DELETE', `thumbnails/${clipCode}.jpg`);
+      const thumbnailDeleteResponse = await fetch(thumbnailDeleteUrl, { method: 'DELETE' });
+      if (!thumbnailDeleteResponse.ok && thumbnailDeleteResponse.status !== 404) {
+        const detail = (await thumbnailDeleteResponse.text()).slice(0, 500);
+        return jsonResponse({ error: `R2 thumbnail delete failed (${thumbnailDeleteResponse.status}). ${detail}` }, 502);
+      }
+      return jsonResponse({ ok: true, deleted: true, object_key: objectKey });
     }
 
-    const file = form.get('file');
-    if (!(file instanceof File)) return json({ error: 'No video file was received.' }, 400);
-    const maxBytes = allowedThumbnail ? 5 * 1024 * 1024 : 15 * 1024 * 1024;
-    if (file.size > maxBytes) return json({ error: `${allowedThumbnail ? 'Thumbnail' : 'Video'} is too large for this GitHub upload flow. Maximum size: ${allowedThumbnail ? '5 MB' : '15 MB'}.` }, 413);
-
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    let binary = '';
-    const chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-    const content = btoa(binary);
-
-    let sha: string | undefined;
-    const existing = await fetch(`${api}?ref=${encodeURIComponent(branch)}`, { headers });
-    if (existing.ok) {
-      const current = await existing.json();
-      sha = current.sha;
-    } else if (existing.status !== 404) {
-      const err = await existing.text();
-      return json({ error: `GitHub lookup failed (${existing.status}). ${err.slice(0, 400)}` }, 502);
-    }
-
-    const put = await fetch(api, {
-      method: 'PUT', headers,
-      body: JSON.stringify({ message, content, branch, ...(sha ? { sha } : {}) }),
-    });
-    if (!put.ok) {
-      const err = await put.text();
-      return json({ error: `GitHub upload failed (${put.status}). ${err.slice(0, 600)}` }, 502);
-    }
-    const result = await put.json();
-    return json({ ok: true, path: repoPath, sha: result.content?.sha || null, commit: result.commit?.sha || null });
-  } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Unexpected HPT GitHub operation error.' }, 500);
+    return jsonResponse({ error: 'Unsupported action. Use presign_upload or delete_clip.' }, 400);
+  } catch (error) {
+    console.error('HPT R2 video function error:', error);
+    const message = error instanceof Error ? error.message : 'Unexpected HPT R2 operation error.';
+    return jsonResponse({ error: message }, 500);
   }
 });
