@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const C=window.RAJU_HPT_CONFIG; const sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey); const $=id=>document.getElementById(id);
-let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',schoolDirectory=[],learnerSummaries=[],studentDirectory=[],selectedResultsSchoolId=null,selectedExamView=null,maintenanceEnabled=false;
+let results=[],videos=[],editingId=null,localUrl=null,localFile=null,editingCode='',schoolDirectory=[],learnerSummaries=[],studentDirectory=[],selectedResultsSchoolId=null,selectedExamView=null,maintenanceEnabled=false,todayActivityRows=[],examAllowSkip=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>{s=Math.max(0,Number(s)||0);return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}.${Math.floor((s%1)*10)}`};
 const notice=(t,bad=false)=>{const e=$('notice');e.hidden=false;e.textContent=t;e.className='notice '+(bad?'bad':'good');clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,6000)};
@@ -9,9 +9,106 @@ function showLogin(){ $('login').hidden=false;$('dashboard').hidden=true;$('logo
 function showDash(a){ $('login').hidden=true;$('dashboard').hidden=false;$('logoutBtn').hidden=false;$('adminIdentity').hidden=false;$('adminIdentity').textContent=a?.full_name||a?.email||'' }
 async function guard(){const {data:{session}}=await sb.auth.getSession();if(!session){showLogin();return null}const {data:admin,error}=await sb.from('admin_users').select('id,full_name,email').eq('id',session.user.id).eq('active',true).maybeSingle();if(error||!admin){await sb.auth.signOut();showLogin();$('loginMsg').textContent='This account is not an active provider administrator. Contact the platform provider.';return null}return {session,admin}}
 async function login(){const email=$('email').value.trim(),password=$('password').value;if(!email||!password){$('loginMsg').textContent='Enter email and password.';return}$('loginBtn').disabled=true;$('loginMsg').textContent='Signing in…';const {error}=await sb.auth.signInWithPassword({email,password});if(error){$('loginMsg').textContent=error.message;$('loginBtn').disabled=false;return}const a=await guard();$('loginBtn').disabled=false;if(a){showDash(a.admin);await refreshAll();openRequestedAdminTab()}}
-async function refreshAll(){const a=await guard();if(!a)return;await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries(),loadVideos(),loadAccessCode(),loadMaintenanceMode()]);if(selectedResultsSchoolId&&schoolDirectory.some(x=>String(x.id)===String(selectedResultsSchoolId)))renderSchoolExamChoices(schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId)));if(window.HPTSchoolManager?.refresh)await window.HPTSchoolManager.refresh();updateStats()}
+async function refreshAll(){const a=await guard();if(!a)return;await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries(),loadVideos(),loadAccessCode(),loadMaintenanceMode(),loadExamControls()]);await loadTodayActivity();if(selectedResultsSchoolId&&schoolDirectory.some(x=>String(x.id)===String(selectedResultsSchoolId)))renderSchoolExamChoices(schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId)));if(window.HPTSchoolManager?.refresh)await window.HPTSchoolManager.refresh();updateStats()}
 async function loadAccessCode(){const e=$('adminAccessCode'),m=$('accessCodeMsg');if(!e)return;try{const {data,error}=await sb.from('hpt_settings').select('access_code').eq('id',1).maybeSingle();if(error)throw error;e.value=data?.access_code||'1234';m.textContent=data?'':'Run the included supabase-hpt-v21-access-code.sql migration once to enable persistent access-code changes.';m.className='message '+(data?'good':'bad')}catch(err){e.value='1234';m.textContent='Access-code settings are not configured yet. Run supabase-hpt-v21-access-code.sql in Supabase.';m.className='message bad'}}
 async function saveAccessCode(){const e=$('adminAccessCode'),m=$('accessCodeMsg');const code=e.value.trim();if(!code){m.textContent='Enter an access code.';m.className='message bad';return}if(code.length<4){m.textContent='Access code must be at least 4 characters.';m.className='message bad';return}const a=await guard();if(!a)return;$('saveAccessCode').disabled=true;$('saveAccessCode').textContent='SAVING…';try{const {error}=await sb.from('hpt_settings').update({access_code:code,updated_at:new Date().toISOString()}).eq('id',1);if(error)throw error;m.textContent='✓ Candidate access code updated.';m.className='message good';notice('Candidate HPT access code updated.')}catch(err){m.textContent=err.message||'Could not update access code.';m.className='message bad';notice(err.message||'Could not update access code.',true)}finally{$('saveAccessCode').disabled=false;$('saveAccessCode').textContent='SAVE ACCESS CODE'}}
+async function loadExamControls(){
+  const toggle=$('allowSkipToggle'),badge=$('examControlsBadge'),msg=$('examControlsMsg');if(!toggle)return;
+  try{
+    const {data,error}=await sb.from('hpt_settings').select('allow_skip').eq('id',1).maybeSingle();
+    if(error)throw error;if(!data)throw new Error('HPT settings row not found.');
+    examAllowSkip=!!data.allow_skip;toggle.checked=examAllowSkip;
+    badge.textContent=examAllowSkip?'● SKIP ENABLED':'● SKIP DISABLED';badge.className='maintenance-mode-badge '+(examAllowSkip?'maintenance-on':'online');
+    msg.textContent='';msg.className='message';
+  }catch(error){
+    examAllowSkip=false;toggle.checked=false;toggle.disabled=true;$('saveExamControls').disabled=true;
+    badge.textContent='● SETUP REQUIRED';badge.className='maintenance-mode-badge setup-required';
+    msg.textContent='Run 24-hpt-daily-exam-activity.sql in Supabase to add the skip setting and daily activity log. '+(error.message||'');msg.className='message bad';
+  }
+}
+async function saveExamControls(){
+  const auth=await guard();if(!auth)return;const toggle=$('allowSkipToggle'),button=$('saveExamControls'),msg=$('examControlsMsg');
+  button.disabled=true;button.textContent='SAVING…';
+  try{
+    const next=!!toggle.checked;const {error}=await sb.from('hpt_settings').update({allow_skip:next,updated_at:new Date().toISOString()}).eq('id',1);if(error)throw error;
+    examAllowSkip=next;$('examControlsBadge').textContent=next?'● SKIP ENABLED':'● SKIP DISABLED';$('examControlsBadge').className='maintenance-mode-badge '+(next?'maintenance-on':'online');msg.textContent=next?'✓ Skip Clip is enabled for all schools.':'✓ Skip Clip is hidden for all schools.';msg.className='message good';notice(msg.textContent);
+  }catch(error){msg.textContent=error.message||'Could not save examination controls.';msg.className='message bad';notice(msg.textContent,true);await loadExamControls();}
+  finally{button.disabled=false;button.textContent='SAVE EXAM CONTROLS';}
+}
+function indiaDayRange(){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const values={};parts.forEach(p=>{if(p.type!=='literal')values[p.type]=p.value});
+  const y=Number(values.year),m=Number(values.month),d=Number(values.day),offset=330*60000;
+  return {start:new Date(Date.UTC(y,m-1,d)-offset).toISOString(),end:new Date(Date.UTC(y,m-1,d+1)-offset).toISOString(),label:new Intl.DateTimeFormat('en-IN',{day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Kolkata'}).format(new Date())};
+}
+function todaySessionState(row){
+  if(row.status==='completed'||row.completed_at)return 'completed';
+  const last=Date.parse(row.last_seen_at||row.started_at||'');
+  return Number.isFinite(last)&&Date.now()-last<=120000?'active':'incomplete';
+}
+function renderTodayActivity(){
+  const schoolFilter=$('todayActivitySchoolFilter')?.value||'all',statusFilter=$('todayActivityStatusFilter')?.value||'all';
+  const rows=todayActivityRows.filter(r=>(schoolFilter==='all'||String(r.school_id||'')===schoolFilter)&&(statusFilter==='all'||todaySessionState(r)===statusFilter));
+  const unique=new Set(todayActivityRows.map(r=>`${r.school_id||''}|${canonicalPhone(r.phone)}`));
+  const completed=todayActivityRows.filter(r=>todaySessionState(r)==='completed').length;
+  const active=todayActivityRows.filter(r=>todaySessionState(r)==='active').length;
+  const incomplete=todayActivityRows.filter(r=>todaySessionState(r)==='incomplete').length;
+  $('todayStudentsCount').textContent=String(unique.size);$('todayCompletedCount').textContent=String(completed);$('todayActiveCount').textContent=String(active);$('todayIncompleteCount').textContent=String(incomplete);
+  $('todayActivityCount').textContent=`${rows.length} exam session${rows.length===1?'':'s'}`;
+  $('todayActivityBody').innerHTML=rows.length?rows.map(r=>{
+    const state=todaySessionState(r),label=state==='completed'?'COMPLETED':state==='active'?'ACTIVE NOW':'INCOMPLETE';
+    const time=new Date(r.started_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Kolkata'});
+    const completedAt=r.completed_at?new Date(r.completed_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Kolkata'}):'—';
+    const school=schoolDirectory.find(s=>String(s.id)===String(r.school_id));
+    return `<tr><td>${esc(time)}</td><td><strong>${esc(r.candidate_name||'Student')}</strong></td><td>${esc(r.phone||'—')}</td><td>${esc(school?.school_name||'Unknown school')}</td><td><span class="today-status ${state}">${label}</span></td><td>${esc(completedAt)}</td><td>${state==='completed'&&r.total_score!=null?`${Number(r.total_score)} / 100`:'—'}</td></tr>`;
+  }).join(''):'<tr><td colspan="7" class="today-activity-empty">No HPT exam sessions match this filter today.</td></tr>';
+}
+async function loadTodayActivity(){
+  const msg=$('todayActivityMsg');if(!msg)return;
+  const range=indiaDayRange();$('todayActivityDate').textContent=`TODAY · ${range.label} · IST`;
+  try{
+    const [sessionResult,attemptResult]=await Promise.all([
+      sb.from('hpt_exam_sessions').select('id,candidate_name,phone,school_id,exam_type,status,started_at,last_seen_at,completed_at,total_score,attempt_id').gte('started_at',range.start).lt('started_at',range.end).order('started_at',{ascending:false}).limit(500),
+      // Backfill completed HPT attempts from the existing results table so today's
+      // activity remains complete on the day this feature is first deployed.
+      sb.from('hpt_attempts').select('id,candidate_name,phone,school_id,started_at,completed_at,total_score').gte('started_at',range.start).lt('started_at',range.end).order('started_at',{ascending:false}).limit(500)
+    ]);
+    if(sessionResult.error)throw sessionResult.error;if(attemptResult.error)throw attemptResult.error;
+    const sessions=sessionResult.data||[],attempts=attemptResult.data||[];
+    const matchedAttempts=new Set();
+    for(const session of sessions){
+      if(session.attempt_id)matchedAttempts.add(String(session.attempt_id));
+      // If the result saved but the session-completion RPC did not, reconcile the
+      // same candidate/school's near-simultaneous session from the canonical attempt.
+      if(session.status!=='completed'&&!session.attempt_id){
+        const candidate=attempts.find(a=>!matchedAttempts.has(String(a.id))&&String(a.school_id||'')===String(session.school_id||'')&&canonicalPhone(a.phone)===canonicalPhone(session.phone)&&Math.abs(Date.parse(a.started_at)-Date.parse(session.started_at))<10*60*1000);
+        if(candidate){session.status='completed';session.completed_at=candidate.completed_at;session.total_score=candidate.total_score;session.attempt_id=candidate.id;matchedAttempts.add(String(candidate.id));}
+      }
+    }
+    todayActivityRows=sessions.slice();
+    for(const attempt of attempts){
+      if(matchedAttempts.has(String(attempt.id)))continue;
+      todayActivityRows.push({id:`completed-${attempt.id}`,candidate_name:attempt.candidate_name,phone:attempt.phone,school_id:attempt.school_id,exam_type:'HPT',status:'completed',started_at:attempt.started_at,last_seen_at:attempt.completed_at||attempt.started_at,completed_at:attempt.completed_at,total_score:attempt.total_score,attempt_id:attempt.id});
+    }
+    todayActivityRows.sort((a,b)=>Date.parse(b.started_at||0)-Date.parse(a.started_at||0));
+    const select=$('todayActivitySchoolFilter'),prior=select.value;
+    const schoolOptions=schoolDirectory.map(s=>`<option value="${esc(s.id)}">${esc(s.school_name)}</option>`).join('');
+    select.innerHTML='<option value="all">All driving schools</option>'+schoolOptions;
+    if(prior==='all'||schoolDirectory.some(s=>String(s.id)===prior))select.value=prior;
+    msg.textContent='';msg.className='message';renderTodayActivity();
+  }catch(error){
+    msg.textContent='Daily HPT activity is not available yet. Run 24-hpt-daily-exam-activity.sql in the Supabase SQL Editor. '+(error.message||'');msg.className='message bad';
+    todayActivityRows=[];renderTodayActivity();
+  }
+}
+function exportTodayActivity(){
+  const schoolFilter=$('todayActivitySchoolFilter')?.value||'all',statusFilter=$('todayActivityStatusFilter')?.value||'all';
+  const rows=todayActivityRows.filter(r=>(schoolFilter==='all'||String(r.school_id||'')===schoolFilter)&&(statusFilter==='all'||todaySessionState(r)===statusFilter));
+  if(!rows.length){notice('There are no HPT activity records in the current filter to export.',true);return;}
+  const csvCell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const lines=[['Started (IST)','Student','Mobile','Driving School','Status','Completed (IST)','Score / 100'],...rows.map(r=>{const school=schoolDirectory.find(s=>String(s.id)===String(r.school_id));const state=todaySessionState(r);return [new Date(r.started_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}),r.candidate_name,r.phone,school?.school_name||'Unknown school',state==='completed'?'Completed':state==='active'?'Active now':'Incomplete',r.completed_at?new Date(r.completed_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'',r.total_score??''];})];
+  const blob=new Blob(['\ufeff'+lines.map(row=>row.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`HPT-Today-Activity-${indiaDayRange().label.replace(/[^0-9A-Za-z]+/g,'-')}.csv`;a.click();URL.revokeObjectURL(url);
+}
 async function loadMaintenanceMode(){
   const status=$('maintenanceModeStatus'),badge=$('maintenanceModeBadge'),button=$('maintenanceModeToggle'),msg=$('maintenanceModeMsg');
   if(!status||!button)return;
@@ -685,10 +782,10 @@ async function downloadReport(id){
     const reportClips=codes.map((code,idx)=>{
       const v=byCode[code], clipResponses=(rs||[]).filter(x=>String(x.clip_code||'').padStart(2,'0')===code || (x.video_id&&v&&String(x.video_id)===String(v.id)));
       const hazards=(v?.hpt_hazards?.length?v.hpt_hazards:C.staticHazards?.[code]||[]).map((h,i)=>({hazard_no:Number(h.hazard_no||i+1),t:Number(h.timestamp_seconds??h.t),label:h.label||`Hazard ${i+1}`})).sort((a,b)=>a.hazard_no-b.hazard_no);
-      return {clip_code:code,title:v?.title||`Hazard Perception Clip ${code}`,file:v?.video_path?resolveVideoPath(v.video_path):`videos/${Number(code)}.webm`,hazards:hazards,responses:clipResponses.map(x=>({response_no:x.response_no,t:Number(x.click_time_seconds),hazard_no:x.hazard_no||null,points:Number(x.awarded_marks||0)})),score:clipResponses.reduce((a,x)=>a+Number(x.awarded_marks||0),0)};
+      return {clip_code:code,title:v?.title||`Hazard Perception Clip ${code}`,file:v?.video_path?resolveVideoPath(v.video_path):'',hazards:hazards,responses:clipResponses.map(x=>({response_no:x.response_no,t:Number(x.click_time_seconds),hazard_no:x.hazard_no||null,points:Number(x.awarded_marks||0)})),score:clipResponses.reduce((a,x)=>a+Number(x.awarded_marks||0),0)};
     });
     await window.RajuHPTReport.generate({id:r.id,candidate_name:r.candidate_name,phone:r.phone,total_score:r.total_score,passed:isPassed(r),started_at:r.started_at,completed_at:r.completed_at,school:r.hpt_schools||null,clips:reportClips});
-    notice(`Complete report downloaded for ${r.candidate_name}.`);
+    notice(`Complete examination report opened for ${r.candidate_name}.`);
   }catch(e){console.error(e);notice(e.message||'Could not generate the HPT report.',true)}finally{buttons.forEach(b=>{b.disabled=false;b.textContent='REPORT'})}
 }
 async function downloadCertificate(id){const r=results.find(x=>x.id===id);if(!r||!isPassed(r))return;if(!window.jspdf?.jsPDF){notice('Certificate generator is not available. Please refresh the page.',true);return}const btn=document.querySelector(`[data-certificate="${CSS.escape(id)}"]`);if(btn){btn.disabled=true;btn.textContent='…'}try{const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});const W=297,H=210;
@@ -699,9 +796,9 @@ const schoolName=String(school.school_name||'Driving School').toUpperCase();cons
 doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is awarded to',W/2,94,{align:'center'});doc.setTextColor(25,38,51);doc.setFont('helvetica','bold');doc.setFontSize(27);doc.text(String(r.candidate_name||'Candidate'),W/2,112,{align:'center'});doc.setDrawColor(180,188,195);doc.setLineWidth(.35);doc.line(70,118,227,118);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the '+(school.school_name||'Driving School')+' Hazard Perception Test',W/2,131,{align:'center',maxWidth:230});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`SCORE: ${Number(r.total_score||0)} / 100`,W/2,149,{align:'center'});doc.setTextColor(35,126,78);doc.setFontSize(16);doc.text('PASS',W/2,160,{align:'center'});const d=new Date(r.completed_at||r.started_at);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Date: ${d.toLocaleDateString('en-IN')}`,45,181);doc.text(`Certificate No: HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(r.id).slice(0,8).toUpperCase()}`,W-45,181,{align:'right'});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text([schoolName,schoolLocation,school.contact_number].filter(Boolean).join(' • ').slice(0,120),W/2,191,{align:'center',maxWidth:250});doc.save(`${String(school.school_name||'Driving-School').replace(/[^a-z0-9]+/gi,'-')}-HPT-Certificate-${String(r.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`);notice(`Certificate downloaded for ${r.candidate_name}.`)}catch(e){console.error(e);notice('Could not generate the certificate.',true)}finally{if(btn){btn.disabled=false;btn.textContent='PRINT'}}}
 
 function openRequestedAdminTab(){const requested=new URLSearchParams(window.location.search).get('tab');if(requested)document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===requested)t.click()})}
-$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('maintenanceModeToggle').onclick=toggleMaintenanceMode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;$('backExamChoices').onclick=()=>{selectedExamView=null;$('schoolExamChoices').hidden=false;$('hptExamRecords').hidden=true;$('learnerExamRecords').hidden=true;const sc=schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId));if(sc)$('resultsHeading').textContent=`${sc.school_name} — Examinations`;};$('backHptExamChoices').onclick=()=>$('backExamChoices').click();$('searchLearnerSummary').oninput=renderLearnerSummaries;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});window.addEventListener('hpt:school-deleted',async()=>{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
-let resultsPoll=null;
-function startResultsPolling(){clearInterval(resultsPoll);resultsPoll=setInterval(async()=>{if(document.hidden||$('dashboard').hidden)return;try{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()}catch(e){console.error('HPT results refresh failed',e)}},5000)}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden)loadResults()});
+$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('saveExamControls').onclick=saveExamControls;$('todayActivitySchoolFilter').onchange=renderTodayActivity;$('todayActivityStatusFilter').onchange=renderTodayActivity;$('refreshTodayActivity').onclick=loadTodayActivity;$('exportTodayActivity').onclick=exportTodayActivity;$('maintenanceModeToggle').onclick=toggleMaintenanceMode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;$('backExamChoices').onclick=()=>{selectedExamView=null;$('schoolExamChoices').hidden=false;$('hptExamRecords').hidden=true;$('learnerExamRecords').hidden=true;const sc=schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId));if(sc)$('resultsHeading').textContent=`${sc.school_name} — Examinations`;};$('backHptExamChoices').onclick=()=>$('backExamChoices').click();$('searchLearnerSummary').oninput=renderLearnerSummaries;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});window.addEventListener('hpt:school-deleted',async()=>{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
+let resultsPoll=null,todayActivityPoll=null;
+function startResultsPolling(){clearInterval(resultsPoll);clearInterval(todayActivityPoll);resultsPoll=setInterval(async()=>{if(document.hidden||$('dashboard').hidden)return;try{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()}catch(e){console.error('HPT results refresh failed',e)}},5000);todayActivityPoll=setInterval(()=>{if(!document.hidden&&!$('dashboard').hidden)loadTodayActivity()},20000)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden){loadResults();loadTodayActivity()}});
 (async()=>{const a=await guard();if(a){showDash(a.admin);await refreshAll();startResultsPolling();openRequestedAdminTab()}})();
 })();

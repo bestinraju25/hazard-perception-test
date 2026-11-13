@@ -11,6 +11,7 @@ function setGateMessage(text,bad=false){const e=gateMessageElement();if(e){e.tex
 const C=window.RAJU_HPT_CONFIG;
 let clips=[], order=[], pos=0, responses=[], scores=[], running=false, finishing=false, timer=null, responseLocked=false;
 let candidate={name:'',phone:''}, sound=true, activeSchool=null, schoolAccessCode='', examStartedAt=null;
+let allowSkip=false, examSessionId=null, examHeartbeatTimer=null;
 const video=$('video');
 let audioCtx=null;
 let roadAudio=null;
@@ -192,6 +193,53 @@ async function loadClips(){
     .filter(v=>v.active&&v.video_path&&v.file&&v.hazards.length>=1);
   return clips;
 }
+function applySkipSetting(enabled){
+  allowSkip=!!enabled;
+  const skip=$('skipBtn');if(skip)skip.hidden=!allowSkip;
+  document.body.classList.toggle('hpt-skip-disabled',!allowSkip);
+}
+async function loadExamControls(){
+  try{
+    const sb=await supabase();if(!sb){applySkipSetting(false);return false;}
+    const {data,error}=await sb.rpc('get_hpt_public_exam_settings');
+    if(error)throw error;
+    applySkipSetting(!!(data&&data.allow_skip));
+    return allowSkip;
+  }catch(error){
+    console.warn('HPT exam controls could not be loaded. Skip remains disabled.',error);
+    applySkipSetting(false);return false;
+  }
+}
+function stopExamHeartbeat(){if(examHeartbeatTimer){clearInterval(examHeartbeatTimer);examHeartbeatTimer=null;}}
+async function startExamSessionTracking(){
+  stopExamHeartbeat();examSessionId=null;
+  try{
+    const sb=await supabase();if(!sb||!activeSchool?.id)return null;
+    const {data,error}=await sb.rpc('hpt_start_exam_session',{p_candidate_name:candidate.name,p_phone:candidate.phone,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode});
+    if(error)throw error;
+    examSessionId=data||null;
+    if(examSessionId){
+      const touch=async()=>{try{await sb.rpc('hpt_touch_exam_session',{p_session_id:examSessionId,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode});}catch(e){console.warn('HPT activity heartbeat failed',e)}};
+      await touch();examHeartbeatTimer=setInterval(touch,30000);
+    }
+    return examSessionId;
+  }catch(error){
+    console.warn('Today activity session could not be started. Apply 24-hpt-daily-exam-activity.sql in Supabase.',error);
+    return null;
+  }
+}
+async function completeExamSession(attemptId,totalScore){
+  stopExamHeartbeat();
+  const sessionId=examSessionId;examSessionId=null;
+  // Only mark the activity row complete when the canonical HPT attempt was saved.
+  // If result persistence failed, it remains incomplete instead of displaying a false completion.
+  if(!sessionId||!activeSchool?.id||!attemptId)return;
+  try{
+    const sb=await supabase();
+    const {error}=await sb.rpc('hpt_complete_exam_session',{p_session_id:sessionId,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode,p_attempt_id:attemptId||null,p_total_score:Number(totalScore)||0});
+    if(error)throw error;
+  }catch(error){console.warn('HPT daily activity session could not be marked complete.',error)}
+}
 async function saveAttempt(completedAt){const sb=await supabase();if(!sb)return {ok:false,error:'Supabase is not available.'};
   if(activeSchool?.id){const {error:identityError}=await sb.rpc('hpt_upsert_student_identity',{p_candidate_name:candidate.name,p_phone:candidate.phone,p_school_id:activeSchool.id,p_school_access_code:schoolAccessCode});if(identityError)return {ok:false,error:identityError.message||'Could not update the student record.'}}
   const total=scores.reduce((a,b)=>a+b,0);const payload={candidate_name:candidate.name,phone:candidate.phone,started_at:examStartedAt||new Date().toISOString(),completed_at:completedAt||new Date().toISOString(),total_score:total,passed:total>=C.passMark,clip_order:order.map(c=>c.clip_code),responses:scores.flatMap((_,i)=>(order[i]._responses||[]).map(r=>({video_id:order[i].id||null,clip_code:order[i].clip_code||null,response_no:r.response_no,click_time_seconds:Number(r.t),hazard_no:r.hazard_no||null,awarded_marks:r.points}))),p_school_id:activeSchool?.id||null,p_school_access_code:schoolAccessCode||null};
@@ -202,7 +250,7 @@ for(let attempt=1;attempt<=2;attempt++){
   await new Promise(r=>setTimeout(r,600));
 }
 return {ok:false,error:'Could not save the examination result.'}}
-function loadClip(){resetClip();running=false;clearTimeout(timer);video.pause();video.removeAttribute('src');video.src=order[pos].file;video.muted=!sound;video.load();$('playOverlay').hidden=true;video.onloadedmetadata=()=>{video.currentTime=0;update();timeline();startRoadAudio();const p=video.play();if(p?.catch)p.catch(()=>{$('playOverlay').hidden=false});running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000)};video.onerror=()=>{running=false;$('playOverlay').hidden=false;$('playNow').textContent='PLAY CLIP';toast('Video could not be loaded',true)}}
+function loadClip(){resetClip();running=false;clearTimeout(timer);video.pause();video.removeAttribute('src');video.crossOrigin='anonymous';video.src=order[pos].file;video.muted=!sound;video.load();$('playOverlay').hidden=true;video.onloadedmetadata=()=>{video.currentTime=0;update();timeline();startRoadAudio();const p=video.play();if(p?.catch)p.catch(()=>{$('playOverlay').hidden=false});running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000)};video.onerror=()=>{running=false;$('playOverlay').hidden=false;$('playNow').textContent='PLAY CLIP';toast('Video could not be loaded',true)}}
 async function finishClip(){if(finishing)return;finishing=true;running=false;clearTimeout(timer);video.pause();scores.push(Math.max(0,Math.min(10,scoreThis())));pos++;if(pos>=order.length){await finishExam();return}setTimeout(()=>{finishing=false;loadClip()},220)}
 function scoreThis(){return responses.reduce((a,r)=>a+r.points,0)}
 async function finishExam(){
@@ -210,8 +258,9 @@ async function finishExam(){
   const total=scores.reduce((a,b)=>a+b,0),completedAt=new Date().toISOString();
   const reportClips=order.map((c,i)=>({clip_code:c.clip_code,title:c.title,file:c.file||c.video_path,hazards:(c.hazards||[]).map(h=>({hazard_no:h.hazard_no,t:Number(h.t),label:h.label||`Hazard ${h.hazard_no}`})),responses:(c._responses||[]).map(r=>({response_no:r.response_no,t:Number(r.t),video_time_seconds:Number(r.t),hazard_no:r.hazard_no||null,points:Number(r.points||0),clicked_at:r.clicked_at||null,frameData:r.frameData||null})),score:Number(scores[i]||0)}));
   const saved=await saveAttempt(completedAt);
+  await completeExamSession(saved.ok?saved.id:null,total);
   if(activeSchool?.id)setTimeout(loadTopScorers,350);
-  show('examScreen',false);show('resultScreen',true);if(total>=C.passMark){setTimeout(()=>playOneShot('audio/test-pass-sound.mp3',1.0),120)}$('candidateResult').textContent=`${candidate.name} • ${candidate.phone}`;$('finalScore').textContent=`${total} / 100`;$('passText').textContent=total>=C.passMark?'PASS — EXAMINATION STANDARD MET':'NOT PASSED — BELOW PASS MARK';$('passText').className='status '+(total>=C.passMark?'pass':'fail');$('resultSaveStatus').textContent=saved.ok?'Result recorded successfully.':'Result could not be recorded automatically. Please inform the school admin.';$('resultSaveStatus').className='save-status '+(saved.ok?'ok':'error');$('printCertBtn').hidden=total<C.passMark;const hazardRows=reportClips.flatMap(c=>(c.hazards||[]).map(h=>({clip_code:c.clip_code,hazard_no:Number(h.hazard_no),hazard:h,response:(c.responses||[]).find(r=>Number(r.hazard_no)===Number(h.hazard_no))})));const identified=hazardRows.filter(h=>h.response&&Number(h.response.points)>0).length,missed=Math.max(0,hazardRows.length-identified);const reactionTimes=hazardRows.filter(h=>h.response&&Number(h.response.points)>0&&Number.isFinite(Number(h.response.t))).map(h=>Math.max(0,Number(h.response.t)-Number((reportClips.find(c=>String(c.clip_code)===String(h.clip_code))?.hazards||[]).find(x=>Number(x.hazard_no)===h.hazard_no)?.t||0)));const avgReaction=reactionTimes.length?reactionTimes.reduce((a,b)=>a+b,0)/reactionTimes.length:null;let performanceText;if(total>=85)performanceText=`Excellent hazard awareness. You identified ${identified} of ${hazardRows.length} official hazards, with ${missed} missed. Keep scanning well ahead and maintain this consistency.`;else if(total>=C.passMark)performanceText=`Good work — you reached the pass mark. You identified ${identified} of ${hazardRows.length} official hazards and missed ${missed}. Keep practising early recognition of developing hazards.`;else performanceText=`More practice is recommended. You identified ${identified} of ${hazardRows.length} official hazards and missed ${missed}. Focus on scanning ahead, spotting changing traffic situations and responding promptly.`;if(avgReaction!==null)performanceText+=` Average response time for identified hazards: ${avgReaction.toFixed(2)} seconds after the official hazard timestamp.`;$('resultDetails').innerHTML=`<div class="performanceSummary"><div class="performanceTitle">PERFORMANCE SUMMARY</div><p>${performanceText}</p><div class="performanceStats"><span><b>${identified}</b> / ${hazardRows.length} hazards identified</span><span><b>${missed}</b> missed</span><span><b>${reactionTimes.length?avgReaction.toFixed(2)+' s':'—'}</b> average delay</span></div></div><div class="resultSummary"><div><span>PASS MARK</span><b>${C.passMark} / 100</b></div><div><span>HAZARD RECOGNITION</span><b>${hazardRows.length?Math.round(identified/hazardRows.length*100):0}%</b></div><div><span>EXAM STATUS</span><b>${total>=C.passMark?'PASS':'NOT PASSED'}</b></div></div>`;
+  show('examScreen',false);show('resultScreen',true);if(total>=C.passMark){setTimeout(()=>playOneShot('audio/test-pass-sound.mp3',1.0),120)}$('candidateResult').textContent=`${candidate.name} • ${candidate.phone}`;$('finalScore').textContent=`${total} / 100`;$('passText').textContent=total>=C.passMark?'PASS — EXAMINATION STANDARD MET':'NOT PASSED — BELOW PASS MARK';$('passText').className='status '+(total>=C.passMark?'pass':'fail');$('resultSaveStatus').textContent=saved.ok?'Result recorded successfully.':'Result could not be recorded automatically. Please inform the school admin.';$('resultSaveStatus').className='save-status '+(saved.ok?'ok':'error');$('printCertBtn').hidden=total<C.passMark;const hazardRows=reportClips.flatMap(c=>(c.hazards||[]).map(h=>({clip_code:c.clip_code,hazard_no:Number(h.hazard_no),hazard:h,response:(c.responses||[]).find(r=>Number(r.hazard_no)===Number(h.hazard_no))})));const identified=hazardRows.filter(h=>!!h.response).length,missed=Math.max(0,hazardRows.length-identified);const reactionTimes=hazardRows.filter(h=>h.response&&Number.isFinite(Number(h.response.t))).map(h=>Math.max(0,Number(h.response.t)-Number((reportClips.find(c=>String(c.clip_code)===String(h.clip_code))?.hazards||[]).find(x=>Number(x.hazard_no)===h.hazard_no)?.t||0)));const avgReaction=reactionTimes.length?reactionTimes.reduce((a,b)=>a+b,0)/reactionTimes.length:null;let performanceText;if(total>=85)performanceText=`Excellent hazard awareness. You identified ${identified} of ${hazardRows.length} official hazards, with ${missed} missed. Keep scanning well ahead and maintain this consistency.`;else if(total>=C.passMark)performanceText=`Good work — you reached the pass mark. You identified ${identified} of ${hazardRows.length} official hazards and missed ${missed}. Keep practising early recognition of developing hazards.`;else performanceText=`More practice is recommended. You identified ${identified} of ${hazardRows.length} official hazards and missed ${missed}. Focus on scanning ahead, spotting changing traffic situations and responding promptly.`;if(avgReaction!==null)performanceText+=` Average response time for identified hazards: ${avgReaction.toFixed(2)} seconds after the official hazard timestamp.`;$('resultDetails').innerHTML=`<div class="performanceSummary"><div class="performanceTitle">PERFORMANCE SUMMARY</div><p>${performanceText}</p><div class="performanceStats"><span><b>${identified}</b> / ${hazardRows.length} hazards identified</span><span><b>${missed}</b> missed</span><span><b>${reactionTimes.length?avgReaction.toFixed(2)+' s':'—'}</b> average delay</span></div></div><div class="resultSummary"><div><span>PASS MARK</span><b>${C.passMark} / 100</b></div><div><span>HAZARD RECOGNITION</span><b>${hazardRows.length?Math.round(identified/hazardRows.length*100):0}%</b></div><div><span>EXAM STATUS</span><b>${total>=C.passMark?'PASS':'NOT PASSED'}</b></div></div>`;
   window._lastExam={total,total_score:total,passed:total>=C.passMark,saved,candidate_name:candidate.name,phone:candidate.phone,completed_at:completedAt,started_at:examStartedAt||completedAt,school:schoolBrand(),clips:reportClips};
   if(total>=C.passMark)setupCandidateCertificate();
 }
@@ -408,6 +457,7 @@ async function bootSchoolSession(){
   }catch(e){console.warn('Could not restore the school session',e)}
 }
 function changeSchool(){
+  stopExamHeartbeat();examSessionId=null;
   if(!$('schoolStatsModal')?.hidden)closeSchoolStatsModal();
   // Return safely to the access-code gate and discard only the incomplete in-memory exam.
   clearTimeout(timer);running=false;finishing=false;responseLocked=false;pos=0;order=[];scores=[];responses=[];
@@ -422,7 +472,8 @@ async function beginHPTExam(){buttonFeedback();ensureAudio();if(!video){toast('T
   try{const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:schoolAccessCode});if(error)throw error;const status=Array.isArray(data)?data[0]:data;if(status?.status==='disabled'||!(status?.school?.id||status?.id)){changeSchool();setGateMessage(status?.status==='disabled'?'HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.':'SCHOOL ACCESS COULD NOT BE VERIFIED. PLEASE CONTACT THE PROVIDER.',true);return}}
   catch(e){console.warn('School access revalidation failed:',e);toast('Could not verify school access. Please try again.',true);return}
   clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
-updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
+  await loadExamControls();await startExamSessionTracking();
+  updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
 function isKeralaSchool(){
   // Existing schools are migrated with state='Kerala'; missing state remains Kerala-compatible for older cached sessions.
   return String(activeSchool?.state||'Kerala').trim().toLowerCase()==='kerala';
@@ -643,18 +694,25 @@ bind('viewFullReportBtn','click',()=>{
 bind('attemptSearchBtn','click',lookupAttempts);bind('attemptCloseBtn','click',closeAttempts);
 bind('attemptPhone','keydown',e=>{if(e.key==='Enter')lookupAttempts()});
 bind('attemptsModal','click',e=>{if(e.target===$('attemptsModal'))closeAttempts()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('attemptsModal')?.hidden)closeAttempts()});
-bind('skipBtn','click',finishClip);bind('soundBtn','click',()=>setSoundState(!sound));bind('fullBtn','click',toggleFullscreen);
+bind('skipBtn','click',()=>{if(allowSkip&&running&&!finishing)finishClip()});bind('soundBtn','click',()=>setSoundState(!sound));bind('fullBtn','click',toggleFullscreen);
 bind('helpBtn','click',()=>toast('Tap when a developing hazard becomes apparent. You can make up to 5 responses per clip.'));
-bind('exitBtn','click',()=>{if(confirm('Exit the examination? This attempt will be incomplete.')){clearTimeout(timer);video.pause();running=false;stopRoadAudio();show('examScreen',false);show('startScreen',true)}});
+bind('exitBtn','click',()=>{if(confirm('Exit the examination? This attempt will be incomplete.')){clearTimeout(timer);stopExamHeartbeat();video.pause();running=false;stopRoadAudio();show('examScreen',false);show('startScreen',true)}});
 bind('playNow','click',()=>video.play().then(()=>{const o=$('playOverlay');if(o)o.hidden=true;running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000)}).catch(()=>toast('Video could not start',true)));
 if(video){video.addEventListener('timeupdate',()=>{update();timeline()});video.addEventListener('ended',finishClip)}
 function captureResponseFrame(){
   try{
-    if(!video.videoWidth||!video.videoHeight)return null;
+    if(!video.videoWidth||!video.videoHeight||video.readyState<2)return null;
     const c=document.createElement('canvas'),maxW=640,maxH=360,r=Math.min(maxW/video.videoWidth,maxH/video.videoHeight,1);
     c.width=Math.max(1,Math.round(video.videoWidth*r));c.height=Math.max(1,Math.round(video.videoHeight*r));
-    c.getContext('2d').drawImage(video,0,0,c.width,c.height);
-    return c.toDataURL('image/jpeg',.72);
+    const ctx=c.getContext('2d',{willReadFrequently:true});if(!ctx)return null;
+    ctx.drawImage(video,0,0,c.width,c.height);
+    const sampleCanvas=document.createElement('canvas');sampleCanvas.width=24;sampleCanvas.height=14;
+    const sampleCtx=sampleCanvas.getContext('2d',{willReadFrequently:true});if(!sampleCtx)return null;
+    sampleCtx.drawImage(c,0,0,sampleCanvas.width,sampleCanvas.height);
+    const sample=sampleCtx.getImageData(0,0,sampleCanvas.width,sampleCanvas.height).data;
+    let nonBlack=0;for(let i=0;i<sample.length;i+=4){if(sample[i]>6||sample[i+1]>6||sample[i+2]>6)nonBlack++;}
+    if(nonBlack<3)return null;
+    return c.toDataURL('image/jpeg',.78);
   }catch(e){return null}
 }
 function responseBeep(){try{if(!sound)return;audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const now=audioCtx.currentTime;const o1=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();o1.type='triangle';o2.type='sine';o1.frequency.setValueAtTime(720,now);o1.frequency.exponentialRampToValueAtTime(1080,now+0.07);o2.frequency.setValueAtTime(1080,now+0.025);o2.frequency.exponentialRampToValueAtTime(1420,now+0.09);g.gain.setValueAtTime(0.0001,now);g.gain.exponentialRampToValueAtTime(0.34,now+0.012);g.gain.exponentialRampToValueAtTime(0.18,now+0.075);g.gain.exponentialRampToValueAtTime(0.0001,now+0.22);o1.connect(g);o2.connect(g);g.connect(audioCtx.destination);o1.start(now);o2.start(now+0.018);o1.stop(now+0.225);o2.stop(now+0.225)}catch{}}
@@ -671,13 +729,11 @@ video.addEventListener('click',e=>{
     const delta=t-Number(h.t);
     if(delta>=0&&delta<=5){
       const maxPts=hazardCount===1?10:5;
-      // Gentler HPT reaction-time curve: early identification still earns full marks,
-      // while a valid response later in the 5-second window retains meaningful marks.
-      // This avoids making the test disproportionately difficult for first-time candidates.
-      const multiplier=delta<=1?1:delta<=2?.9:delta<=3?.8:delta<=4?.7:.6;
-      const pts=maxPts*multiplier;
-      const rounded=Math.max(1,Math.round(pts));
-      if(!best||rounded>best.points)best={hazard_no:hn,points:rounded};
+      // HPT reaction scoring: first 0.5s earns full marks; 0.5–1.0s loses 1 mark;
+      // after 1.0s, deduct 3 marks per additional second. The same mark deductions
+      // apply to 10-mark single hazards and 5-mark two-hazard clips.
+      const awarded=window.HPTScoring?.marksForReaction(delta,maxPts)??Math.max(0,Math.min(maxPts,Math.round(maxPts-(delta<=.5?0:delta<=1?2*(delta-.5):1+3*(delta-1)))));
+      if(!best||awarded>best.points)best={hazard_no:hn,points:awarded};
     }
   });
   const r={t:Number(t.toFixed(3)),video_time_seconds:Number(t.toFixed(3)),clicked_at:new Date().toISOString(),response_no:responses.length+1,hazard_no:best?.hazard_no||null,points:best?.points||0,frameData:captureResponseFrame()};
@@ -695,5 +751,5 @@ window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;show('ins
 bind('installAppBtn','click',async()=>{if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch{}deferredInstallPrompt=null;return}showInstallHelp()});
 bind('installHelpClose','click',()=>show('installHelpModal',false));bind('installHelpOk','click',()=>show('installHelpModal',false));
 if(!isStandalone())show('installAppCard',true);
-setupConsoleFeedback();setupHomeMedia();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);document.getElementById('loadingScreen')?.remove();window.HPTLeaderboardReady=loadGlobalMonthlyTopFive();bootSchoolSession();setInterval(()=>{if(!$('schoolGate')?.hidden)window.HPTLeaderboardReady=loadGlobalMonthlyTopFive()},5*60*1000);
+applySkipSetting(false);window.HPTExamSettingsReady=loadExamControls();setupConsoleFeedback();setupHomeMedia();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);document.getElementById('loadingScreen')?.remove();window.HPTLeaderboardReady=loadGlobalMonthlyTopFive();bootSchoolSession();setInterval(()=>{if(!$('schoolGate')?.hidden)window.HPTLeaderboardReady=loadGlobalMonthlyTopFive()},5*60*1000);
 })();

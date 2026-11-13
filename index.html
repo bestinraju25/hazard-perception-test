@@ -30,16 +30,17 @@
 <meta name="twitter:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
 <link rel="icon" href="school-placeholder.svg" type="image/svg+xml">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=100">
+<link rel="stylesheet" href="style.css?v=126">
 <link rel="stylesheet" href="school-registration.css?v=3">
 <link rel="stylesheet" href="mobile-safe-area.css?v=113">
 <link rel="stylesheet" href="hpt-experience.css?v=124">
 
-<script src="hpt-config.js"></script>
+<script src="hpt-config.js?v=126"></script>
 <script src="hpt-maintenance-guard.js?v=1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-<script src="hpt-report.js?v=62"></script>
+<script src="hpt-scoring.js?v=126"></script>
+<script src="hpt-report.js?v=126"></script>
 <style>html,body,#app{overflow-x:hidden!important;max-width:100%;}</style>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -235,7 +236,7 @@
 <div class="topOverlay"><div class="pill">CLIP <b id="clipNo2">1 / 10</b></div><div class="pill responsePill">RESPONSES <b id="respCount">0 / 5</b></div></div>
 <div class="rightTools"><button id="helpBtn" title="Help">?</button><button id="soundBtn" title="Sound">🔊</button><button id="fullBtn" title="Fullscreen">⛶</button><button id="exitBtn" title="Exit">×</button></div>
 <div class="tapPrompt">TAP WHEN YOU SEE A<br>DEVELOPING HAZARD</div>
-<div class="bottomHud"><div class="hint">💡 Look ahead, to the sides and behind.</div><button id="skipBtn" class="skip">SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
+<div class="bottomHud"><div class="hint">💡 Look ahead, to the sides and behind.</div><button id="skipBtn" class="skip" type="button" hidden>SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
 </div></section>
 <section id="resultScreen" class="panel result" hidden><img id="resultSchoolLogo" src="school-placeholder.svg" class="resultLogo" alt="Driving school logo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="viewFullReportBtn" class="secondary">VIEW FULL REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
 </main><div id="schoolStatsModal" class="schoolStatsModal" hidden role="dialog" aria-modal="true" aria-labelledby="schoolStatsTitle">
@@ -303,16 +304,16 @@
  </section>
 </div><div id="installHelpModal" class="installHelpModal" hidden><div class="installHelpCard"><button id="installHelpClose" class="installHelpClose" type="button">×</button><div class="installHelpIcon">📱</div><div class="eyebrow">HPT PORTAL</div><h3>Install on your phone</h3><p id="installHelpText">Use your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.</p><button id="installHelpOk" class="primary" type="button">GOT IT</button></div></div><div id="responseLimitModal" class="limitModal" hidden><div class="limitCard"><div class="limitIcon">5</div><h3>5 RESPONSES ALREADY MARKED</h3><p>You cannot mark any more responses for this clip.</p><button type="button" onclick="document.getElementById('responseLimitModal').hidden=true">OK</button></div></div><div id="toast" class="toast"></div></div><div class="modal fade report-modal" id="fullReportModal" tabindex="-1" aria-labelledby="fullReportTitle" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
-    <div class="modal-header report-modal-header"><div><div class="report-modal-kicker">HAZARD PERCEPTION TEST</div><h2 class="modal-title" id="fullReportTitle">Full examination report</h2><div id="reportCandidateMeta" class="report-candidate-meta"></div></div><button type="button" class="btn-close btn-close-white" id="closeFullReportBtn" data-bs-dismiss="modal" aria-label="Close"></button></div>
-    <div class="modal-body"><div id="reportSummary" class="report-summary-strip"></div>
+    <div class="modal-header report-modal-header"><div><div class="report-modal-kicker">HAZARD PERCEPTION TEST</div><h2 class="modal-title" id="fullReportTitle">Full examination report</h2><div id="reportCandidateMeta" class="report-candidate-meta"></div></div><button type="button" class="btn-close btn-close-white" id="closeFullReportBtn" data-report-close data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body"><div id="reportSummary" class="report-summary-strip"></div><div id="reportOverallFeedback" class="report-overall-feedback"></div>
       <div class="report-toolbar"><div class="report-filters" role="group" aria-label="Filter hazards"><button class="report-filter active" data-report-filter="all" type="button">All hazards</button><button class="report-filter" data-report-filter="identified" type="button">Identified</button><button class="report-filter" data-report-filter="missed" type="button">Missed</button></div><div class="report-timing-note">Times are clip positions (MM:SS.ss)</div></div>
       <div id="reportHazardList" class="report-hazard-list"><div class="report-loading">Preparing hazard evidence…</div></div>
-    </div><div class="modal-footer report-modal-footer"><span>Actual time = official hazard timestamp · Click time = video position at tap</span><button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">CLOSE REPORT</button></div>
+    </div><div class="modal-footer report-modal-footer"><span>Actual time = official hazard timestamp · Click time = video position at tap</span><button type="button" class="btn btn-outline-light" data-report-close data-bs-dismiss="modal">CLOSE REPORT</button></div>
   </div></div>
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=124"></script>
+<script src="app.js?v=126"></script>
 <script src="school-registration.js?v=119"></script>
 <script src="hpt-experience.js?v=124"></script><script>
 (()=>{

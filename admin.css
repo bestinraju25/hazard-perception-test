@@ -264,3 +264,1160 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .maintenance-mode-warning{margin:12px 0 0;color:#b69b6c;font-size:10px;line-height:1.55}
 .maintenance-mode-panel .message{margin-top:9px}
 @media(max-width:700px){.maintenance-mode-head{flex-direction:column}.maintenance-mode-grid{grid-template-columns:1fr}.maintenance-mode-actions{align-items:stretch;flex-direction:column}.maintenance-mode-actions .btn{width:100%;white-space:normal}.maintenance-mode-badge{align-self:flex-start}}
+
+
+/* HPT v125 — evidence feedback, thicker timeline, provider skip control and daily monitoring */
+.bottomHud .track{height:20px}
+body.hpt-skip-disabled .bottomHud{grid-template-columns:minmax(220px,300px) minmax(0,1fr)}
+body.hpt-skip-disabled .bottomHud .timeline{grid-column:2}
+body.hpt-skip-disabled .bottomHud .skip{display:none!important}
+.report-overall-feedback{margin:-5px 0 14px;padding:13px 15px;border:1px solid rgba(76,205,146,.24);border-left:3px solid #45ce89;border-radius:11px;background:rgba(33,105,76,.13);color:#e6f5ec}
+.report-overall-feedback strong{display:block;font-size:12px;letter-spacing:.3px;color:#91e8b6}
+.report-overall-feedback p{margin:5px 0 0;font-size:11px;line-height:1.55;color:#c4d9ce}
+.report-hazard-feedback{margin:-1px 0 10px;padding:10px 12px;border:1px solid rgba(145,190,211,.14);border-left:3px solid #4ba9d5;border-radius:9px;background:rgba(16,47,63,.46)}
+.report-hazard-feedback strong{display:block;font-size:10px;letter-spacing:.35px;color:#b9e8ff}
+.report-hazard-feedback p{margin:4px 0 0;color:#c1d2dc;font-size:10px;line-height:1.5}
+.report-hazard-feedback.excellent{border-left-color:#55d69a;background:rgba(42,123,83,.13)}
+.report-hazard-feedback.excellent strong{color:#8de9b6}
+.report-hazard-feedback.good{border-left-color:#6fc6a3}
+.report-hazard-feedback.improve{border-left-color:#e9c36e;background:rgba(131,94,26,.12)}
+.report-hazard-feedback.improve strong{color:#f1d18c}
+.report-hazard-feedback.late,.report-hazard-feedback.missed{border-left-color:#ed8c73;background:rgba(133,57,46,.12)}
+.report-hazard-feedback.late strong,.report-hazard-feedback.missed strong{color:#ffb29e}
+@media(max-width:800px){.bottomHud .track{height:16px}body.hpt-skip-disabled .bottomHud{grid-template-columns:minmax(0,1fr)}body.hpt-skip-disabled .bottomHud .timeline{grid-column:1;grid-row:1/3}}
+.exam-controls-panel,.today-activity-panel{margin:0 0 14px;padding:18px}
+.exam-control-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px;border:1px solid #294657;border-radius:12px;background:rgba(5,17,26,.62)}
+.exam-control-switch{display:flex;align-items:flex-start;gap:12px;min-width:0;margin:0;color:#e8f0f4;cursor:pointer}
+.exam-control-switch input{width:21px;height:21px;flex:0 0 21px;margin-top:2px;accent-color:var(--yellow)}
+.exam-control-switch strong,.exam-control-switch small{display:block}
+.exam-control-switch strong{font-size:13px}.exam-control-switch small{margin-top:4px;color:#8ea4b1;font-size:10px;line-height:1.45}
+.exam-controls-panel .message{margin-top:9px}
+.today-activity-head{align-items:flex-start}.today-activity-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.today-activity-date{font-size:9px;font-weight:900;letter-spacing:.7px;color:#9bb4c2}
+.today-activity-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:14px 0}
+.today-activity-stats>div{padding:12px;border:1px solid #294658;border-radius:11px;background:linear-gradient(145deg,#102635,#091722);min-width:0}
+.today-activity-stats small,.today-activity-stats strong{display:block}.today-activity-stats small{font-size:8px;font-weight:900;letter-spacing:.8px;color:#8ea7b5}.today-activity-stats strong{font-size:26px;color:#f6c83c;font-variant-numeric:tabular-nums;margin-top:4px}
+.today-activity-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 10px}.today-activity-filters select{min-width:180px;padding:9px 11px;border-radius:9px;border:1px solid #355367;background:#07131d;color:#edf4f8;font-size:11px}.today-activity-filters small{margin-left:auto;color:#8ea4b1;font-size:10px}
+.today-activity-table-wrap{width:100%;overflow:auto;border:1px solid #294455;border-radius:11px}
+.today-activity-table{width:100%;min-width:720px;border-collapse:collapse;font-size:11px}
+.today-activity-table th{padding:11px 12px;text-align:left;background:#102536;color:#9fb6c4;font-size:8px;letter-spacing:.9px;white-space:nowrap}
+.today-activity-table td{padding:11px 12px;border-top:1px solid rgba(150,186,205,.12);color:#d9e4ea;white-space:nowrap}
+.today-activity-table td strong{color:#fff}.today-activity-table tr:hover td{background:rgba(40,73,94,.22)}
+.today-activity-empty{text-align:center;color:#8ea4b1!important;padding:22px!important}
+.today-status{display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;font-size:8px;font-weight:1000;letter-spacing:.6px;border:1px solid}
+.today-status.completed{color:#80e5a9;background:rgba(49,158,99,.12);border-color:rgba(92,206,142,.28)}
+.today-status.active{color:#76d9ff;background:rgba(33,135,174,.13);border-color:rgba(94,193,232,.28)}
+.today-status.incomplete{color:#f2c77c;background:rgba(170,116,31,.12);border-color:rgba(215,166,83,.25)}
+.today-activity-note{margin:10px 0 0;color:#78919f;font-size:9px;line-height:1.5}
+@media(max-width:800px){.exam-controls-panel,.today-activity-panel{padding:13px}.exam-control-row{align-items:stretch;flex-direction:column}.exam-control-row .btn{width:100%}.today-activity-head{display:block}.today-activity-actions{justify-content:flex-start;margin-top:10px}.today-activity-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.today-activity-stats>div{padding:10px}.today-activity-stats strong{font-size:23px}.today-activity-filters select{flex:1;min-width:130px}.today-activity-filters small{width:100%;margin-left:0}}
+
+
+/* Full examination report — also available inside Provider Admin */
+.report-modal{--bs-modal-width:1120px;z-index:2055}.report-modal .modal-dialog{max-height:calc(100dvh - 24px);margin:12px auto}.report-modal .modal-content{max-height:calc(100dvh - 24px);color:#eff5f8;background:linear-gradient(145deg,rgba(8,25,37,.97),rgba(3,12,20,.985));border:1px solid rgba(190,221,237,.2);border-radius:20px;overflow:hidden;box-shadow:0 35px 100px rgba(0,0,0,.55);backdrop-filter:blur(24px)}
+.report-modal .modal-header{padding:17px 21px;border-bottom:1px solid rgba(200,230,244,.12);align-items:center}.report-modal-header{background:linear-gradient(90deg,rgba(15,43,58,.76),rgba(5,17,26,.2))}.report-modal-kicker{font-size:8px;letter-spacing:2px;font-weight:900;color:var(--yellow);margin-bottom:3px}.report-modal .modal-title{font-size:clamp(20px,2.4vw,28px);font-weight:900;letter-spacing:-.5px}.report-candidate-meta{margin-top:3px;font-size:11px;color:#9fb5c2}.report-modal .modal-body{padding:16px 20px 18px;overflow-y:auto;overscroll-behavior:contain}.report-summary-strip{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:8px;margin-bottom:15px}.report-sum-card{border:1px solid rgba(172,207,225,.14);border-radius:12px;background:rgba(15,39,53,.64);padding:10px 13px;min-width:0;display:flex;flex-direction:column;gap:2px}.report-sum-card>span{font-size:8px;font-weight:900;letter-spacing:1.2px;color:#90a8b6}.report-sum-card>strong{font-size:24px;line-height:1.2;color:#f5f8fa}.report-sum-score>strong{font-size:29px;color:var(--yellow)}.report-sum-score small{font-size:13px;color:#9fb5c2}.report-sum-card em{font-size:8px;font-weight:900;font-style:normal;letter-spacing:1.5px}.text-pass{color:#70e4a4}.text-fail{color:#ff788d}.report-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}.report-filters{display:flex;gap:5px;flex-wrap:wrap}.report-filter{border:1px solid rgba(176,211,228,.17);border-radius:999px;color:#a9bdc8;background:rgba(255,255,255,.025);padding:7px 13px;font-weight:800;font-size:10px;letter-spacing:.3px}.report-filter:hover,.report-filter.active{background:var(--yellow);border-color:var(--yellow);color:#0b1520}.report-timing-note{font-size:9px;color:#748f9e}.report-hazard-list{display:grid;gap:12px}.report-hazard-card{padding:13px;border:1px solid rgba(177,209,225,.15);border-radius:14px;background:linear-gradient(125deg,rgba(17,42,56,.6),rgba(8,23,33,.75));min-width:0}.report-hazard-card.is-identified{border-left:3px solid #45ce89}.report-hazard-card.is-missed{border-left:3px solid #f06a7b}.report-hazard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px}.report-clip-tag{font-size:8px;font-weight:900;letter-spacing:1.3px;color:#8ea8b7}.report-clip-tag span{color:var(--yellow);padding:0 3px}.report-hazard-top h3{font-size:14px;line-height:1.3;font-weight:800;margin:3px 0 0;color:#f3f7f9}.report-outcome{border-radius:999px;padding:5px 8px;font-size:8px;font-weight:1000;letter-spacing:.8px;white-space:nowrap}.report-outcome.identified{background:rgba(69,206,137,.12);border:1px solid rgba(69,206,137,.35);color:#7ce4a8}.report-outcome.missed{background:rgba(240,106,123,.1);border:1px solid rgba(240,106,123,.28);color:#ff96a4}.report-time-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:10px}.report-time-grid>div{padding:8px 9px;border-radius:9px;background:rgba(2,13,21,.48);border:1px solid rgba(174,209,226,.1);min-width:0}.report-time-grid span{display:block;color:#8099a8;font-size:7px;font-weight:900;letter-spacing:1px;margin-bottom:3px}.report-time-grid strong{display:block;font-variant-numeric:tabular-nums;color:#f0f5f8;font-size:13px}.report-image-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.report-shot{min-width:0;border:1px solid rgba(168,205,223,.13);border-radius:10px;padding:7px;background:rgba(0,7,12,.25)}.report-shot-label{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.report-shot-label span{font-size:7px;letter-spacing:1.05px;font-weight:900;color:#8ea6b4}.report-shot-label b{font-size:10px;color:#f1f5f7;font-variant-numeric:tabular-nums}.report-frame-btn{position:relative;display:grid;place-items:center;width:100%;min-height:115px;height:clamp(110px,18vw,210px);border:1px solid rgba(164,195,211,.13);border-radius:7px;padding:0;overflow:hidden;background:linear-gradient(135deg,#07141d,#0e2938);color:#95aab6}.report-frame-btn:not(:disabled){cursor:zoom-in}.report-frame-btn img{display:block;width:100%;height:100%;object-fit:contain;background:#02070b}.report-frame-btn img[hidden]{display:none!important}.report-frame-btn:disabled{cursor:default;opacity:.78}.report-frame-placeholder{padding:12px;text-align:center;font-size:10px;line-height:1.4;color:#9cb0bc;max-width:330px}.report-frame-placeholder.frame-unavailable{color:#edbf65}.report-frame-footnote{margin-top:6px;text-align:right;font-size:8px;color:#6f8998}.report-empty{border:1px dashed #315063;border-radius:12px;padding:24px;text-align:center;color:#9eb3bf;font-size:12px}.report-loading{padding:22px;text-align:center;color:#96aebc}.report-modal-footer{padding:11px 18px;border-top:1px solid rgba(200,230,244,.12);display:flex;align-items:center;justify-content:space-between;gap:12px;color:#7893a2;font-size:9px}.report-modal-footer .btn{font-size:9px;letter-spacing:1px;border-radius:8px;padding:8px 12px}.report-lightbox{position:fixed;inset:0;z-index:2080;background:rgba(0,5,10,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 24px 28px;gap:14px}.report-lightbox[hidden]{display:none!important}.report-lightbox img{max-width:min(1200px,96vw);max-height:78vh;object-fit:contain;border-radius:12px;border:1px solid #365365;background:#000;box-shadow:0 24px 90px #000}.report-lightbox-close{position:absolute;right:24px;top:16px;width:42px;height:42px;border-radius:50%;border:1px solid #456275;background:#102330;color:#fff;font-size:29px;line-height:1}.report-lightbox #reportLightboxCaption{font-size:12px;color:#d7e2e8;text-align:center}.modal-backdrop.show{opacity:.8}.report-modal-open{overflow:hidden}
+@media(max-width:700px){.report-modal .modal-dialog{margin:7px;max-height:calc(100dvh - 14px)}.report-modal .modal-content{max-height:calc(100dvh - 14px);border-radius:15px}.report-modal .modal-header{padding:12px 13px}.report-modal .modal-title{font-size:20px}.report-candidate-meta{font-size:9px;max-width:78vw}.report-modal .modal-body{padding:10px}.report-summary-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-bottom:10px}.report-sum-card{padding:7px 8px;border-radius:9px}.report-sum-score{grid-column:span 3;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px}.report-sum-card>span{font-size:7px;letter-spacing:.6px}.report-sum-card>strong{font-size:18px}.report-sum-score>strong{font-size:24px}.report-sum-score em{font-size:8px}.report-toolbar{align-items:flex-start;flex-direction:column;margin-bottom:8px;gap:5px}.report-filter{font-size:9px;padding:6px 10px}.report-timing-note{font-size:8px}.report-hazard-list{gap:9px}.report-hazard-card{padding:9px;border-radius:11px}.report-hazard-top h3{font-size:12px}.report-time-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.report-time-grid>div{padding:7px}.report-time-grid span{font-size:6px}.report-time-grid strong{font-size:12px}.report-image-grid{grid-template-columns:1fr;gap:6px}.report-frame-btn{height:clamp(130px,42vw,230px);min-height:120px}.report-shot-label span{font-size:7px}.report-modal-footer{padding:8px 10px;align-items:flex-end}.report-modal-footer>span{max-width:62%;line-height:1.35;font-size:8px}.report-modal-footer .btn{font-size:8px;padding:7px}.report-lightbox{padding:50px 10px 20px}.report-lightbox-close{right:12px;top:10px}}
+
+/* Modal geometry fallback if the Bootstrap CDN cannot be reached */
+.report-modal{position:fixed;inset:0;display:none;overflow-x:hidden;overflow-y:auto;background:rgba(0,5,10,.78);z-index:2055}
+.report-modal.show{display:block}
+.report-modal .modal-dialog{position:relative;width:auto;margin:12px auto;pointer-events:none}
+.report-modal .modal-content{position:relative;display:flex;flex-direction:column;pointer-events:auto}
+.report-modal .modal-body{flex:1 1 auto}
+
+/* v62: explicit school exit and clean home layout */
+.exitSchoolBtn .toolIcon{font-size:14px;color:#f0b8a0}
+.exitSchoolBtn:hover{border-color:rgba(255,110,96,.72)!important;color:#ffb5a8!important;background:rgba(255,75,60,.08)!important}
+#installAppCard{display:none!important}
+@media(max-width:520px){#exitSchoolBtn span:not(.toolIcon),#homeAttemptsBtn span:not(.toolIcon){display:none!important}#exitSchoolBtn,#homeAttemptsBtn{width:34px!important;min-width:34px!important;padding:0!important}}
+@media(max-width:380px){#exitSchoolBtn,#homeAttemptsBtn,.homeTool.iconOnly{width:30px!important;min-width:30px!important;height:30px!important}}
+
+/* V69 — responsive readability and touch layout polish.
+   Presentation-only overrides: school access, scoring, video playback and data flow are unchanged. */
+html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, input, select, textarea { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+}
+
+@media (max-width: 800px) {
+  /* School access: let the full card scroll naturally on short screens. */
+  .schoolGate {
+    justify-content: flex-start !important;
+    align-items: stretch;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: clamp(16px, 4vw, 26px) 16px 18px !important;
+  }
+  .gateContentSimple {
+    width: min(100%, 520px) !important;
+    max-width: 520px !important;
+    flex: 0 0 auto;
+    margin: 0 auto !important;
+    padding: 18px 0 12px !important;
+    gap: clamp(16px, 3vh, 24px) !important;
+  }
+  .gateCopySimple .gateEyebrow {
+    font-size: 9px !important;
+    line-height: 1.45;
+    letter-spacing: 1.25px !important;
+    white-space: normal;
+  }
+  .gateCopySimple h1 {
+    font-size: clamp(32px, 8.4vw, 48px) !important;
+    line-height: 1.04 !important;
+    letter-spacing: -1.15px !important;
+    margin: 12px 0 !important;
+    overflow-wrap: anywhere;
+  }
+  .gateCopySimple p {
+    max-width: 36rem !important;
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+  }
+  .gateCard {
+    width: 100% !important;
+    max-width: none !important;
+    padding: clamp(18px, 5vw, 24px) !important;
+    border-radius: 18px !important;
+  }
+  .gateCardTop { gap: 11px; margin-bottom: 18px !important; }
+  .gateIcon { width: 44px; height: 44px; flex: 0 0 44px; font-size: 22px; }
+  .gateKicker { font-size: 9px !important; letter-spacing: 1.4px; }
+  .gateCard h2 { font-size: clamp(21px, 5.5vw, 25px) !important; line-height: 1.2; }
+  .gateCard label { font-size: 13px !important; margin-bottom: 8px; }
+  .gateCard input {
+    height: 50px !important;
+    padding: 0 13px !important;
+    font-size: 16px !important;
+    letter-spacing: .5px !important;
+  }
+  .gateMessage { min-height: 20px !important; font-size: 12px !important; line-height: 1.4; overflow-wrap: anywhere; }
+  .gateButton { min-height: 50px; height: auto !important; padding: 12px 15px !important; font-size: 13px !important; }
+  .gateFooter {
+    position: relative !important;
+    inset: auto !important;
+    flex: 0 0 auto;
+    margin: 8px 0 0 !important;
+    padding: 12px 2px 0;
+    border-top: 1px solid rgba(255,255,255,.12);
+    font-size: 9px !important;
+    line-height: 1.45;
+    letter-spacing: .8px !important;
+  }
+  .gateFooter span { display: block !important; max-width: 58%; }
+  .gateFooter a { text-align: right; }
+
+  /* Candidate home: normal-size copy, a readable four-item information row and a scrollable sheet. */
+  .topbar { height: 60px !important; min-height: 60px; padding: 6px 10px !important; gap: 8px; }
+  .topbar .brand { min-width: 0; flex: 1 1 auto; gap: 8px; }
+  .topbar .logo { width: 42px !important; height: 42px !important; flex: 0 0 42px; }
+  .topbar .school { max-width: 100%; font-size: 11px !important; line-height: 1.2; letter-spacing: .45px !important; white-space: normal; overflow-wrap: anywhere; }
+  .topbar .testname { font-size: 7px !important; line-height: 1.25; letter-spacing: .8px !important; white-space: normal; }
+  .hud { display: none !important; }
+  .homeTools { flex: 0 0 auto; gap: 6px !important; }
+  .homeTool, .homeTool.iconOnly {
+    width: 36px !important; min-width: 36px !important; height: 36px !important;
+    padding: 0 !important; border-radius: 10px !important; font-size: 16px !important;
+  }
+  .homeTool:first-child span:not(.toolIcon), #homeAttemptsBtn span:not(.toolIcon) { display: none !important; }
+  .stage { height: calc(100dvh - 60px) !important; min-height: 0; overflow: hidden !important; }
+  .start.panel {
+    position: absolute !important; inset: 0 !important; width: 100% !important;
+    height: 100% !important; max-width: none !important; min-height: 0 !important;
+    padding: 20px 15px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    display: block !important; overflow-x: hidden !important; overflow-y: auto !important;
+    overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
+  }
+  .start.panel:after { display: none !important; }
+  .homeShell {
+    width: 100% !important; max-width: 640px !important; min-height: 0 !important;
+    height: auto !important; margin: 0 auto !important; overflow: visible !important;
+    display: flex !important; flex-direction: column !important; align-items: stretch !important;
+    justify-content: flex-start !important; gap: 20px !important;
+  }
+  .homeCopy { width: 100% !important; min-width: 0; padding: 0 !important; text-align: center !important; }
+  .homeKicker {
+    display: flex; justify-content: center !important; flex-wrap: wrap; white-space: normal;
+    gap: 7px; margin: 0 0 10px !important; font-size: 9px !important;
+    line-height: 1.45; letter-spacing: 1.1px !important;
+  }
+  .homeKicker span { flex: 0 0 6px; width: 6px; height: 6px; }
+  .homeIntroTitle { display: block !important; width: 100%; margin: 0 0 12px !important; }
+  .homeIntroTitle h2, .homeCopy h2 {
+    font-size: clamp(28px, 7.2vw, 38px) !important;
+    line-height: 1.08 !important; letter-spacing: -1.1px !important;
+    margin: 0 0 9px !important; overflow-wrap: anywhere;
+  }
+  .homeLead {
+    max-width: 560px !important; margin: 0 auto !important;
+    font-size: 13px !important; line-height: 1.5 !important;
+  }
+  .homeStats {
+    width: 100% !important; max-width: none !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important; margin: 14px 0 12px !important;
+  }
+  .homeStats div { min-width: 0; padding: 10px 5px !important; border-radius: 11px !important; }
+  .homeStats b { font-size: clamp(18px, 4.6vw, 23px) !important; line-height: 1.15; }
+  .homeStats span { font-size: clamp(8px, 2vw, 10px) !important; line-height: 1.25; letter-spacing: .25px !important; margin-top: 5px !important; white-space: normal !important; overflow-wrap: anywhere; }
+  .homeTip { width: 100%; max-width: none; margin: 0; padding: 11px 12px !important; gap: 10px; border-radius: 12px; text-align: left; }
+  .homeTip>span { width: 22px; height: 22px; flex-basis: 22px; font-size: 12px; }
+  .homeTip strong { font-size: 12px !important; line-height: 1.3; }
+  .homeTip small { font-size: 11px !important; line-height: 1.45 !important; margin-top: 3px; }
+  .examCard {
+    width: 100% !important; max-width: none !important; min-width: 0 !important;
+    margin: 0 !important; padding: 20px !important; border-radius: 18px !important;
+    overflow: visible !important;
+  }
+  .cardTop { width: 100%; min-width: 0; gap: 10px; margin-bottom: 16px !important; align-items: center; }
+  .cardTop>div:first-child { min-width: 0; }
+  .cardEyebrow { font-size: 9px !important; line-height: 1.4; letter-spacing: 1.4px !important; }
+  .examCard h2 { font-size: clamp(20px, 5.5vw, 25px) !important; line-height: 1.2 !important; margin: 4px 0 0 !important; white-space: normal !important; }
+  .cardSecure { flex: 0 0 auto; font-size: 8px !important; letter-spacing: .5px; padding: 6px 7px !important; }
+  .examCard .fields { width: 100% !important; display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: 13px !important; margin: 0 !important; }
+  .examCard .fields label {
+    position: static !important; display: block !important; height: auto !important;
+    width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+    margin: 0 !important; padding: 0 !important; color: #d6e0e6 !important;
+    font-size: 12px !important; line-height: 1.35 !important; font-weight: 800;
+  }
+  .examCard .fields label:before { display: none !important; content: none !important; }
+  .examCard .fields label span {
+    position: static !important; display: block !important; margin: 0 0 6px !important;
+    color: #d6e0e6 !important; font-size: 12px !important; line-height: 1.35 !important;
+    letter-spacing: .1px !important; font-weight: 800 !important; text-transform: none !important;
+  }
+  .examCard .fields input {
+    position: static !important; inset: auto !important; display: block !important;
+    width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+    height: 48px !important; margin: 0 !important; padding: 0 13px !important;
+    border-radius: 11px !important; font-size: 16px !important; line-height: normal !important;
+    font-weight: 500 !important; box-sizing: border-box !important;
+  }
+  .examCard .fields input::placeholder { color: #9aabb5 !important; opacity: 1; }
+  .startExamBtn { width: 100% !important; height: 50px !important; min-height: 50px; margin: 15px 0 0 !important; font-size: 13px !important; letter-spacing: 1px !important; border-radius: 12px !important; }
+  .startExamBtn b { font-size: 22px !important; }
+  .cardBottom { margin-top: 10px !important; justify-content: center !important; gap: 8px; }
+  .keyboardHint { font-size: 10px !important; line-height: 1.4; text-align: center !important; }
+  .installAppCard { display: none !important; }
+
+  /* Result and record overlays remain fully reachable when the device is short. */
+  .result.panel {
+    inset: 6px !important; height: auto !important; min-height: 0 !important;
+    padding: 16px 13px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-x: hidden !important; overflow-y: auto !important;
+    justify-content: flex-start !important; align-items: stretch !important;
+    text-align: center !important; gap: 0 !important;
+  }
+  .result .performanceSummary { padding: 12px !important; }
+  .result .performanceSummary p, .resultAdvice p { font-size: 12px !important; line-height: 1.5 !important; }
+  .result .performanceTitle { font-size: 10px !important; }
+  .result .performanceStats span { font-size: 10px !important; }
+  .result .resultSummary span { font-size: 8px !important; line-height: 1.3; }
+  .result .resultSummary b { font-size: 14px !important; }
+  .result .resultActions { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px !important; }
+  .result .resultActions button { min-width: 0; min-height: 44px !important; padding: 10px 8px !important; font-size: 10px !important; white-space: normal !important; line-height: 1.3; }
+  .attemptsModal, .installHelpModal, .limitModal { padding: 12px !important; overflow-y: auto; }
+  .attemptsCard { width: 100% !important; max-width: 560px; max-height: calc(100dvh - 24px) !important; padding: 24px 16px 16px !important; border-radius: 18px !important; }
+  .attemptsCard h3 { font-size: 21px !important; line-height: 1.2; }
+  .attemptIntro { font-size: 13px !important; }
+  .attemptSearch { grid-template-columns: minmax(0, 1fr) 78px !important; }
+  .attemptSearch input { min-width: 0; font-size: 16px; }
+  .attemptPrivacy { font-size: 10px !important; line-height: 1.45; }
+  .installHelpCard { max-height: calc(100dvh - 24px); overflow-y: auto; }
+}
+
+@media (max-width: 430px) {
+  .schoolGate { padding: 12px 12px 14px !important; }
+  .gateContentSimple { gap: 15px !important; padding-top: 12px !important; }
+  .gateCopySimple h1 { font-size: clamp(30px, 8.3vw, 37px) !important; }
+  .gateCopySimple .gateEyebrow { font-size: 8.5px !important; letter-spacing: .9px !important; }
+  .gateCard { padding: 17px !important; }
+  .gateCardTop { margin-bottom: 14px !important; }
+  .gateFooter { font-size: 8px !important; letter-spacing: .4px !important; }
+  .gateFooter span { max-width: 52%; }
+  .start.panel { padding-left: 12px !important; padding-right: 12px !important; }
+  .homeShell { gap: 16px !important; }
+  .homeIntroTitle h2, .homeCopy h2 { font-size: clamp(27px, 7.1vw, 32px) !important; }
+  .homeLead { font-size: 12.5px !important; }
+  .homeStats { gap: 5px !important; }
+  .homeStats div { padding: 9px 3px !important; }
+  .homeStats span { font-size: 8px !important; letter-spacing: 0 !important; }
+  .examCard { padding: 17px !important; }
+  .result .resultActions button { font-size: 9.5px !important; }
+  .topOverlay { top: 8px !important; left: 8px !important; right: 8px !important; gap: 6px; }
+  .pill { padding: 7px 9px !important; font-size: 11px !important; }
+  .pill b { font-size: 15px !important; }
+  .rightTools { top: 58px !important; right: 8px !important; gap: 6px !important; }
+  .rightTools button { width: 35px !important; height: 35px !important; font-size: 17px !important; }
+  .tapPrompt { max-width: calc(100vw - 76px); bottom: 83px !important; font-size: 11px !important; line-height: 1.35; padding: 8px 12px !important; }
+  .bottomHud { left: 8px !important; right: 8px !important; bottom: 7px !important; grid-template-columns: minmax(0,1fr) 94px !important; grid-template-rows: 36px 16px !important; gap: 4px 8px !important; }
+  .skip { height: 40px !important; min-width: 0; font-size: 10px !important; }
+  .timeline { min-width: 0; gap: 6px !important; }
+  .timeline span { font-size: 10px !important; }
+  .track { min-width: 0; height: 8px !important; }
+}
+
+@media (max-width: 360px) {
+  .topbar { padding-left: 7px !important; padding-right: 7px !important; }
+  .topbar .logo { width: 36px !important; height: 36px !important; flex-basis: 36px; }
+  .topbar .school { font-size: 10px !important; }
+  .topbar .testname { font-size: 6.5px !important; }
+  .homeTools { gap: 4px !important; }
+  .homeTool, .homeTool.iconOnly { width: 32px !important; min-width: 32px !important; height: 32px !important; }
+  .homeStats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .homeStats span { font-size: 9px !important; }
+  .gateCard { padding: 15px !important; }
+  .attemptSearch { grid-template-columns: minmax(0,1fr) 66px !important; }
+}
+
+@media (max-height: 520px) and (max-width: 800px) {
+  .schoolGate { justify-content: flex-start !important; }
+  .gateContentSimple { padding-top: 8px !important; gap: 10px !important; }
+  .gateCopySimple h1 { font-size: 30px !important; margin: 7px 0 !important; }
+  .gateCopySimple p { font-size: 12px !important; }
+  .gateCard { padding: 14px !important; }
+  .gateCardTop { margin-bottom: 10px !important; }
+  .gateCard input, .gateButton { height: 44px !important; min-height: 44px; }
+  .homeShell { gap: 12px !important; }
+  .homeIntroTitle h2, .homeCopy h2 { font-size: 26px !important; }
+  .homeLead { font-size: 12px !important; }
+  .examCard { padding: 14px !important; }
+  .examCard .fields { gap: 9px !important; }
+  .examCard .fields input { height: 44px !important; }
+}
+
+
+/* V70 — move school branding into the open sky area on mobile home screens.
+   Only active on the candidate home view in portrait mobile layouts. */
+@media (max-width: 700px) and (orientation: portrait) {
+  body.home-active .topbar {
+    overflow: visible !important;
+  }
+  body.home-active .topbar .brand {
+    position: absolute !important;
+    top: clamp(82px, 13.5vh, 126px) !important;
+    left: clamp(9px, 3vw, 14px) !important;
+    right: auto !important;
+    width: max-content !important;
+    max-width: calc(100vw - 104px) !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    overflow: visible !important;
+    z-index: 25 !important;
+  }
+  body.home-active .topbar .logo {
+    width: 44px !important;
+    height: 42px !important;
+    flex: 0 0 44px !important;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,.5));
+  }
+  body.home-active .topbar .school {
+    max-width: 45vw !important;
+    font-size: clamp(11px, 2.8vw, 12px) !important;
+    line-height: 1.15 !important;
+    letter-spacing: .4px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,.85);
+  }
+  body.home-active .topbar .testname {
+    font-size: clamp(6.5px, 1.8vw, 7.5px) !important;
+    line-height: 1.3 !important;
+    letter-spacing: .8px !important;
+    white-space: normal !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,.9);
+  }
+}
+
+
+/* V71 — polished stacked, centered school identity for portrait mobile home screens.
+   Keep the school name and test label on separate lines underneath the logo. */
+@media (max-width: 700px) and (orientation: portrait) {
+  body.home-active .topbar .brand {
+    top: clamp(78px, 11.6vh, 98px) !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: min(86vw, 320px) !important;
+    max-width: calc(100vw - 88px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    text-align: center !important;
+  }
+  body.home-active .topbar .brand > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    text-align: center !important;
+  }
+  body.home-active .topbar .logo {
+    display: block !important;
+    width: 68px !important;
+    height: 42px !important;
+    flex: 0 0 42px !important;
+    margin: 0 auto 1px !important;
+    object-fit: contain !important;
+  }
+  body.home-active .topbar .school {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+    font-size: clamp(11px, 3.1vw, 13px) !important;
+    line-height: 1.15 !important;
+    letter-spacing: .45px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,.9) !important;
+  }
+  body.home-active .topbar .testname {
+    display: block !important;
+    width: 100% !important;
+    margin: 3px auto 0 !important;
+    text-align: center !important;
+    font-size: clamp(7px, 1.95vw, 8px) !important;
+    line-height: 1.3 !important;
+    letter-spacing: .85px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,.95) !important;
+  }
+}
+
+
+/* V77 — Responsive split-screen school login and registration landing page */
+.schoolGateLanding{position:absolute;inset:0;display:block!important;overflow-y:auto!important;overflow-x:hidden!important;padding:clamp(28px,5vh,58px) clamp(16px,5vw,72px) 28px!important;scrollbar-width:thin;scrollbar-color:#526b7d transparent}
+.landingHero{position:relative;z-index:1;width:min(1120px,100%);margin:0 auto}
+.landingIntro{text-align:center;max-width:760px;margin:0 auto 30px}
+.landingIntro .gateEyebrow{justify-content:center}
+.landingIntro h1{font-size:clamp(34px,5.5vw,64px);line-height:1.04;letter-spacing:-1.8px;font-weight:900;margin:16px 0 12px}
+.landingIntro h1 em{font-style:normal;color:var(--yellow)}
+.landingIntro>p{color:#b8c7d2;font-size:clamp(14px,1.5vw,18px);line-height:1.6;margin:0 auto;max-width:650px}
+.landingColumns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(18px,3vw,30px);align-items:stretch;max-width:980px;margin:0 auto}
+.landingLoginCard{max-width:none!important;justify-self:stretch!important;width:100%;min-height:330px;padding:clamp(24px,3vw,36px)!important}
+.landingLoginCard .gateCardTop{margin-bottom:24px}
+.landingLoginCard h2,.landingRegisterCard h2{font-size:clamp(23px,2.6vw,31px);font-weight:850;line-height:1.18;letter-spacing:-.5px;margin:4px 0 0}
+.landingLoginCard>label{display:block;font-size:13px;font-weight:800;color:#dce6ed;margin:0 0 8px}
+.landingLoginCard>input{width:100%;min-height:54px;border:1px solid #385264;border-radius:12px;background:#06111a;color:#fff;padding:0 16px;outline:none}
+.landingLoginCard>input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px color-mix(in srgb,var(--yellow) 17%,transparent)}
+.landingLoginCard .gateButton{width:100%;margin-top:14px;min-height:56px}
+.landingCardNote{font-size:11px;color:#8096a5;text-align:center;margin:16px 0 0}
+.landingRegisterCard{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-height:330px;padding:clamp(24px,3vw,38px);border:1px solid rgba(117,166,192,.28);border-radius:22px;background:linear-gradient(145deg,rgba(12,34,47,.9),rgba(5,15,24,.93));box-shadow:0 25px 65px #0005;backdrop-filter:blur(15px)}
+.registerIcon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:#16a34a20;border:1px solid #22c55e65;color:#4ade80;font-size:26px;margin-bottom:19px}
+.landingRegisterCard .gateKicker{color:#70d99a}
+.landingRegisterCard h2{max-width:430px;margin:10px 0 13px}
+.landingRegisterCard>p{color:#aebfca;line-height:1.65;font-size:14px;margin:0 0 22px;max-width:430px}
+.whatsappInquiryBtn{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;min-height:58px;padding:12px 16px;border-radius:13px;background:#16a34a;color:white;text-decoration:none;font-weight:900;font-size:14px;box-shadow:0 12px 30px #16a34a30;transition:transform .2s,background .2s}
+.whatsappInquiryBtn:hover{background:#15803d;color:white;transform:translateY(-2px)}
+.whatsappInquiryBtn svg{width:22px;height:22px;fill:currentColor;flex:0 0 auto}
+.whatsappInquiryBtn b{font-size:19px;margin-left:auto}
+.landingRegisterCard>small{color:#8299a8;font-size:11px;margin-top:13px;line-height:1.5}
+.landingTrust{display:flex;align-items:center;justify-content:center;gap:13px;flex-wrap:wrap;margin:27px auto 0;color:#9fb0bd;font-size:9px;font-weight:800;letter-spacing:1.4px}
+.landingTrust span{color:#4ade80;font-size:8px}.landingTrust i{width:3px;height:3px;background:#526b7d;border-radius:50%}
+.landingSeo{position:relative;z-index:1;width:min(980px,100%);margin:44px auto 30px;padding:clamp(20px,3vw,32px);border:1px solid #263e4d;border-radius:18px;background:rgba(5,15,23,.86);color:#b7c6d0}
+.landingSeo h2{font-size:clamp(18px,2vw,23px);font-weight:850;color:#f1f5f9;margin:0 0 10px}
+.landingSeo p{font-size:14px;line-height:1.8;margin:0 0 23px}
+.landingSeo p:last-child{margin-bottom:0}
+.schoolGateLanding .gateFooter{position:relative;left:auto;right:auto;bottom:auto;width:min(1120px,100%);margin:20px auto 0;padding:14px 0 0;border-top:1px solid #ffffff15}
+.topScorersCard{position:relative;max-width:1120px;margin:24px auto 0;padding:22px;border:1px solid #2b4657;border-radius:20px;background:linear-gradient(145deg,rgba(12,30,43,.96),rgba(5,14,22,.98));box-shadow:0 18px 45px #0004}
+.topScorersHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.topScorersHeader h2{font-size:clamp(20px,2.5vw,27px);font-weight:900;margin:5px 0}
+.topScorersHeader p{color:#94a9b8;font-size:13px;margin:0}
+.leaderboardLive{display:flex;align-items:center;gap:7px;border:1px solid #245d45;color:#75e5a1;background:#123322;padding:7px 10px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:1px}
+.leaderboardLive i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 #4ade8070;animation:leaderPulse 1.8s infinite}
+@keyframes leaderPulse{70%{box-shadow:0 0 0 7px #4ade8000}100%{box-shadow:0 0 0 0 #4ade8000}}
+.leaderboardContent{display:grid;gap:8px;margin-top:18px}
+.leaderboardRow{display:flex;align-items:center;gap:13px;padding:12px 14px;border:1px solid #243b4b;border-radius:12px;background:#091722}
+.leaderboardRow.leaderboardTop{border-color:#b78d3545;background:linear-gradient(90deg,#8a68151c,#091722)}
+.leaderboardRank{width:35px;flex:0 0 35px;text-align:center;font-size:22px;font-weight:900;color:#aab7c2}
+.leaderboardStudent{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.leaderboardStudent strong{font-size:14px;color:#f4f7fa;overflow-wrap:anywhere}
+.leaderboardStudent small{font-size:11px;color:#8299a8}
+.leaderboardScore{font-size:23px;color:var(--yellow);font-weight:950;white-space:nowrap}
+.leaderboardScore small{font-size:11px;color:#8299a8;margin-left:3px}
+.leaderboardLoading,.leaderboardEmpty{padding:20px;text-align:center;color:#8ea3b2;font-size:13px;border:1px dashed #344d5e;border-radius:12px}
+.leaderboardUpdated{font-size:10px;color:#718b9b;text-align:right;margin-top:12px}
+.start{overflow-y:auto!important;overflow-x:hidden!important;padding-bottom:28px}
+@media(max-width:760px){
+ .schoolGateLanding{padding:28px 15px 24px!important}
+ .landingIntro{margin-bottom:23px}
+ .landingColumns{grid-template-columns:1fr;max-width:520px;gap:15px}
+ .landingLoginCard,.landingRegisterCard{min-height:0}
+ .landingRegisterCard{padding:25px}
+ .landingTrust{gap:8px;font-size:8px;letter-spacing:.8px;margin-top:20px}
+ .landingSeo{margin-top:28px;padding:20px}
+ .landingSeo p{font-size:13px}
+ .topScorersCard{margin:18px 12px 24px;padding:17px}
+ .start{overflow-y:auto!important}
+}
+@media(max-width:420px){
+ .landingIntro h1{font-size:35px}
+ .landingLoginCard,.landingRegisterCard{padding:21px!important}
+ .whatsappInquiryBtn{font-size:12px}
+ .topScorersHeader{flex-direction:column}
+}
+
+@media(max-width:600px){
+  .topbar .logo{width:62px!important;height:54px!important;flex:0 0 62px!important;object-fit:contain!important}
+}
+
+
+/* V78 — fixed, prominent school branding + balanced desktop home layout */
+.topbar{
+  position:sticky!important;top:0!important;z-index:1000!important;
+  min-height:88px!important;height:88px!important;padding:8px 24px!important;
+  background:rgba(3,8,13,.97)!important;backdrop-filter:blur(14px);
+  overflow:visible!important;
+}
+.topbar .brand{position:static!important;transform:none!important;flex-direction:row!important;
+  align-items:center!important;justify-content:flex-start!important;gap:16px!important;
+  width:auto!important;max-width:none!important;margin:0!important;order:0!important}
+.topbar .logo{width:104px!important;height:72px!important;flex:0 0 104px!important;object-fit:contain!important}
+.topbar .school{font-size:clamp(21px,2vw,29px)!important;line-height:1.1!important;letter-spacing:1.2px!important}
+.topbar .testname{font-size:13px!important;letter-spacing:2.4px!important;margin-top:5px!important}
+.topbar .homeTools{position:static!important;margin-left:auto!important;order:2!important}
+.stage{height:calc(100dvh - 88px)!important;min-height:0!important;overflow:hidden!important}
+.start.panel{
+  inset:8px!important;max-width:none!important;width:auto!important;height:auto!important;
+  padding:12px 24px!important;overflow:hidden!important;justify-content:stretch!important;
+}
+.homeShell{
+  width:100%!important;max-width:1500px!important;height:100%!important;min-height:0!important;
+  margin:0 auto!important;padding:4px 10px!important;
+  grid-template-columns:minmax(0,1.08fr) minmax(360px,.82fr)!important;
+  gap:clamp(22px,3vw,48px)!important;align-items:center!important;
+}
+.homeCopy{height:100%!important;min-height:0!important;display:flex!important;flex-direction:column!important;
+  justify-content:center!important;padding:0!important;overflow:hidden!important}
+.homeIntroTitle{display:none!important}
+.homeKicker{margin:0 0 13px!important;font-size:11px!important}
+.homeStats{grid-template-columns:repeat(4,minmax(0,1fr))!important;max-width:650px!important;
+  width:100%!important;gap:9px!important;margin:0 0 12px!important}
+.homeStats>div{min-width:0!important;padding:12px 8px!important}
+.homeTip{margin:0 0 12px!important;max-width:650px!important}
+.topScorersCard{
+  width:100%!important;max-width:650px!important;min-height:0!important;flex:1 1 auto!important;
+  margin:0!important;padding:14px 16px!important;overflow:hidden!important;
+  display:flex!important;flex-direction:column!important;justify-content:flex-start!important;
+}
+.topScorersHeader{align-items:center!important;gap:8px!important}
+.topScorersHeader h2{font-size:clamp(17px,1.6vw,22px)!important;margin:2px 0!important}
+.topScorersHeader p{display:none!important}
+.topScorersHeader .cardEyebrow{font-size:9px!important}
+.leaderboardLive{padding:5px 8px!important;font-size:9px!important}
+.leaderboardContent{gap:6px!important;margin-top:10px!important;min-height:0!important;overflow:hidden!important}
+.leaderboardRow{padding:7px 10px!important;gap:9px!important;min-height:48px!important}
+.leaderboardRank{width:27px!important;flex-basis:27px!important;font-size:17px!important}
+.leaderboardStudent{gap:1px!important}
+.leaderboardStudent strong{font-size:12px!important}
+.leaderboardStudent small{font-size:9px!important}
+.leaderboardScore{font-size:18px!important}
+.leaderboardScore small{font-size:9px!important}
+.leaderboardRow:nth-child(n+6){display:none!important}
+.leaderboardUpdated{margin-top:6px!important;font-size:9px!important}
+.examCard{align-self:center!important;justify-self:stretch!important;max-width:560px!important;width:100%!important}
+@media(max-height:760px) and (min-width:901px){
+ .topbar{min-height:76px!important;height:76px!important}
+ .topbar .logo{width:90px!important;height:62px!important;flex-basis:90px!important}
+ .stage{height:calc(100dvh - 76px)!important}
+ .start.panel{padding:8px 18px!important}
+ .homeStats>div{padding:9px 7px!important}
+ .homeTip{padding:9px 12px!important;margin-bottom:8px!important}
+ .topScorersCard{padding:10px 13px!important}
+ .leaderboardRow{min-height:41px!important;padding:5px 9px!important}
+}
+@media(max-width:900px){
+ .topbar{
+   position:sticky!important;top:0!important;height:auto!important;min-height:0!important;
+   padding:9px 12px 10px!important;display:flex!important;flex-direction:column!important;
+   align-items:center!important;gap:8px!important;overflow:visible!important
+ }
+ .topbar .brand{
+   position:static!important;transform:none!important;display:flex!important;
+   flex-direction:column!important;align-items:center!important;justify-content:center!important;
+   width:100%!important;max-width:none!important;gap:3px!important;margin:0!important;order:0!important
+ }
+ .topbar .logo{width:112px!important;height:78px!important;flex:0 0 78px!important}
+ .topbar .brand>div{text-align:center!important}
+ .topbar .school{font-size:clamp(19px,4vw,25px)!important;line-height:1.1!important}
+ .topbar .testname{font-size:11px!important;letter-spacing:2px!important}
+ .topbar .homeTools{position:static!important;margin:0 auto!important;order:1!important}
+ .stage{height:calc(100dvh - 150px)!important;min-height:480px!important;overflow-y:auto!important;overflow-x:hidden!important}
+ .start.panel{
+   position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;
+   height:auto!important;min-height:100%!important;margin:0!important;padding:20px 14px 24px!important;
+   display:block!important;overflow:visible!important
+ }
+ .homeShell{height:auto!important;min-height:0!important;display:flex!important;flex-direction:column!important;
+   gap:17px!important;padding:0!important;overflow:visible!important}
+ .homeCopy{height:auto!important;overflow:visible!important;width:100%!important}
+ .homeIntroTitle{display:block!important}
+ .homeCopy h2{font-size:clamp(32px,7vw,52px)!important}
+ .homeLead{font-size:14px!important;margin-bottom:14px!important}
+ .homeStats{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+ .homeStats>div{padding:10px 5px!important}
+ .topScorersCard{flex:none!important;width:100%!important;max-width:none!important;margin:14px 0 0!important;padding:17px!important;overflow:visible!important}
+ .topScorersHeader p{display:block!important}
+ .leaderboardContent{overflow:visible!important}
+ .leaderboardRow:nth-child(n){display:flex!important}
+ .examCard{max-width:none!important;width:100%!important;order:2!important}
+}
+@media(max-width:520px){
+ .topbar{padding:7px 10px 8px!important;gap:6px!important}
+ .topbar .logo{width:100px!important;height:70px!important;flex-basis:70px!important}
+ .topbar .school{font-size:18px!important}
+ .topbar .testname{font-size:9px!important;letter-spacing:1.7px!important}
+ .stage{height:calc(100dvh - 133px)!important;min-height:460px!important}
+ .start.panel{padding:15px 11px 22px!important}
+ .homeStats{gap:5px!important}
+ .homeStats>div{padding:9px 3px!important}
+ .homeStats b{font-size:21px!important}
+ .homeStats span{font-size:8px!important}
+ .topScorersCard{padding:14px!important}
+ .topScorersHeader{flex-direction:row!important}
+}
+
+/* V80 — Mobile school home: fixed branding, candidate form first, leaderboard below */
+@media (max-width: 700px) {
+  body.home-active .topbar {
+    position: sticky !important; top: 0 !important; z-index: 1200 !important;
+    display: flex !important; flex-direction: column !important; align-items: center !important;
+    justify-content: center !important; width: 100% !important; height: auto !important;
+    min-height: 0 !important; padding: 9px 12px 8px !important; gap: 7px !important;
+    overflow: visible !important; background: rgba(3,8,13,.97) !important;
+    border-bottom: 1px solid rgba(255,255,255,.12) !important;
+    -webkit-backdrop-filter: blur(14px) !important; backdrop-filter: blur(14px) !important;
+  }
+  body.home-active .topbar .brand {
+    position: static !important; inset: auto !important; transform: none !important;
+    display: flex !important; flex: 0 0 auto !important; flex-direction: column !important;
+    align-items: center !important; justify-content: center !important; width: 100% !important;
+    max-width: 100% !important; min-width: 0 !important; margin: 0 !important; padding: 0 !important;
+    gap: 2px !important; order: 0 !important; text-align: center !important;
+    overflow: visible !important; z-index: 1 !important;
+  }
+  body.home-active .topbar .brand > div {
+    display: block !important; width: 100% !important; max-width: 100% !important;
+    min-width: 0 !important; text-align: center !important;
+  }
+  body.home-active .topbar .logo {
+    display: block !important; width: min(116px,29vw) !important; height: 58px !important;
+    max-width: 116px !important; flex: 0 0 58px !important; margin: 0 auto 2px !important;
+    object-fit: contain !important; object-position: center !important;
+    filter: drop-shadow(0 2px 7px rgba(0,0,0,.55)) !important;
+  }
+  body.home-active .topbar .school {
+    display: block !important; width: 100% !important; max-width: 100% !important;
+    margin: 0 auto !important; color: #f7fafc !important; text-align: center !important;
+    font-size: clamp(14px,3.8vw,19px) !important; line-height: 1.15 !important;
+    letter-spacing: .65px !important; font-weight: 900 !important; white-space: normal !important;
+    overflow-wrap: anywhere !important; text-shadow: 0 2px 8px rgba(0,0,0,.9) !important;
+  }
+  body.home-active .topbar .testname {
+    display: block !important; width: 100% !important; margin: 3px auto 0 !important;
+    color: var(--yellow) !important; text-align: center !important;
+    font-size: clamp(8px,2.2vw,10px) !important; line-height: 1.25 !important;
+    letter-spacing: 1.5px !important; white-space: normal !important;
+    overflow-wrap: anywhere !important; text-shadow: 0 2px 8px rgba(0,0,0,.95) !important;
+  }
+  body.home-active .topbar .hud { display: none !important; }
+  body.home-active .topbar .homeTools {
+    position: static !important; inset: auto !important; display: flex !important;
+    flex: 0 0 auto !important; align-items: center !important; justify-content: center !important;
+    gap: 8px !important; width: auto !important; margin: 0 auto !important;
+    padding: 0 !important; order: 1 !important; transform: none !important;
+  }
+  body.home-active .topbar .homeTool {
+    display: inline-flex !important; align-items: center !important; justify-content: center !important;
+    width: 38px !important; min-width: 38px !important; height: 36px !important;
+    min-height: 36px !important; padding: 0 !important; border-radius: 11px !important;
+  }
+  body.home-active .topbar .homeTool span:not(.toolIcon) { display: none !important; }
+  body.home-active .stage {
+    height: calc(100dvh - 148px) !important; min-height: 0 !important;
+    overflow-x: hidden !important; overflow-y: auto !important;
+    overscroll-behavior-y: contain !important; -webkit-overflow-scrolling: touch !important;
+    position: relative !important;
+  }
+  body.home-active .start.panel {
+    position: relative !important; inset: auto !important; width: 100% !important;
+    height: auto !important; min-height: 100% !important; max-width: none !important;
+    margin: 0 !important; padding: 18px 12px calc(28px + env(safe-area-inset-bottom,0px)) !important;
+    display: block !important; overflow: visible !important;
+  }
+  body.home-active .homeShell {
+    display: flex !important; flex-direction: column !important; align-items: stretch !important;
+    justify-content: flex-start !important; width: 100% !important; max-width: 620px !important;
+    height: auto !important; min-height: 0 !important; margin: 0 auto !important;
+    padding: 0 !important; gap: 12px !important; overflow: visible !important;
+  }
+  /* Flatten desktop's left column so the candidate form can precede the leaderboard on mobile. */
+  body.home-active .homeCopy { display: contents !important; }
+  body.home-active .homeKicker { order: 1 !important; margin: 0 0 2px !important; }
+  body.home-active .homeIntroTitle { order: 2 !important; }
+  body.home-active .homeStats { order: 3 !important; margin: 4px 0 2px !important; }
+  body.home-active .homeTip { order: 4 !important; margin: 0 0 3px !important; }
+  body.home-active .examCard {
+    order: 5 !important; width: 100% !important; max-width: none !important; margin: 0 !important;
+    padding: 20px 17px !important; align-self: stretch !important; justify-self: stretch !important;
+  }
+  body.home-active #topScorers {
+    order: 6 !important; display: flex !important; flex-direction: column !important;
+    width: 100% !important; max-width: none !important; margin: 5px 0 0 !important;
+    padding: 17px 14px !important; overflow: visible !important;
+  }
+  body.home-active .topScorersHeader { flex-direction: row !important; align-items: center !important; gap: 9px !important; }
+  body.home-active .topScorersHeader p { display: block !important; }
+  body.home-active .leaderboardContent { overflow: visible !important; }
+  body.home-active .leaderboardRow:nth-child(n) { display: flex !important; }
+}
+@media (max-width: 420px) {
+  body.home-active .topbar .logo { width: 104px !important; height: 52px !important; flex-basis: 52px !important; }
+  body.home-active .topbar { padding: 7px 9px 7px !important; gap: 5px !important; }
+  body.home-active .stage { height: calc(100dvh - 137px) !important; }
+  body.home-active .start.panel { padding: 14px 10px calc(24px + env(safe-area-inset-bottom,0px)) !important; }
+  body.home-active .homeStats { gap: 5px !important; }
+  body.home-active .homeStats div { padding: 9px 3px !important; }
+  body.home-active .homeStats b { font-size: 19px !important; }
+  body.home-active .homeStats span { font-size: 8px !important; }
+  body.home-active .examCard { padding: 17px 13px !important; }
+  body.home-active #topScorers { padding: 15px 11px !important; }
+}
+
+
+/* V82 — semantic heading hierarchy: one public H1, candidate screen title is H2 */
+.homeIntroHeading {
+  display: block;
+  margin: 0 0 15px;
+  font: inherit;
+}
+.homeIntroTitle h2 em,
+.homeCopy h2 em {
+  font-style: normal;
+  color: var(--yellow);
+}
+
+/* V83 — WhatsApp school enquiry form fields */
+.whatsappInquiryFields{display:grid;grid-template-columns:1fr;gap:6px;width:100%;margin:2px 0 14px}
+.whatsappInquiryFields label{color:#d8e5eb;font-size:11px;font-weight:800;margin:3px 0 0}
+.whatsappInquiryFields input{width:100%;min-height:43px;padding:10px 12px;border:1px solid #355365;border-radius:10px;background:#06131d;color:#f6f9fb;font:inherit;font-size:13px;outline:none}
+.whatsappInquiryFields input::placeholder{color:#7f95a3}
+.whatsappInquiryFields input:focus{border-color:#25d366;box-shadow:0 0 0 3px #25d36622}
+.landingRegisterCard .whatsappInquiryBtn{margin-top:2px}
+@media(max-width:760px){.whatsappInquiryFields{gap:5px}.whatsappInquiryFields input{min-height:46px;font-size:16px}}
+
+
+/* V84 — clearer leaderboard heading and mobile school identity layout. */
+
+/* Desktop and laptop: prevent title compression/overlap beside the live badge. */
+.topScorersHeader > div:first-child {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+.topScorersHeader h2 {
+  display: flex !important;
+  align-items: baseline !important;
+  flex-wrap: wrap !important;
+  gap: 7px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 7px 0 5px !important;
+  padding: 0 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: clamp(21px, 1.75vw, 27px) !important;
+  font-weight: 900 !important;
+  line-height: 1.28 !important;
+  letter-spacing: -.35px !important;
+  color: #f7fafc !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+  text-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+.leaderboardTrophy {
+  display: inline-block;
+  flex: 0 0 auto;
+  line-height: 1;
+}
+.leaderboardMonth {
+  display: inline-block;
+  color: #f3c94b;
+  font-size: .72em;
+  font-weight: 800;
+  letter-spacing: .35px;
+  white-space: nowrap;
+}
+
+/* Only the authenticated mobile school homepage uses the in-content brand lockup. */
+.mobileSchoolBrand {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  body.home-active .topbar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    padding: 7px 12px !important;
+    gap: 0 !important;
+    position: relative !important;
+    top: auto !important;
+    z-index: 1200 !important;
+    background: rgba(3,8,13,.98) !important;
+    border-bottom: 1px solid rgba(255,255,255,.12) !important;
+    overflow: visible !important;
+  }
+
+  /* Keep the three action icons together at the right end of the top navbar. */
+  body.home-active .topbar > .brand {
+    display: none !important;
+  }
+  body.home-active .topbar .hud {
+    display: none !important;
+  }
+  body.home-active .topbar .homeTools {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    position: static !important;
+    inset: auto !important;
+    width: auto !important;
+    margin: 0 0 0 auto !important;
+    padding: 0 !important;
+    gap: 8px !important;
+    order: 0 !important;
+    transform: none !important;
+  }
+  body.home-active .topbar .homeTool {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+  }
+  body.home-active .topbar .homeTool span:not(.toolIcon) {
+    display: none !important;
+  }
+
+  /* The school logo/name replaces "See the hazard. Respond in time." on mobile. */
+  body.home-active .homeIntroTitle {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 9px !important;
+    text-align: center !important;
+  }
+  body.home-active .homeIntroTitle > h1,
+  body.home-active .homeIntroTitle > .homeIntroHeading {
+    display: none !important;
+  }
+  body.home-active .mobileSchoolBrand {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin: 0 auto 10px !important;
+    gap: 4px !important;
+    text-align: center !important;
+  }
+  body.home-active .mobileSchoolBrand img {
+    display: block !important;
+    width: clamp(104px, 27vw, 136px) !important;
+    height: clamp(68px, 17vw, 88px) !important;
+    max-width: 136px !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,.55)) !important;
+  }
+  body.home-active .mobileSchoolBrand strong {
+    display: block !important;
+    max-width: 100% !important;
+    color: #f7fafc !important;
+    font-size: clamp(16px, 4.2vw, 21px) !important;
+    font-weight: 900 !important;
+    line-height: 1.18 !important;
+    letter-spacing: .7px !important;
+    text-align: center !important;
+    overflow-wrap: anywhere !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,.8) !important;
+  }
+  body.home-active .mobileSchoolBrand > span {
+    display: block !important;
+    color: var(--yellow) !important;
+    font-size: clamp(9px, 2.3vw, 11px) !important;
+    font-weight: 900 !important;
+    line-height: 1.25 !important;
+    letter-spacing: 1.7px !important;
+    text-align: center !important;
+  }
+  body.home-active .homeLead {
+    max-width: 540px !important;
+    margin: 0 auto !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    text-align: center !important;
+  }
+
+  body.home-active .stage {
+    height: calc(100dvh - 58px) !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+  }
+  body.home-active .start.panel {
+    padding-top: 15px !important;
+  }
+  body.home-active .topScorersHeader h2 {
+    font-size: clamp(18px, 4.4vw, 22px) !important;
+    line-height: 1.3 !important;
+    gap: 6px !important;
+  }
+}
+@media (max-width: 380px) {
+  body.home-active .topbar .homeTools { gap: 6px !important; }
+  body.home-active .topbar .homeTool {
+    width: 36px !important; min-width: 36px !important;
+    height: 35px !important; min-height: 35px !important;
+  }
+  body.home-active .mobileSchoolBrand img {
+    width: 108px !important;
+    height: 70px !important;
+  }
+}
+
+
+/* V87 — Public monthly global Top 3 podium on the school access page */
+.globalLeaderboardCard{
+  position:relative;z-index:1;width:min(980px,100%);margin:26px auto 0;padding:24px 24px 18px;
+  border:1px solid rgba(231,190,73,.38);border-radius:22px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(203,156,42,.12),transparent 58%),linear-gradient(145deg,rgba(12,30,43,.97),rgba(5,14,22,.98));
+  box-shadow:0 20px 54px rgba(0,0,0,.28);color:#f5f7fa;
+}
+.globalLeaderboardHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.globalLeaderboardHeader>div{min-width:0;flex:1}
+.globalLeaderboardEyebrow{font-size:10px;line-height:1.4;color:#f3c94b;font-weight:950;letter-spacing:2px}
+.globalLeaderboardHeader h2{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin:7px 0 5px;color:#fff;font-size:clamp(22px,3vw,30px);line-height:1.2;font-weight:950;letter-spacing:-.45px}
+.globalLeaderboardHeader h2 span{color:#f3c94b;font-size:.68em;letter-spacing:.2px;white-space:nowrap}
+.globalLeaderboardHeader p{margin:0;color:#94a9b8;font-size:13px;line-height:1.5}
+.globalLeaderboardLive{display:flex;align-items:center;gap:7px;white-space:nowrap;padding:7px 10px;border:1px solid #245d45;border-radius:20px;background:#123322;color:#75e5a1;font-size:9px;font-weight:950;letter-spacing:1.2px}
+.globalLeaderboardLive i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 #4ade8070;animation:globalLivePulse 1.8s infinite}
+@keyframes globalLivePulse{70%{box-shadow:0 0 0 7px #4ade8000}100%{box-shadow:0 0 0 0 #4ade8000}}
+.globalPodium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:13px;margin:25px auto 0;max-width:850px}
+.globalPodiumPlace{display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;gap:7px;padding:16px 12px 18px;border:1px solid #29485a;border-radius:17px 17px 13px 13px;background:linear-gradient(180deg,rgba(23,45,60,.95),rgba(7,19,29,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.globalPodiumPlace.place-1{min-height:246px;padding-top:22px;border-color:#d7ac3e;background:linear-gradient(180deg,rgba(91,68,19,.42),rgba(8,21,30,.98));box-shadow:0 0 30px rgba(216,173,60,.1),inset 0 1px 0 rgba(255,255,255,.05)}
+.globalPodiumPlace.place-2{min-height:208px;border-color:#718a9d}
+.globalPodiumPlace.place-3{min-height:188px;border-color:#986846}
+.globalPodiumMedal{font-size:34px;line-height:1.1;filter:drop-shadow(0 5px 7px rgba(0,0,0,.3))}
+.place-1 .globalPodiumMedal{font-size:43px}
+.globalPodiumRank{font-size:9px;font-weight:950;letter-spacing:1.6px;color:#e9c75d}
+.place-2 .globalPodiumRank{color:#c7d3dc}.place-3 .globalPodiumRank{color:#d9a178}
+.globalPodiumStudent{display:block;width:100%;font-size:clamp(13px,1.5vw,17px);line-height:1.25;color:#fff;font-weight:950;overflow-wrap:anywhere}
+.globalPodiumSchool{display:block;width:100%;font-size:11px;line-height:1.35;color:#9bb0bf;overflow-wrap:anywhere}
+.globalPodiumScore{display:block;color:#ffcf37;font-size:clamp(27px,3vw,36px);line-height:1;font-weight:1000;margin-top:3px}
+.globalPodiumScore small{font-size:11px;color:#8fa4b2;font-weight:700;margin-left:3px}
+.globalPodiumReaction{display:block;color:#9cb1bf;font-size:10px;line-height:1.3}
+.globalPodiumLoading,.globalPodiumEmpty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;padding:20px;text-align:center;border:1px dashed #405668;border-radius:14px;color:#dce6ec}
+.globalPodiumLoading{color:#9eb3c1}.globalPodiumEmpty span{font-size:12px;color:#91a6b5}
+.globalLeaderboardFooter{display:flex;justify-content:space-between;gap:12px;margin-top:16px;color:#7f98a8;font-size:10px}
+.globalLeaderboardPrivacy{margin:8px 0 0;color:#637d8d;font-size:9px;line-height:1.45;text-align:right}
+@media(max-width:760px){
+ .globalLeaderboardCard{margin-top:20px;padding:19px 14px 14px;border-radius:18px}
+ .globalLeaderboardHeader{gap:9px}
+ .globalLeaderboardEyebrow{font-size:8px;letter-spacing:1.2px}
+ .globalLeaderboardHeader h2{font-size:20px;gap:5px}
+ .globalLeaderboardHeader h2 span{font-size:11px}
+ .globalLeaderboardHeader p{font-size:11px}
+ .globalLeaderboardLive{padding:6px 8px;font-size:8px}
+ .globalPodium{gap:7px;margin-top:19px}
+ .globalPodiumPlace{padding:12px 6px 13px;gap:6px;border-radius:13px 13px 10px 10px}
+ .globalPodiumPlace.place-1{min-height:205px;padding-top:16px}
+ .globalPodiumPlace.place-2{min-height:177px}
+ .globalPodiumPlace.place-3{min-height:163px}
+ .globalPodiumMedal{font-size:26px}.place-1 .globalPodiumMedal{font-size:34px}
+ .globalPodiumRank{font-size:7px;letter-spacing:.8px}
+ .globalPodiumStudent{font-size:11px;line-height:1.2}
+ .globalPodiumSchool{font-size:9px;line-height:1.25}
+ .globalPodiumScore{font-size:25px}.globalPodiumScore small{font-size:9px}
+ .globalPodiumReaction{font-size:8px}
+ .globalLeaderboardFooter{flex-direction:column;gap:3px;font-size:9px}
+ .globalLeaderboardPrivacy{text-align:left;font-size:8px}
+}
+@media(max-width:380px){
+ .globalLeaderboardCard{padding:16px 10px 12px}
+ .globalPodium{gap:5px}
+ .globalPodiumPlace{padding-left:4px;padding-right:4px}
+ .globalPodiumSchool{font-size:8px}
+ .globalPodiumScore{font-size:22px}
+}
+
+
+/* V88 — in-page school statistics modal (keeps the student inside fullscreen). */
+.schoolStatsModal[hidden]{display:none!important}
+.schoolStatsModal{
+  position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;
+  padding:clamp(10px,3vw,28px);isolation:isolate;
+}
+.schoolStatsBackdrop{position:absolute;inset:0;background:rgba(1,6,10,.82);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.schoolStatsDialog{
+  position:relative;z-index:1;width:min(920px,100%);max-height:min(92dvh,900px);overflow:auto;
+  border:1px solid #355368;border-radius:22px;
+  background:linear-gradient(150deg,#102635 0%,#07131d 68%,#050b11 100%);
+  box-shadow:0 28px 100px #000b;color:#f2f6f9;
+  animation:schoolStatsEnter .18s ease-out;
+}
+@keyframes schoolStatsEnter{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+.schoolStatsDialogHead{
+  position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:15px;
+  padding:17px 21px;border-bottom:1px solid #294252;background:rgba(5,14,22,.96);backdrop-filter:blur(14px)
+}
+.schoolStatsIdentity{display:flex;align-items:center;gap:13px;min-width:0}
+.schoolStatsIdentity img{width:62px;height:54px;flex:0 0 62px;object-fit:contain;border-radius:8px}
+.schoolStatsIdentity .eyebrow{font-size:9px;letter-spacing:2px;color:#ffc629;font-weight:900}
+.schoolStatsIdentity h2{font-size:clamp(20px,3vw,27px);font-weight:950;line-height:1.12;margin:4px 0}
+.schoolStatsIdentity p{margin:0;color:#91a9b8;font-size:12px;overflow-wrap:anywhere}
+.schoolStatsHeadActions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.schoolStatsHeadActions button{width:38px;height:38px;border:1px solid #36556a;border-radius:10px;background:#102a3b;color:#edf5fa;font-size:22px;cursor:pointer}
+.schoolStatsHeadActions button:hover{border-color:#ffc629;color:#ffc629}
+.schoolStatsDialogBody{padding:20px 21px 17px}
+.schoolStatsLifetimeNote{display:flex;align-items:center;gap:8px;margin-bottom:14px;color:#83e9ad;font-size:10px;font-weight:950;letter-spacing:1.7px}
+.schoolStatsLifetimeNote>span{font-size:9px;color:#42e58c}
+.schoolStatsLifetimeNote small{margin-left:auto;color:#8299a9;font-weight:600;letter-spacing:.2px;font-size:10px}
+.schoolStatsKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.schoolStatsKpis article{min-width:0;padding:14px 15px;border:1px solid #2b495d;border-radius:13px;background:linear-gradient(150deg,#112b3c,#081722)}
+.schoolStatsKpis article>span{display:block;min-height:25px;color:#91aabc;font-size:9px;font-weight:950;letter-spacing:1px;line-height:1.35}
+.schoolStatsKpis article strong{display:block;margin:7px 0;color:#ffc629;font-size:clamp(25px,4vw,36px);font-weight:1000;line-height:1}
+.schoolStatsKpis article small{color:#718b9b;font-size:10px}
+.schoolStatsKpis article.isPassed strong{color:#45df98}
+.schoolStatsKpis article.isFailed strong{color:#ff7888}
+.schoolStatsVisuals{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:12px;margin-top:13px}
+.schoolStatsPanel{min-width:0;padding:17px;border:1px solid #2a4659;border-radius:15px;background:rgba(5,17,26,.72)}
+.schoolStatsPanelTitle{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.schoolStatsPanelTitle .eyebrow{font-size:8px;letter-spacing:1.6px;color:#f3c645;font-weight:900}
+.schoolStatsPanelTitle h3{font-size:17px;font-weight:900;margin:4px 0 0}
+.schoolStatsPanelTitle>strong{font-size:22px;color:#55e29b}
+.schoolStatsRing{width:148px;height:148px;margin:16px auto 10px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(#35d98b 0%,#ff7181 0);position:relative}
+.schoolStatsRing:before{content:"";position:absolute;inset:11px;border-radius:50%;background:#091823;border:1px solid #263f50}
+.schoolStatsRing>div{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.schoolStatsRing strong{font-size:29px;font-weight:1000;color:#f5f8fb;line-height:1}
+.schoolStatsRing small{font-size:8px;letter-spacing:1.5px;color:#8ca5b5;font-weight:900}
+.schoolStatsPassPanel>p{margin:0;color:#91a8b7;font-size:11px;line-height:1.5;text-align:center}
+.schoolStatsBarRow{margin-top:23px}
+.schoolStatsBarRow>div:first-child{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;color:#dbe5eb;font-size:12px}
+.schoolStatsBarRow>div:first-child strong{font-size:13px;color:#f5f8fb}
+.schoolStatsBarTrack{height:13px;border-radius:20px;background:#1b2d3a;overflow:hidden;border:1px solid #2b4557}
+.schoolStatsBarTrack i{display:block;width:0;height:100%;border-radius:20px;transition:width .35s ease}
+#schoolStatsPassedBar{background:linear-gradient(90deg,#14975e,#49e39a)}
+#schoolStatsFailedBar{background:linear-gradient(90deg,#bd4053,#ff8996)}
+.schoolStatsMiniSummary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:25px}
+.schoolStatsMiniSummary>div{padding:11px;border-radius:10px;border:1px solid #253f51;background:#0a1a26}
+.schoolStatsMiniSummary small{display:block;font-size:8px;color:#8199a9;font-weight:900;letter-spacing:1px}
+.schoolStatsMiniSummary b{display:block;margin-top:5px;font-size:14px;color:#ffc629}
+.schoolStatsDialogFoot{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #213746;margin-top:16px;padding-top:13px;color:#8197a6;font-size:10px}
+#schoolStatsStatus{color:#6fe4a0}
+body.school-stats-open{overflow:hidden}
+@media(max-width:680px){
+  .schoolStatsModal{padding:0;align-items:stretch}
+  .schoolStatsDialog{width:100%;max-height:100dvh;min-height:100dvh;border-radius:0;border-left:0;border-right:0}
+  .schoolStatsDialogHead{padding:13px 14px}
+  .schoolStatsIdentity img{width:50px;height:45px;flex-basis:50px}
+  .schoolStatsIdentity h2{font-size:19px}
+  .schoolStatsDialogBody{padding:15px 13px calc(17px + env(safe-area-inset-bottom,0px))}
+  .schoolStatsKpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .schoolStatsKpis article{padding:12px}
+  .schoolStatsVisuals{grid-template-columns:1fr}
+  .schoolStatsRing{width:126px;height:126px}
+  .schoolStatsRing strong{font-size:25px}
+  .schoolStatsDialogFoot{flex-direction:column;gap:6px}
+}
+
+/* ONLINE LEARNER TEST launcher */
+.homeTool.learnerTestTool{border-color:rgba(54,157,255,.55);background:linear-gradient(135deg,rgba(16,111,205,.2),rgba(17,46,76,.38));color:#d8edff}
+.homeTool.learnerTestTool:hover{border-color:#58b5ff;background:linear-gradient(135deg,rgba(16,111,205,.34),rgba(17,46,76,.55));color:#fff}
+@media(max-width:760px){.homeTools .homeTool.learnerTestTool{width:auto!important;min-width:78px!important;padding:0 7px!important;gap:4px!important;font-size:7px!important;letter-spacing:.25px!important}.homeTools .homeTool.learnerTestTool span:not(.toolIcon){display:inline!important}.homeTools .homeTool:not(.learnerTestTool){width:32px!important;min-width:32px!important;padding:0!important}.homeTools .homeTool:not(.learnerTestTool) span:not(.toolIcon){display:none!important}}
+@media(max-width:360px){.homeTools .homeTool.learnerTestTool{min-width:32px!important;width:32px!important;padding:0!important}.homeTools .homeTool.learnerTestTool span:not(.toolIcon){display:none!important}}
+
+/* V99: Student test selector + combined student profile */
+.testSelectionModal{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:18px}.testSelectionModal[hidden]{display:none!important}.testSelectionBackdrop{position:absolute;inset:0;background:rgba(3,13,23,.72);backdrop-filter:blur(7px)}.testSelectionCard{position:relative;width:min(610px,100%);max-height:calc(100dvh - 24px);overflow:auto;padding:28px 24px 22px;border:1px solid #416078;border-radius:22px;background:linear-gradient(155deg,#fefefe,#f4f8fc);box-shadow:0 28px 80px #0007;color:#1a2837;display:flex;flex-direction:column;gap:12px}.testSelectionClose{position:absolute;right:13px;top:13px;width:34px;height:34px;border:1px solid #d1dce7;border-radius:50%;background:#fff;color:#243447;font-size:22px;cursor:pointer}.testSelectionEyebrow{text-align:center;color:#1473cf;font-size:11px;letter-spacing:.16em;font-weight:900;padding-right:35px}.testSelectionCard h2{text-align:center;font-size:clamp(19px,3vw,25px);margin:0 22px 8px;font-weight:700}.testChoice{display:flex;align-items:center;gap:13px;padding:13px;border:1.5px solid #d8e2ec;border-radius:14px;background:#fff;text-align:left;cursor:pointer;transition:background .15s,border-color .15s}.testChoice:hover{border-color:#1684e6;background:#f3f9ff}.choiceIcon{width:62px;height:62px;min-width:62px;display:grid;place-items:center;border-radius:12px;background:#eaf4ff;font-size:31px}.choiceCopy{min-width:0;flex:1}.choiceCopy strong{display:block;font-size:14px;font-weight:900;color:#19293a}.choiceCopy small{display:block;margin-top:5px;font-size:12px;line-height:1.45;color:#5b6b7d}.choiceArrow{width:34px;height:34px;min-width:34px;border-radius:50%;display:grid;place-items:center;color:#fff;background:#1883e2;font-size:28px;line-height:1}
+.studentProfileSummary{margin:12px 0;padding:13px;border:1px solid #dbe3eb;border-radius:12px;background:#f8fafc;color:#202d3b}.profileIdentity{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.profileIdentity strong{display:block;font-size:17px}.profileIdentity span{display:block;margin-top:3px;font-size:11px;color:#627082}.profilePrintBtn{flex:none;border:0;border-radius:8px;padding:9px 11px;background:#176bd0;color:#fff;font-size:10px;font-weight:900;cursor:pointer}.profileKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.profileKpis article{padding:9px 6px;border:1px solid #e0e6ed;border-radius:8px;background:#fff;text-align:center;min-width:0}.profileKpis small{display:block;font-size:8px;line-height:1.25;font-weight:900;color:#758292}.profileKpis b{display:block;margin-top:4px;font-size:17px;overflow-wrap:anywhere}.profileHistory{margin-top:13px}.profileHistory h4,.profileHptHeading{margin:10px 0 6px;font-size:10px;font-weight:900;letter-spacing:.08em;color:#536274}.profileLearnerRow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px;border-top:1px solid #e2e7ec;font-size:11px}.profileLearnerRow strong{display:block}.profileLearnerRow small{display:block;color:#687687;margin-top:2px}.profileLearnerScore{font-size:14px;font-weight:900;white-space:nowrap}.profileHptHeading{margin-top:12px}
+@media(max-width:700px){.testSelectionModal{padding:8px}.testSelectionCard{padding:23px 12px 14px;gap:9px;border-radius:16px}.testSelectionEyebrow{font-size:10px}.testSelectionCard h2{font-size:18px;margin:0 20px 3px}.testChoice{gap:9px;padding:9px;border-radius:11px}.choiceIcon{width:48px;height:48px;min-width:48px;font-size:25px;border-radius:9px}.choiceCopy strong{font-size:11px}.choiceCopy small{font-size:10px;margin-top:3px}.choiceArrow{width:28px;height:28px;min-width:28px;font-size:23px}.profileKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.profileKpis small{font-size:8px}.profileKpis b{font-size:16px}.profileIdentity strong{font-size:14px}.profilePrintBtn{font-size:9px;padding:8px}}
+
+/* V101 — cleaner student profile cards */
+.studentProfileSummary{background:#f4f8fd;border:1px solid #d5e1ef;border-radius:18px;padding:16px;color:#14243a;box-shadow:0 8px 24px rgba(13,54,95,.08)}
+.profileIdentity{padding:4px 2px 14px;border-bottom:1px solid #dce6f1;margin-bottom:14px;align-items:center}
+.profileIdentity strong{font-size:clamp(18px,2.2vw,24px);color:#102c50;letter-spacing:-.02em}.profileIdentity span{font-size:12px;color:#60748b}
+.profilePrintBtn{border-radius:10px;padding:11px 15px;background:linear-gradient(135deg,#0878df,#0756b6);box-shadow:0 4px 12px #0756b633;font-size:11px;letter-spacing:.03em}
+.profileTestCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 18px}
+.profileTestCard{min-width:0;overflow:hidden;border:1px solid #cbdcf0;border-radius:15px;background:#fff;box-shadow:0 4px 14px rgba(15,54,94,.06)}
+.profileTestCard.learnerProfileCard{border-color:#d9d2f4}
+.profileTestTitle{width:100%;display:flex;align-items:center;gap:11px;padding:13px 14px;border:0;text-align:left;background:#e8f2ff;color:#132e52;cursor:pointer}
+.learnerProfileCard .profileTestTitle{background:#f0edff;color:#282052}
+.profileTestIcon{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:#1479dc;color:white;font-size:21px;flex:none}
+.learnerProfileCard .profileTestIcon{background:#6545d7}
+.profileTestTitle strong{font-size:clamp(12px,1.35vw,16px);line-height:1.25;flex:1}.profileTestArrow{font-size:28px;line-height:1;color:#243b5a}
+.profileTestMetrics{display:grid;grid-template-columns:.8fr 1.2fr 1.2fr;padding:13px 8px 14px}
+.profileTestMetrics>div{min-width:0;text-align:center;padding:0 5px;border-right:1px solid #e1e8f0}.profileTestMetrics>div:last-child{border:0}
+.profileTestMetrics small{display:block;color:#64758a;font-size:9px;font-weight:800;letter-spacing:.035em;line-height:1.3;min-height:23px}
+.profileTestMetrics b{display:block;color:#132746;font-size:clamp(16px,2vw,22px);margin-top:5px;white-space:nowrap}
+.profileResultBadge{display:inline-block!important;width:max-content;max-width:100%;margin:5px auto 0!important;padding:5px 9px;border-radius:20px;background:#e2f8e9;color:#16823d!important;font-size:12px!important}
+.profileHistory{border:1px solid #dce5ef;border-radius:12px;background:#fff;padding:12px;margin-top:12px}.profileHistory h4,.profileHptHeading{color:#174d88;font-weight:900;letter-spacing:.05em}
+.profileLearnerRow{border-bottom:1px solid #edf1f5;padding:11px 4px}.profileLearnerRow:last-child{border-bottom:0}
+@media(max-width:680px){.profileTestCards{grid-template-columns:1fr;gap:10px}.studentProfileSummary{padding:11px}.profileIdentity{align-items:flex-start}.profilePrintBtn{padding:9px 10px;font-size:10px}.profileTestMetrics{padding:11px 5px}.profileTestMetrics small{font-size:8px}.profileTestMetrics b{font-size:18px}}
+@media print{.profileTestCards{break-inside:avoid}}
+
+.profileResultBadge.isFail{background:#ffeded;color:#b42332!important}
+
+
+/* V102 — fullscreen is the default operating mode; provide a recovery prompt only if the browser exits it. */
+#homeFullBtn, #fullBtn { display: none !important; }
+#hptResumeFullscreen { -webkit-tap-highlight-color: transparent; }
+
+
+/* V105 — summary-only Student Profile in a centred 16:9 modal */
+.attemptsModal{z-index:2100;place-items:center;padding:24px;background:rgba(1,8,15,.82);backdrop-filter:blur(12px)}
+.attemptsCard{width:min(1120px,calc((100dvh - 76px)*16/9),calc(100vw - 48px));height:auto;aspect-ratio:16/9;max-height:calc(100dvh - 76px);max-width:calc(100vw - 48px);overflow:auto;display:flex;flex-direction:column;gap:12px;padding:24px 28px 22px;border:1px solid #3d6077;border-radius:22px;background:linear-gradient(150deg,#102b3c 0%,#071724 70%,#06111b 100%);box-shadow:0 28px 100px rgba(0,0,0,.72);scrollbar-width:thin;scrollbar-color:#59788b transparent}
+.studentProfileModalHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex:none;padding:0 48px 12px 2px;border-bottom:1px solid rgba(178,212,230,.16)}
+.studentProfileModalHeader .eyebrow{font-size:9px;letter-spacing:2px;color:#7fc5ff}.studentProfileModalHeader h3{font-size:22px;margin:5px 0 3px;color:#fff;letter-spacing:.03em}.studentProfileModalHeader p{font-size:11px;color:#9db2c0;margin:0;line-height:1.4}
+.attemptClose{position:absolute;right:13px;top:12px;z-index:3;width:38px;height:38px;border:1px solid #567184;border-radius:50%;background:#122b3c;color:#fff;font-size:25px;line-height:1;display:grid;place-items:center;box-shadow:0 5px 18px #0005}
+.attemptSearchRow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;flex:none}.attemptSearch{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:8px}.attemptSearch input{height:43px;border-radius:10px;background:#061521;border:1px solid #38596e;color:#fff;padding:0 13px;font-size:13px}.attemptSearch .primary{height:43px;border-radius:10px;font-size:10px}.attemptMsg{min-height:18px;margin:0;color:#8fa5b2;font-size:10px;text-align:right}.attemptMsg.ok{color:#61e5a0}.attemptMsg.bad{color:#ff8794}
+.studentProfileSummary{flex:1;min-height:0;margin:0;padding:17px 18px;border:1px solid #d4e1ee;border-radius:17px;background:#f4f8fd;color:#14243a;box-shadow:0 8px 24px rgba(13,54,95,.08);display:flex;flex-direction:column;gap:12px;overflow:auto}
+.studentProfileSummary[hidden]{display:none!important}.profileIdentity{padding:0 0 11px;border-bottom:1px solid #dce6f1;margin:0;align-items:center;flex:none}.profileIdentity strong{font-size:clamp(18px,2vw,24px);color:#102c50}.profileIdentity span,.profileIdentity small{display:block;color:#60748b;font-size:11px;margin-top:3px}.profilePrintBtn{padding:10px 14px;font-size:10px;white-space:nowrap}
+.profileTestCards{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0;flex:none}.profileTestCard{border-radius:14px}.profileTestTitle{min-height:68px;padding:12px 15px}.profileTestTitle strong{font-size:clamp(13px,1.2vw,16px)}.profileTestMetrics{padding:13px 10px}.profileTestMetrics small{font-size:9px;min-height:20px}.profileTestMetrics b{font-size:clamp(19px,2vw,25px)}.profileResultBadge{font-size:11px!important}
+.profileProgressNote{display:flex;align-items:center;gap:11px;border:1px solid #cfe0f0;border-radius:11px;background:#eaf3fc;padding:10px 12px;color:#214364;flex:1;min-height:55px}.profileProgressIcon{width:31px;height:31px;min-width:31px;border-radius:50%;display:grid;place-items:center;background:#d9f5e5;color:#16823d;font-weight:900}.profileProgressNote strong{display:block;font-size:11px}.profileProgressNote small{display:block;margin-top:3px;font-size:10px;line-height:1.4;color:#647b91}
+@media(max-width:760px){.attemptsModal{padding:10px}.attemptsCard{width:calc(100vw - 20px);max-width:none;height:auto;aspect-ratio:auto;max-height:calc(100dvh - 20px);min-height:0;padding:21px 13px 14px;border-radius:17px;gap:10px}.studentProfileModalHeader{padding-right:38px;padding-bottom:9px}.studentProfileModalHeader h3{font-size:18px}.studentProfileModalHeader p{font-size:10px}.attemptClose{right:9px;top:8px;width:32px;height:32px;font-size:21px}.attemptSearchRow{grid-template-columns:1fr;gap:4px}.attemptSearch{grid-template-columns:minmax(0,1fr) 104px;gap:6px}.attemptSearch input,.attemptSearch .primary{height:40px;font-size:11px}.attemptMsg{text-align:left;min-height:14px}.studentProfileSummary{padding:11px;gap:9px}.profileIdentity{align-items:flex-start;gap:8px;padding-bottom:9px}.profileIdentity strong{font-size:16px}.profileIdentity span,.profileIdentity small{font-size:10px}.profilePrintBtn{font-size:9px;padding:8px 9px}.profileTestCards{grid-template-columns:1fr;gap:8px}.profileTestTitle{min-height:48px;padding:8px 10px}.profileTestIcon{width:32px;height:32px;font-size:18px}.profileTestMetrics{padding:9px 5px}.profileTestMetrics small{font-size:8px;min-height:17px}.profileTestMetrics b{font-size:18px}.profileProgressNote{flex:none;min-height:48px;padding:8px}.profileProgressNote strong{font-size:10px}.profileProgressNote small{font-size:9px}}
+@media(max-width:380px){.attemptSearch{grid-template-columns:1fr}.attemptSearch .primary{width:100%}.profileTestMetrics b{font-size:16px}.profileResultBadge{font-size:9px!important;padding:4px 6px}}
+
+
+.report-modal{position:fixed;inset:0;display:none;overflow-x:hidden;overflow-y:auto;background:rgba(0,5,10,.80);z-index:2055;padding:12px}
+.report-modal.show{display:block}
+.report-modal .modal-dialog{position:relative;width:min(1120px,100%);margin:0 auto;pointer-events:none}
+.report-modal .modal-content{position:relative;display:flex;flex-direction:column;pointer-events:auto;margin:0 auto}
+.report-modal .modal-body{flex:1 1 auto}
+.report-modal-close{width:38px;height:38px;flex:0 0 38px;border:1px solid rgba(220,240,248,.35);border-radius:50%;background:rgba(255,255,255,.06);color:#fff;font-size:27px;line-height:1}
+.report-fallback-backdrop{position:fixed;inset:0;background:#000;opacity:.78;z-index:2050}
+.report-modal-open{overflow:hidden}
+@media(max-width:700px){.report-modal{padding:7px}.report-modal .modal-dialog{margin:0;width:100%}}
