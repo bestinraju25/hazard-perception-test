@@ -482,19 +482,19 @@ function resetSchoolBranding(){
   safeImage('loaderSchoolLogo','assets/hpt-brand-logo-v129.png','Hazard Perception Test Portal');
   const tools=$('homeTools');if(tools)tools.hidden=true;
 }
-async function enterSchool(){
+async function enterSchool({auto=false}={}){
   const codeInput=$('schoolAccessCode'),button=$('enterSchoolBtn');
   const msg=gateMessageElement();
-  if(!codeInput||!button){console.error('School access form is incomplete: missing code input or continue button.');setGateMessage('ACCESS FORM NOT READY. Refresh the page and try again.',true);return}
+  if(!codeInput||!button){console.error('School access form is incomplete: missing code input or continue button.');setGateMessage('ACCESS FORM NOT READY. Refresh the page and try again.',true);return false}
   const code=String(codeInput.value||'').trim();
   setGateMessage('');
-  if(!code){setGateMessage('ENTER YOUR SCHOOL ACCESS CODE',true);return}
+  if(!code){setGateMessage('ENTER YOUR SCHOOL ACCESS CODE',true);return false}
   // Close the access-code keyboard when the user submits the login form.
   try{codeInput.blur()}catch{}
-  // Start fullscreen synchronously from the login gesture, before network awaits.
-  // Browsers may show their own native fullscreen notice; the app adds no extra message.
+  // Fullscreen can only be requested reliably from a direct user gesture.
+  // URL-based automatic access therefore verifies the school without requesting fullscreen.
   let loginFullscreenPromise=null;
-  if(!document.fullscreenElement&&document.documentElement.requestFullscreen){
+  if(!auto&&!document.fullscreenElement&&document.documentElement.requestFullscreen){
     try{
       loginFullscreenPromise=document.documentElement.requestFullscreen({navigationUI:'hide'});
       loginFullscreenPromise?.then(updateFullscreenButtons).catch(()=>{});
@@ -502,7 +502,8 @@ async function enterSchool(){
   }
   button.disabled=true;
   const buttonLabel=button.querySelector('span');
-  if(buttonLabel)buttonLabel.textContent='VERIFYING ACCESS…';
+  if(buttonLabel)buttonLabel.textContent=auto?'CONNECTING…':'VERIFYING ACCESS…';
+  if(auto)setGateMessage('CONNECTING TO RAJU DRIVING SCHOOL…');
   try{
     const sb=await supabase();
     if(!sb)throw new Error('The portal cannot connect to the access service. Check the Supabase URL, publishable key, and internet connection.');
@@ -511,29 +512,30 @@ async function enterSchool(){
     // The updated verification RPC distinguishes an unknown code from a disabled school.
     const payload=Array.isArray(data)?data[0]:data;
     if(payload?.status==='disabled'){
-      try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
+      if(!auto){try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}}
       updateFullscreenButtons();
-      setGateMessage('HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.',true);return;
+      setGateMessage('HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.',true);return false;
     }
     const schoolData=payload?.school&&typeof payload.school==='object'?payload.school:payload;
     if(!schoolData||!schoolData.id){
-      try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
+      if(!auto){try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}}
       updateFullscreenButtons();
-      setGateMessage('ACCESS CODE NOT RECOGNISED. PLEASE CHECK THE CODE OR CONTACT YOUR DRIVING SCHOOL.',true);return
+      setGateMessage('ACCESS CODE NOT RECOGNISED. PLEASE CHECK THE CODE OR CONTACT YOUR DRIVING SCHOOL.',true);return false;
     }
     const school={...schoolData,access_code:code};
     applySchoolBranding(school,true);
     codeInput.value='';
     setGateMessage('');
-    // Personalized cinematic welcome after the access code has been verified.
-    if(window.HPTExperience?.showSchoolWelcome){
+    // Keep the existing welcome animation for manual logins; direct school links go straight to the portal.
+    if(!auto&&window.HPTExperience?.showSchoolWelcome){
       try{await window.HPTExperience.showSchoolWelcome(school)}catch(welcomeError){console.warn('School welcome animation skipped:',welcomeError)}
     }
     show('schoolGate',false);show('startScreen',true);show('examScreen',false);show('resultScreen',false);
     safeText('candName','Candidate');safeText('candPhone','');
     updateFullscreenButtons();
+    return true;
   }catch(e){
-    try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
+    if(!auto){try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}}
     updateFullscreenButtons();
     console.error('School access verification failed:',e?.stack||e);
     const detail=String(e?.message||'').trim();
@@ -541,15 +543,36 @@ async function enterSchool(){
       ?'SCHOOL ACCESS SERVICE IS NOT UPDATED. Run 11-provider-admin-and-school-status-v83.sql in the connected Supabase project.'
       :(detail?`ACCESS VERIFICATION FAILED: ${detail.slice(0,180)}`:'ACCESS VERIFICATION UNAVAILABLE. PLEASE TRY AGAIN.');
     setGateMessage(message,true);
+    return false;
   }finally{
     button.disabled=false;
     if(buttonLabel)buttonLabel.textContent='LOGIN TO SCHOOL';
   }
 }
+function readSchoolAccessCodeFromUrl(){
+  try{
+    // Use a URL fragment (#school=1132), so the code is not sent in the HTTP request URL.
+    const params=new URLSearchParams(String(window.location.hash||'').replace(/^#/,'').replace(/^\?/,'') );
+    const code=String(params.get('school')||params.get('access_code')||'').trim().slice(0,64);
+    if(code){
+      // Remove the one-time code from the address bar after reading it.
+      window.history.replaceState(window.history.state,'',window.location.pathname+window.location.search);
+      return code;
+    }
+  }catch(error){console.warn('Could not read the school access link:',error)}
+  return '';
+}
 async function bootSchoolSession(){
+  // A school code in the URL takes priority over any previously saved school session.
+  const directCode=readSchoolAccessCodeFromUrl();
   // Read the saved code before clearing the current in-memory branding.
   let saved=null;try{saved=JSON.parse(sessionStorage.getItem('hpt_school_session')||'null')}catch{}
   resetSchoolBranding();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);
+  if(directCode){
+    safeValue('schoolAccessCode',directCode);
+    await enterSchool({auto:true});
+    return;
+  }
   if(!saved?.access_code||!saved?.id)return;
   try{
     const sb=await supabase();if(!sb)return;
