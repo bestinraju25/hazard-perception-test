@@ -2562,3 +2562,118 @@ body.hpt-skip-disabled .bottomHud .skip{display:none!important}
 .hpt-loader-tip{margin-top:25px;padding:12px 14px;border:1px solid rgba(255,207,70,.2);border-radius:11px;background:rgba(255,196,0,.055);text-align:left}
 .hpt-loader-tip span,.hpt-loader-tip strong{display:block}.hpt-loader-tip span{color:#f6d05b;font-size:8px;font-weight:950;letter-spacing:1.5px}.hpt-loader-tip strong{margin-top:4px;color:#d5e0e6;font-size:10px;font-weight:650;line-height:1.45}
 @media(prefers-reduced-motion:reduce){.hpt-exam-loading,.hpt-game-progress>div{transition:none}.hpt-loader-road-line,.hpt-loader-car{animation:none}}
+
+
+/* V131 — reference-matched examination instruction interstitial (desktop + mobile). */
+.hpt-exam-loading{
+  position:fixed;inset:0;z-index:5000;display:grid;place-items:center;
+  padding:clamp(10px,2vw,28px);overflow-y:auto;overscroll-behavior:contain;
+  background:linear-gradient(90deg,rgba(1,10,18,.38),rgba(2,13,23,.58)),
+    linear-gradient(180deg,rgba(2,10,18,.22),rgba(2,10,18,.58)),
+    url("assets/hpt-road-desktop.webp") center center/cover no-repeat,#061522;
+  color:#f4f8fc;opacity:1;transition:opacity .32s ease,transform .32s ease;
+}
+.hpt-exam-loading[hidden]{display:none!important}
+.hpt-exam-loading.is-leaving{opacity:0;transform:scale(1.012);pointer-events:none}
+.hpt-initialise-card{
+  width:min(1230px,100%);max-height:calc(100dvh - 24px);overflow:auto;
+  padding:clamp(14px,2.4vw,30px);border:1px solid rgba(99,190,230,.55);border-radius:30px;
+  background:linear-gradient(145deg,rgba(2,30,48,.93),rgba(1,15,27,.96));
+  box-shadow:0 28px 90px rgba(0,0,0,.45),inset 0 1px rgba(255,255,255,.055);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+}
+.hpt-initialise-brandbar{display:flex;align-items:center;justify-content:center;gap:clamp(14px,3vw,48px);min-height:82px;margin-bottom:14px}
+.hpt-initialise-logo{display:block;width:clamp(190px,27vw,360px);height:clamp(62px,8vw,108px);object-fit:contain;object-position:center}
+.hpt-initialise-divider{width:2px;height:54px;background:rgba(236,244,248,.8);flex:0 0 2px}
+.hpt-initialise-label{color:#f0f5fa;font-size:clamp(9px,1.25vw,17px);font-weight:900;letter-spacing:clamp(2px,.55vw,6px);white-space:nowrap}
+.hpt-instructions-panel{padding:clamp(14px,2vw,24px) clamp(14px,2.8vw,32px);border:2px solid #2bbfe9;border-radius:25px;background:linear-gradient(145deg,rgba(2,36,56,.76),rgba(1,20,34,.89));box-shadow:inset 0 0 30px rgba(0,173,230,.045)}
+.hpt-instructions-heading{display:flex;align-items:center;justify-content:center;gap:14px}
+.hpt-instructions-heading h2{margin:0;color:#f5f8fc;font-size:clamp(23px,3vw,39px);font-weight:950;letter-spacing:-.7px;line-height:1.1;white-space:nowrap}
+.hpt-instructions-rule{height:4px;width:clamp(48px,9vw,128px);border-radius:99px;background:#ffd31e;flex:0 1 128px}
+.hpt-info-icon{width:48px;height:48px;display:grid;place-items:center;flex:0 0 48px;border-radius:50%;background:#ffd21b;color:#071725;font-family:Georgia,serif;font-size:37px;font-weight:900;line-height:1;box-shadow:0 0 22px rgba(255,205,27,.14)}
+.hpt-instructions-subtitle{margin:7px 0 17px;text-align:center;color:#f0f5fa;font-size:clamp(12px,1.55vw,19px);font-weight:600;line-height:1.35}
+.hpt-instructions-grid{display:grid;grid-template-columns:1.28fr .9fr;gap:clamp(12px,2vw,24px);align-items:stretch}
+.hpt-instructions-column{display:grid;gap:10px;align-content:start}
+.hpt-instruction-card{min-width:0;min-height:78px;display:flex;align-items:center;gap:clamp(12px,1.8vw,22px);padding:9px 14px;border:1px solid rgba(64,133,169,.43);border-radius:19px;background:linear-gradient(100deg,rgba(13,49,70,.86),rgba(7,34,52,.74));box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.hpt-instruction-card h3{margin:0 0 2px;color:#ffd21b;font-size:clamp(15px,1.8vw,24px);font-weight:950;line-height:1.1}
+.hpt-instruction-card p{margin:0;color:#f0f5f8;font-size:clamp(11px,1.35vw,17px);font-weight:500;line-height:1.28}
+.hpt-instruction-card p b{color:#ffdc35;font-weight:900}
+.hpt-instruction-icon{width:72px;height:68px;flex:0 0 72px;display:grid;place-items:center;border:2px solid #00baf1;border-radius:17px;background:linear-gradient(145deg,rgba(3,36,57,.98),rgba(6,23,37,.92));color:#ffd31e;box-shadow:0 0 0 3px rgba(0,180,235,.055),inset 0 0 16px rgba(0,186,241,.08)}
+.hpt-icon-play{position:relative}
+.hpt-icon-play:before{content:"";width:43px;height:34px;border:2px solid #f2f7fb;border-radius:9px;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.hpt-icon-play i{position:absolute;width:0;height:0;border-top:12px solid transparent;border-bottom:12px solid transparent;border-left:17px solid #f6f9fc;margin-left:4px;filter:drop-shadow(0 1px 2px #000)}
+.hpt-icon-tap{font-size:39px;color:#fff;text-shadow:0 0 10px rgba(255,207,36,.55)}
+.hpt-icon-score{display:flex;align-items:end;justify-content:center;gap:6px;padding-bottom:12px}
+.hpt-icon-score i{display:block;width:10px;border-radius:2px 2px 0 0;background:#ffd21b;box-shadow:0 0 8px rgba(255,210,27,.23)}
+.hpt-icon-score i:nth-child(1){height:17px}.hpt-icon-score i:nth-child(2){height:28px}.hpt-icon-score i:nth-child(3){height:42px}
+.hpt-icon-limit b{width:48px;height:48px;display:grid;place-items:center;border:5px solid #ffd21b;border-radius:50%;color:#ffd21b;font-size:31px;line-height:1}
+.hpt-icon-trophy{font-size:41px;text-shadow:0 2px 12px rgba(255,199,0,.35)}
+.hpt-instructions-column-side .hpt-instruction-card{min-height:110px;padding:13px 14px}
+.hpt-loader-readyline{width:max-content;max-width:100%;min-height:44px;margin:18px auto 15px;padding:6px 24px;display:flex;align-items:center;justify-content:center;gap:12px;border:1.5px solid #00b8eb;border-radius:999px;background:rgba(4,34,52,.74);color:#f5f8fb;font-size:clamp(13px,1.65vw,20px);font-weight:800;text-align:center}
+.hpt-ready-check{width:29px;height:29px;display:grid;place-items:center;flex:0 0 29px;border:3px solid #00e89a;border-radius:50%;color:#00f0a1;font-size:19px;font-weight:1000;line-height:1}
+.hpt-loader-progress-wrap{margin:0 clamp(0px,1vw,10px)}
+.hpt-game-progress{height:14px;overflow:hidden;border:1.5px solid #20bde8;border-radius:99px;background:#07131d;box-shadow:inset 0 2px 5px #0009}
+.hpt-game-progress>div{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#0bd8d3 0%,#1ce9a7 52%,#ffe11b 100%);box-shadow:0 0 16px rgba(29,196,190,.35);transition:width .24s ease}
+.hpt-game-progress-meta{display:flex;justify-content:space-between;align-items:center;margin-top:7px;color:#ffda19;font-size:clamp(12px,1.35vw,17px);font-weight:1000;letter-spacing:1.4px}
+.hpt-loader-tip{min-height:62px;margin-top:18px;padding:9px 18px;display:flex;align-items:center;gap:16px;border:1.5px solid #ffcf00;border-radius:17px;background:linear-gradient(90deg,rgba(68,57,0,.18),rgba(39,57,25,.34));text-align:left}
+.hpt-tip-icon{color:#ffd21b;font-size:34px;line-height:1;text-shadow:0 0 9px rgba(255,211,28,.35)}
+.hpt-tip-title{color:#ffd21b;font-size:clamp(11px,1.35vw,17px);font-weight:1000;letter-spacing:.8px;white-space:nowrap}
+.hpt-tip-divider{width:2px;height:28px;background:#ffd21b;flex:0 0 2px}
+.hpt-loader-tip strong{color:#f0f4f7;font-size:clamp(10px,1.2vw,15px);font-weight:600;line-height:1.35}
+@media(max-width:760px){
+  .hpt-exam-loading{padding:12px;background-image:linear-gradient(90deg,rgba(1,10,18,.42),rgba(2,13,23,.58)),linear-gradient(180deg,rgba(2,10,18,.22),rgba(2,10,18,.62)),url("assets/hpt-road-mobile.webp");background-position:center center;background-size:cover}
+  .hpt-initialise-card{width:min(470px,100%);max-height:calc(100dvh - 20px);padding:12px;border-radius:23px}
+  .hpt-initialise-brandbar{min-height:56px;margin-bottom:9px;gap:10px}
+  .hpt-initialise-logo{width:clamp(130px,38vw,190px);height:55px}
+  .hpt-initialise-divider{height:38px}
+  .hpt-initialise-label{font-size:clamp(7px,1.8vw,9px);letter-spacing:1.5px;white-space:normal;max-width:116px;line-height:1.5}
+  .hpt-instructions-panel{padding:12px 11px 11px;border-radius:19px;border-width:1.5px}
+  .hpt-instructions-heading{gap:7px}
+  .hpt-instructions-heading h2{font-size:clamp(20px,5.3vw,26px)}
+  .hpt-instructions-rule{height:3px;width:clamp(19px,7vw,44px);flex:0 1 44px}
+  .hpt-info-icon{width:34px;height:34px;flex-basis:34px;font-size:27px}
+  .hpt-instructions-subtitle{font-size:11px;margin:5px 0 10px}
+  .hpt-instructions-grid{grid-template-columns:1fr;gap:7px}
+  .hpt-instructions-column{gap:7px}
+  .hpt-instruction-card,.hpt-instructions-column-side .hpt-instruction-card{min-height:54px;padding:6px 9px;gap:10px;border-radius:13px}
+  .hpt-instruction-icon{width:48px;height:46px;flex-basis:48px;border-radius:12px;border-width:1.5px}
+  .hpt-icon-play:before{width:29px;height:23px;border-radius:6px;border-width:1.5px}
+  .hpt-icon-play i{border-top-width:8px;border-bottom-width:8px;border-left-width:12px;margin-left:3px}
+  .hpt-icon-tap{font-size:27px}
+  .hpt-icon-score{gap:4px;padding-bottom:8px}.hpt-icon-score i{width:7px}.hpt-icon-score i:nth-child(1){height:12px}.hpt-icon-score i:nth-child(2){height:19px}.hpt-icon-score i:nth-child(3){height:27px}
+  .hpt-icon-limit b{width:33px;height:33px;border-width:3px;font-size:22px}
+  .hpt-icon-trophy{font-size:28px}
+  .hpt-instruction-card h3{font-size:14px;margin-bottom:1px}
+  .hpt-instruction-card p{font-size:10px;line-height:1.2}
+  .hpt-loader-readyline{min-height:34px;margin:10px auto 9px;padding:4px 12px;gap:8px;font-size:11px}
+  .hpt-ready-check{width:23px;height:23px;flex-basis:23px;border-width:2px;font-size:15px}
+  .hpt-game-progress{height:10px}.hpt-game-progress-meta{margin-top:5px;font-size:10px;letter-spacing:.9px}
+  .hpt-loader-tip{min-height:50px;margin-top:10px;padding:7px 9px;gap:8px;border-radius:12px}
+  .hpt-tip-icon{font-size:25px}.hpt-tip-title{font-size:9px;letter-spacing:.35px}.hpt-tip-divider{height:24px}
+  .hpt-loader-tip strong{font-size:9px;line-height:1.25}
+}
+@media(max-width:390px){
+  .hpt-exam-loading{padding:7px}
+  .hpt-initialise-card{padding:8px}
+  .hpt-initialise-brandbar{min-height:49px;margin-bottom:7px}
+  .hpt-initialise-logo{width:122px;height:48px}
+  .hpt-initialise-label{font-size:7px;max-width:104px;letter-spacing:1.1px}
+  .hpt-instructions-panel{padding:9px 8px}
+  .hpt-instructions-subtitle{font-size:10px;margin-bottom:8px}
+  .hpt-instruction-card,.hpt-instructions-column-side .hpt-instruction-card{min-height:50px;padding:5px 7px;gap:8px}
+  .hpt-instruction-icon{width:43px;height:42px;flex-basis:43px}
+  .hpt-instruction-card h3{font-size:13px}.hpt-instruction-card p{font-size:9px}
+  .hpt-loader-readyline{margin:8px auto 7px;font-size:10px}
+  .hpt-loader-tip{margin-top:8px;gap:6px;padding:6px 7px}
+  .hpt-tip-title{font-size:8px}.hpt-loader-tip strong{font-size:8px}
+}
+@media(max-height:700px) and (min-width:761px){
+  .hpt-initialise-card{max-height:calc(100dvh - 12px);padding:12px}
+  .hpt-instructions-panel{padding:12px 18px}
+  .hpt-instructions-subtitle{margin:4px 0 9px}
+  .hpt-instruction-card{min-height:60px;padding:7px 10px}
+  .hpt-instructions-column-side .hpt-instruction-card{min-height:90px}
+  .hpt-loader-readyline{margin:9px auto;padding:4px 18px}
+  .hpt-loader-tip{margin-top:9px;min-height:48px}
+}
+@media(prefers-reduced-motion:reduce){.hpt-exam-loading,.hpt-game-progress>div{transition:none}}

@@ -267,19 +267,18 @@ function loadClip(preloaded=false){
   } else if(video.readyState>=1){requestAnimationFrame(activate);}
 }
 function openHptExamLoading(){
-  const overlay=$('hptExamLoading');if(!overlay)return;
+  const overlay=$('hptExamLoading'),fill=$('hptExamLoadingFill'),percent=$('hptExamLoadingPercent'),status=$('hptExamLoadingStatus'),step=$('hptExamLoadingStep');
+  if(!overlay)return;
   hptExamLoaderStartedAt=performance.now();overlay.hidden=false;overlay.classList.remove('is-leaving');document.body.classList.add('hpt-exam-loading-open');
-  const fill=$('hptExamLoadingFill'),percent=$('hptExamLoadingPercent'),status=$('hptExamLoadingStatus'),step=$('hptExamLoadingStep');
-  if(fill)fill.style.width='12%';if(percent)percent.textContent='12%';
-  if(status)status.textContent='Verifying your school and preparing the exam…';if(step)step.textContent='CHECKING EXAMINATION';
+  if(fill)fill.style.width='4%';if(percent)percent.textContent='4%';
+  if(status)status.textContent='The test will start automatically…';if(step)step.textContent='VERIFYING SCHOOL ACCESS';
   const openedAt=hptExamLoaderStartedAt;
   const progressTick=now=>{
     if(overlay.hidden||openedAt!==hptExamLoaderStartedAt)return;
-    const elapsed=now-openedAt,value=Math.min(66,12+Math.round(elapsed/6500*54));
+    const elapsed=now-openedAt,value=elapsed<3500?Math.min(36,8+Math.round(elapsed/3500*28)):elapsed<9000?Math.min(91,36+Math.round((elapsed-3500)/5500*55)):Math.min(93,91+Math.round((elapsed-9000)/7000*2));
     if(fill)fill.style.width=value+'%';if(percent)percent.textContent=value+'%';
-    if(status)status.textContent=elapsed<1300?'Verifying school access…':elapsed<3200?'Loading examination details…':'Preparing your first road-safety video…';
-    if(step)step.textContent=elapsed<3200?'CHECKING EXAMINATION':'PREPARING FIRST CLIP';
-    if(elapsed<6500)hptExamLoaderAnimationFrame=requestAnimationFrame(progressTick);
+    if(step)step.textContent=elapsed<1800?'VERIFYING SCHOOL ACCESS':elapsed<4200?'LOADING EXAMINATION SETTINGS':'PREPARING VIDEO LIBRARY';
+    if(elapsed<7000)hptExamLoaderAnimationFrame=requestAnimationFrame(progressTick);
   };
   cancelAnimationFrame(hptExamLoaderAnimationFrame);hptExamLoaderAnimationFrame=requestAnimationFrame(progressTick);
 }
@@ -292,37 +291,65 @@ async function showHptExamLoading(firstClip){
   if(!overlay)return false;
   if(overlay.hidden)openHptExamLoading();
   cancelAnimationFrame(hptExamLoaderAnimationFrame);
-  const start=hptExamLoaderStartedAt||performance.now(),minimumMs=4000,maximumMs=14000;
-  let ready=false,settled=false;
+  const start=hptExamLoaderStartedAt||performance.now(),minimumTotalMs=9000,maximumTotalMs=16000;
+  let ready=false,settled=false,finishPreload=()=>{};
+
+  // Start fetching the first shuffled clip behind the instruction screen.
   if(firstClip?.file){
     try{
-      video.pause();video.preload='auto';video.crossOrigin='anonymous';video.muted=true;video.removeAttribute('src');video.dataset.hptPreloadedUrl=String(firstClip.file);video.src=firstClip.file;
-      const loaded=new Promise(resolve=>{
-        const finish=value=>{if(settled)return;settled=true;ready=value;resolve(value)};
-        video.addEventListener('canplay',()=>finish(true),{once:true});
-        video.addEventListener('error',()=>finish(false),{once:true});
-        setTimeout(()=>finish(video.readyState>=2),maximumMs);
+      video.pause();video.preload='auto';video.crossOrigin='anonymous';video.muted=true;
+      video.removeAttribute('src');video.dataset.hptPreloadedUrl=String(firstClip.file);video.src=firstClip.file;
+      const remainingBudget=Math.max(0,maximumTotalMs-(performance.now()-start));
+      const preloadSignal=new Promise(resolve=>{
+        let done=false;
+        finishPreload=value=>{if(done)return;done=true;settled=true;ready=!!value;resolve(ready)};
+        video.addEventListener('canplay',()=>finishPreload(true),{once:true});
+        video.addEventListener('error',()=>finishPreload(false),{once:true});
+        window.setTimeout(()=>finishPreload(video.readyState>=2),remainingBudget);
       });
       video.load();
-      // Keep the branded game-style screen visible for at least four seconds while the first clip buffers.
+      // The progress animation runs while R2 streams enough data to make the first clip playable.
       await new Promise(resolve=>{
         const tick=now=>{
-          const elapsed=now-start,minimumProgress=Math.min(88,Math.round(elapsed/minimumMs*88));
-          const value=ready?Math.min(96,minimumProgress+5):minimumProgress;
+          if(overlay.hidden){resolve();return;}
+          const elapsed=now-start,base=elapsed<3500?Math.min(36,8+Math.round(elapsed/3500*28)):elapsed<9000?Math.min(91,36+Math.round((elapsed-3500)/5500*55)):Math.min(98,91+Math.round((elapsed-9000)/7000*7));
+          const value=ready?Math.max(base,96):base;
           if(fill)fill.style.width=value+'%';if(percent)percent.textContent=value+'%';
-          if(status){status.textContent=elapsed<1200?'Checking examination settings…':elapsed<2600?'Loading your first road-safety video…':'Preparing the video player…';}
-          if(step)step.textContent=ready?'FIRST VIDEO READY':'LOADING FIRST VIDEO';
-          if(elapsed>=minimumMs && (settled || elapsed>=maximumMs)){resolve();return;}
+          if(status){
+            status.textContent=elapsed<1600?'Checking examination settings…':elapsed<3900?'Loading your first road-safety video…':ready?'Your first video is ready. The test will begin shortly.':'Preparing your first road-safety video…';
+          }
+          if(step)step.textContent=ready?'FIRST VIDEO READY':elapsed<3900?'CHECKING EXAMINATION':'PRELOADING FIRST VIDEO';
+          if(elapsed>=minimumTotalMs&&(settled||elapsed>=maximumTotalMs)){resolve();return;}
           requestAnimationFrame(tick);
-        };requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
       });
-      await loaded;
-    }catch(error){console.warn('First HPT clip preload did not complete:',error);ready=false;video.dataset.hptPreloadedUrl='';}
-  } else {
-    await new Promise(resolve=>setTimeout(resolve,minimumMs));
+      // Avoid leaving any event handlers unresolved if the browser timed out at the maximum.
+      if(!settled)finishPreload(video.readyState>=2);
+      await preloadSignal;
+    }catch(error){
+      console.warn('First HPT clip preload did not complete:',error);ready=false;
+      video.dataset.hptPreloadedUrl='';
+    }
+  }else{
+    await new Promise(resolve=>{
+      const tick=now=>{
+        const elapsed=now-start,value=elapsed<3500?Math.min(36,8+Math.round(elapsed/3500*28)):elapsed<9000?Math.min(91,36+Math.round((elapsed-3500)/5500*55)):Math.min(98,91+Math.round((elapsed-9000)/7000*7));
+        if(fill)fill.style.width=value+'%';if(percent)percent.textContent=value+'%';
+        if(status)status.textContent=elapsed<3000?'Checking examination settings…':'Preparing your first road-safety video…';
+        if(step)step.textContent='PREPARING VIDEO PLAYER';
+        if(elapsed>=minimumTotalMs)resolve();else requestAnimationFrame(tick);
+      };requestAnimationFrame(tick);
+    });
   }
-  if(fill)fill.style.width='100%';if(percent)percent.textContent='100%';if(status)status.textContent=ready?'Your examination is ready.':'Opening the video player…';if(step)step.textContent='READY';
-  await new Promise(resolve=>setTimeout(resolve,260));
+
+  // Guarantee a minimum 9-second reading window measured from when the interstitial first appeared.
+  const remaining=Math.max(0,minimumTotalMs-(performance.now()-start));
+  if(remaining)await new Promise(resolve=>setTimeout(resolve,remaining));
+  if(fill)fill.style.width='100%';if(percent)percent.textContent='100%';
+  if(status)status.textContent=ready?'Your examination is ready. Good luck!':'Opening the examination video…';
+  if(step)step.textContent=ready?'FIRST VIDEO READY':'STARTING EXAMINATION';
+  await new Promise(resolve=>setTimeout(resolve,320));
   overlay.classList.add('is-leaving');
   await new Promise(resolve=>setTimeout(resolve,320));
   closeHptExamLoading();

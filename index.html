@@ -119,14 +119,63 @@
   </section>
 </div>
 <div id="hptExamLoading" class="hpt-exam-loading" hidden role="status" aria-live="polite" aria-label="Preparing your HPT examination">
-  <div class="hpt-game-loader-card">
-    <div class="hpt-game-loader-brand"><img src="assets/hpt-brand-logo-v129.png" alt="Hazard Perception Test"><span>EXAMINATION INITIALISING</span></div>
-    <div class="hpt-loader-road" aria-hidden="true"><div class="hpt-loader-road-line"></div><div class="hpt-loader-car">🚘</div></div>
-    <div class="hpt-loader-title">Get ready. Stay alert.</div>
-    <div class="hpt-loader-subtitle" id="hptExamLoadingStatus">Preparing your examination environment…</div>
-    <div class="hpt-game-progress"><div id="hptExamLoadingFill"></div></div>
-    <div class="hpt-game-progress-meta"><span id="hptExamLoadingPercent">0%</span><span id="hptExamLoadingStep">LOADING FIRST VIDEO</span></div>
-    <div class="hpt-loader-tip"><span>ROAD SAFETY TIP</span><strong>Look well ahead. Developing hazards can appear before they become immediate danger.</strong></div>
+  <div class="hpt-initialise-card">
+    <header class="hpt-initialise-brandbar">
+      <img src="assets/hpt-brand-logo-v129.png" alt="Hazard Perception Test" class="hpt-initialise-logo">
+      <span class="hpt-initialise-divider" aria-hidden="true"></span>
+      <span class="hpt-initialise-label">EXAMINATION INITIALISING</span>
+    </header>
+
+    <section class="hpt-instructions-panel" aria-labelledby="hptExamInstructionsTitle">
+      <div class="hpt-instructions-heading">
+        <span class="hpt-instructions-rule" aria-hidden="true"></span>
+        <span class="hpt-info-icon" aria-hidden="true">i</span>
+        <h2 id="hptExamInstructionsTitle">Exam Instructions</h2>
+        <span class="hpt-instructions-rule" aria-hidden="true"></span>
+      </div>
+      <p class="hpt-instructions-subtitle">Read the instructions carefully before the test begins.</p>
+
+      <div class="hpt-instructions-grid">
+        <div class="hpt-instructions-column">
+          <article class="hpt-instruction-card">
+            <span class="hpt-instruction-icon hpt-icon-play" aria-hidden="true"><i></i></span>
+            <div><h3>Watch the Video</h3><p>You will see short real-life driving clips.</p></div>
+          </article>
+          <article class="hpt-instruction-card">
+            <span class="hpt-instruction-icon hpt-icon-tap" aria-hidden="true">☝</span>
+            <div><h3>Spot the Hazard</h3><p>When you notice a developing hazard, click or tap anywhere on the video immediately.</p></div>
+          </article>
+          <article class="hpt-instruction-card">
+            <span class="hpt-instruction-icon hpt-icon-score" aria-hidden="true"><i></i><i></i><i></i></span>
+            <div><h3>Scoring</h3><p>Each clip contains a maximum of <b>2 hazards</b>. You get higher marks for quicker and correct detection.</p></div>
+          </article>
+        </div>
+        <div class="hpt-instructions-column hpt-instructions-column-side">
+          <article class="hpt-instruction-card">
+            <span class="hpt-instruction-icon hpt-icon-limit" aria-hidden="true"><b>5</b></span>
+            <div><h3>Click Limit</h3><p>You can click a maximum of <b>5 times per video.</b></p></div>
+          </article>
+          <article class="hpt-instruction-card">
+            <span class="hpt-instruction-icon hpt-icon-trophy" aria-hidden="true">🏆</span>
+            <div><h3>Pass Requirement</h3><p>Total marks: <b>100</b><br>Pass mark: <b>60 (60%)</b></p></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="hpt-loader-readyline"><span class="hpt-ready-check" aria-hidden="true">✓</span><span id="hptExamLoadingStatus">The test will start automatically…</span></div>
+
+      <div class="hpt-loader-progress-wrap">
+        <div class="hpt-game-progress"><div id="hptExamLoadingFill"></div></div>
+        <div class="hpt-game-progress-meta"><span id="hptExamLoadingPercent">0%</span><span id="hptExamLoadingStep">CHECKING EXAMINATION</span></div>
+      </div>
+
+      <div class="hpt-loader-tip">
+        <span class="hpt-tip-icon" aria-hidden="true">☼</span>
+        <span class="hpt-tip-title">ROAD SAFETY TIP</span>
+        <span class="hpt-tip-divider" aria-hidden="true"></span>
+        <strong>Look well ahead. Developing hazards can appear before they become immediate danger.</strong>
+      </div>
+    </section>
   </div>
 </div>
 <div id="hptSchoolWelcome" hidden aria-live="polite" aria-label="School access verified">
