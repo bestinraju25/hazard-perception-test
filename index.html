@@ -30,7 +30,7 @@
 <meta name="twitter:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
 <link rel="icon" href="school-placeholder.svg" type="image/svg+xml">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=126">
+<link rel="stylesheet" href="style.css?v=127">
 <link rel="stylesheet" href="school-registration.css?v=3">
 <link rel="stylesheet" href="mobile-safe-area.css?v=113">
 <link rel="stylesheet" href="hpt-experience.css?v=124">
@@ -235,7 +235,7 @@
 <div class="videoWrap"><video id="video" playsinline preload="auto"></video><div id="clickLayer" class="clickLayer"></div><div id="playOverlay" class="playOverlay" hidden><button id="playNow">▶ PLAY CLIP</button></div>
 <div class="topOverlay"><div class="pill">CLIP <b id="clipNo2">1 / 10</b></div><div class="pill responsePill">RESPONSES <b id="respCount">0 / 5</b></div></div>
 <div class="rightTools"><button id="helpBtn" title="Help">?</button><button id="soundBtn" title="Sound">🔊</button><button id="fullBtn" title="Fullscreen">⛶</button><button id="exitBtn" title="Exit">×</button></div>
-<div class="tapPrompt">TAP WHEN YOU SEE A<br>DEVELOPING HAZARD</div>
+<div class="tapPrompt" aria-live="polite">Tap anywhere on the video to mark your response when you spot a developing hazard.</div>
 <div class="bottomHud"><div class="hint">💡 Look ahead, to the sides and behind.</div><button id="skipBtn" class="skip" type="button" hidden>SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
 </div></section>
 <section id="resultScreen" class="panel result" hidden><img id="resultSchoolLogo" src="school-placeholder.svg" class="resultLogo" alt="Driving school logo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="viewFullReportBtn" class="secondary">VIEW FULL REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
@@ -296,8 +296,8 @@
   <div id="studentProfileSummary" class="studentProfileSummary" hidden>
    <div class="profileIdentity"><div><strong id="studentProfileName">—</strong><span id="studentProfileSchool">—</span><small id="studentProfilePhone"></small></div><button id="printStudentProfileBtn" type="button" class="profilePrintBtn">▣ PRINT A4 REPORT</button></div>
    <div class="profileTestCards">
-    <article class="profileTestCard hptProfileCard"><div class="profileTestTitle"><span class="profileTestIcon">▣</span><strong>Hazard Perception Test (HPT)</strong></div><div class="profileTestMetrics"><div><small>TOTAL ATTEMPTS</small><b id="profileHptAttempts">0</b></div><div><small>HIGHEST SCORE</small><b id="profileBestHpt">— / 100</b></div><div><small>BEST RESULT</small><b id="profileHptBestResult" class="profileResultBadge">—</b></div></div></article>
-    <article class="profileTestCard learnerProfileCard"><div class="profileTestTitle"><span class="profileTestIcon">▤</span><strong>Learner’s Mock Test</strong></div><div class="profileTestMetrics"><div><small>TOTAL ATTEMPTS</small><b id="profileLearnerAttempts">0</b></div><div><small>HIGHEST SCORE</small><b id="profileBestLearner">— / 30</b></div><div><small>BEST RESULT</small><b id="profileLearnerBestResult" class="profileResultBadge">—</b></div></div></article>
+    <article class="profileTestCard hptProfileCard"><div class="profileTestTitle"><span class="profileTestIcon">▣</span><strong>Hazard Perception Test (HPT)</strong></div><div class="profileTestMetrics"><div><small>TOTAL ATTEMPTS</small><b id="profileHptAttempts">0</b></div><div><small>HIGHEST SCORE</small><b id="profileBestHpt">— / 100</b></div><div><small>BEST RESULT</small><b id="profileHptBestResult" class="profileResultBadge">—</b></div></div><div class="profileCertificateActions"><button id="printHptProfileCertBtn" class="profileCertificateBtn hptCertificateBtn" type="button" hidden>▣ PRINT HPT CERTIFICATE</button></div></article>
+    <article class="profileTestCard learnerProfileCard"><div class="profileTestTitle"><span class="profileTestIcon">▤</span><strong>Learner’s Mock Test</strong></div><div class="profileTestMetrics"><div><small>TOTAL ATTEMPTS</small><b id="profileLearnerAttempts">0</b></div><div><small>HIGHEST SCORE</small><b id="profileBestLearner">— / 30</b></div><div><small>BEST RESULT</small><b id="profileLearnerBestResult" class="profileResultBadge">—</b></div></div><div class="profileCertificateActions"><button id="printLearnerProfileCertBtn" class="profileCertificateBtn learnerCertificateBtn" type="button" hidden>▤ PRINT MOCK TEST CERTIFICATE</button></div></article>
    </div>
    <div class="profileProgressNote"><span class="profileProgressIcon">✓</span><div><strong>Learning progress summary</strong><small id="profileProgressText">Your best results are shown above. Individual attempt history is not retained in this profile.</small></div></div>
   </div>
@@ -313,7 +313,7 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=126"></script>
+<script src="app.js?v=127"></script>
 <script src="school-registration.js?v=119"></script>
 <script src="hpt-experience.js?v=124"></script><script>
 (()=>{

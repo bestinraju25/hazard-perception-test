@@ -563,6 +563,10 @@ async function lookupAttempts(){
     $('profileHptBestResult').classList.toggle('isFail',hptBest!==null&&hptBest<C.passMark);
     $('profileLearnerBestResult').textContent=learnerBest===null?'Not attempted':(learnerBest>=18?'✓ Passed':'Not passed');
     $('profileLearnerBestResult').classList.toggle('isFail',learnerBest!==null&&learnerBest<18);
+    const hptPassed=hptBest!==null&&hptBest>=C.passMark;
+    const learnerPassed=learnerBest!==null&&learnerBest>=18;
+    const hptCertButton=$('printHptProfileCertBtn');if(hptCertButton)hptCertButton.hidden=!hptPassed;
+    const learnerCertButton=$('printLearnerProfileCertBtn');if(learnerCertButton)learnerCertButton.hidden=!learnerPassed;
     const summaryText=`${name} has completed ${hptAttempts} HPT attempt${hptAttempts===1?'':'s'} and ${learnerAttempts} Learner’s Mock Test attempt${learnerAttempts===1?'':'s'}. Only total counts and highest scores are retained in this profile.`;
     $('profileProgressText').textContent=summaryText;
     if(msg){msg.textContent='Student performance summary loaded.';msg.className='attemptMsg ok'}
@@ -570,6 +574,50 @@ async function lookupAttempts(){
     console.error('Student profile lookup failed',e);
     if(msg){msg.textContent='Could not load the student summary. Apply 17-learner-summary-only-profile.sql in Supabase and try again.';msg.className='attemptMsg bad'}
   }
+}
+async function printProfileAchievementCertificate(kind){
+ const data=window._currentStudentProfile;
+ if(!data){toast('Load a student profile first.',true);return}
+ const isHpt=kind==='hpt';
+ const profile=data.profile||{},school=data.school||activeSchool||{};
+ const scoreValue=isHpt?profile.best_hpt_score:profile.best_learner_score;
+ const score=scoreValue===null||scoreValue===undefined?null:Number(scoreValue);
+ const passMark=isHpt?C.passMark:18,maxMarks=isHpt?100:30;
+ if(score===null||!Number.isFinite(score)||score<passMark){toast('A certificate is available only after the student passes this examination.',true);return}
+ if(!window.jspdf?.jsPDF){toast('Certificate generator is unavailable. Refresh the page and try again.',true);return}
+ const {jsPDF}=window.jspdf;
+ const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),W=297,H=210;
+ const studentName=String(profile.candidate_name||'Student').trim()||'Student';
+ const schoolName=String(school.school_name||profile.school_name||'Driving School').trim()||'Driving School';
+ const certTitle=isHpt?'CERTIFICATE OF HAZARD PERCEPTION ACHIEVEMENT':"CERTIFICATE OF LEARNER'S MOCK TEST ACHIEVEMENT";
+ const issuedOn=new Date();
+ doc.setFillColor(250,252,255);doc.rect(0,0,W,H,'F');
+ doc.setDrawColor(204,158,42);doc.setLineWidth(1.2);doc.roundedRect(8,8,W-16,H-16,2,2,'S');
+ doc.setDrawColor(31,67,92);doc.setLineWidth(.35);doc.roundedRect(13,13,W-26,H-26,1.5,1.5,'S');
+ const logoPath=school.logo_url||(schoolName.toLowerCase().includes('raju')?'raju-logo.png':'school-placeholder.svg');
+ try{const logo=await imageData(logoPath);if(logo)doc.addImage(logo,'PNG',(W-31)/2,18,31,24)}catch{}
+ doc.setTextColor(29,55,76);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(schoolName.toUpperCase(),W/2,49,{align:'center',maxWidth:235});
+ doc.setTextColor(168,121,15);doc.setFontSize(isHpt?19:18);doc.text(certTitle,W/2,65,{align:'center',maxWidth:255});
+ doc.setDrawColor(205,164,64);doc.setLineWidth(.65);doc.line(66,72,231,72);
+ doc.setTextColor(90,105,118);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is presented to',W/2,88,{align:'center'});
+ doc.setTextColor(24,42,58);doc.setFont('helvetica','bold');doc.setFontSize(29);doc.text(studentName,W/2,108,{align:'center',maxWidth:245});
+ doc.setDrawColor(185,194,202);doc.setLineWidth(.35);doc.line(72,114,225,114);
+ doc.setTextColor(75,91,105);doc.setFont('helvetica','normal');doc.setFontSize(12);
+ const completionText=isHpt
+   ?'for achieving a passing result in the Hazard Perception Test conducted through the driving school.'
+   :"for achieving a passing result in the Learner's Mock Test conducted through the driving school.";
+ doc.text(completionText,W/2,127,{align:'center',maxWidth:225});
+ doc.setTextColor(29,55,76);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`BEST RECORDED SCORE: ${score} / ${maxMarks}`,W/2,148,{align:'center'});
+ doc.setTextColor(34,126,78);doc.setFontSize(15);doc.text(`PASSED  •  PASS MARK ${passMark}/${maxMarks}`,W/2,160,{align:'center'});
+ doc.setTextColor(91,105,118);doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+ doc.setFontSize(8.5);doc.text('Based on the highest score currently recorded in the student profile.',W/2,173,{align:'center'});
+ doc.setFontSize(9.5);doc.text(`Issued on: ${issuedOn.toLocaleDateString('en-IN')}`,43,184);
+ doc.setFontSize(8);doc.text('School/platform achievement certificate only. Not a government-issued driving licence or statutory qualification.',W/2,188,{align:'center',maxWidth:250});
+ const footer=[schoolName,school.location,school.contact_number].filter(Boolean).join(' • ');
+ if(footer){doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.text(footer.slice(0,145),W/2,196,{align:'center',maxWidth:255})}
+ const clean=s=>String(s||'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,55)||'Student';
+ const filePrefix=isHpt?'HPT':'Learner-Mock-Test';
+ doc.save(`${clean(schoolName)}-${filePrefix}-Certificate-${clean(studentName)}.pdf`);
 }
 function printStudentProfile(){
  const data=window._currentStudentProfile;
@@ -682,7 +730,7 @@ bind('schoolAccessCode','keydown',e=>{if(e.key==='Enter')enterSchool()});
 bind('startBtn','click',begin);
 bind('chooseHptBtn','click',chooseHptTest);bind('chooseLearnerBtn','click',chooseLearnerTest);bind('testSelectionClose','click',closeTestSelection);
 bind('testSelectionModal','click',e=>{if(e.target===$('testSelectionModal')||e.target?.matches('[data-test-selection-close]'))closeTestSelection()});
-bind('printStudentProfileBtn','click',printStudentProfile);
+bind('printStudentProfileBtn','click',printStudentProfile);bind('printHptProfileCertBtn','click',()=>printProfileAchievementCertificate('hpt'));bind('printLearnerProfileCertBtn','click',()=>printProfileAchievementCertificate('learner'));
 bind('resultClose','click',()=>{show('resultScreen',false);show('startScreen',true)});
 bind('newBtn','click',()=>{show('resultScreen',false);show('startScreen',true);loadTopScorers()});
 bind('printCertBtn','click',()=>printCertificate());

@@ -2463,3 +2463,30 @@ body.hpt-skip-disabled .bottomHud .skip{display:none!important}
 .today-status.incomplete{color:#f2c77c;background:rgba(170,116,31,.12);border-color:rgba(215,166,83,.25)}
 .today-activity-note{margin:10px 0 0;color:#78919f;font-size:9px;line-height:1.5}
 @media(max-width:800px){.exam-controls-panel,.today-activity-panel{padding:13px}.exam-control-row{align-items:stretch;flex-direction:column}.exam-control-row .btn{width:100%}.today-activity-head{display:block}.today-activity-actions{justify-content:flex-start;margin-top:10px}.today-activity-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.today-activity-stats>div{padding:10px}.today-activity-stats strong{font-size:23px}.today-activity-filters select{flex:1;min-width:130px}.today-activity-filters small{width:100%;margin-left:0}}
+
+
+/* V127: simple, unobtrusive exam instruction; no button or badge styling. */
+.tapPrompt{
+  left:50%;bottom:78px;transform:translateX(-50%);
+  width:max-content;max-width:min(92vw,680px);
+  margin:0;padding:0!important;
+  border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+  color:#fff!important;text-align:center;
+  font-size:clamp(11px,1.05vw,14px)!important;
+  font-weight:650!important;letter-spacing:.01em;line-height:1.35;
+  text-shadow:0 2px 5px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.75);
+  pointer-events:none;white-space:normal;
+}
+.profileCertificateActions{display:flex;justify-content:center;align-items:center;padding:0 10px 12px;margin-top:-2px}
+.profileCertificateBtn{min-height:34px;padding:8px 13px;border:1px solid #b7d0ea;border-radius:8px;background:#eaf4ff;color:#16569a;font-size:9px;font-weight:900;letter-spacing:.045em;cursor:pointer;transition:transform .15s ease,background .15s ease;}
+.profileCertificateBtn:hover{transform:translateY(-1px);background:#dceeff}
+.learnerCertificateBtn{border-color:#d8cff7;background:#f1edff;color:#5944a7}
+.learnerCertificateBtn:hover{background:#e8e0ff}
+@media(max-width:800px){
+  .tapPrompt{bottom:53px;max-width:92vw;font-size:10px!important;line-height:1.25}
+  .profileCertificateActions{padding:0 8px 10px}
+  .profileCertificateBtn{width:100%;min-height:36px;font-size:9px}
+}
+@media(max-width:430px) and (orientation:portrait){.tapPrompt{bottom:49px;font-size:9px!important;max-width:90vw}}
+@media(max-width:800px) and (orientation:landscape){.tapPrompt{bottom:50px;font-size:9px!important}}
