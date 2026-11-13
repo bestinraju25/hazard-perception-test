@@ -122,26 +122,60 @@
         <label>Registered contact number
           <input name="contactNumber" type="tel" inputmode="tel" maxlength="30" autocomplete="tel" placeholder="Enter mobile number" required>
         </label>
-        <label>Driving school logo <span class="hptRegHint">PNG, JPG or WebP · maximum 5 MB</span>
-          <input name="schoolLogo" type="file" accept="image/png,image/jpeg,image/webp" required>
-        </label>
+        <div class="hptRegLogoSection">
+          <label class="hptRegNoLogoChoice" for="hptNoSchoolLogo">
+            <input id="hptNoSchoolLogo" name="noSchoolLogo" type="checkbox" checked>
+            <span><strong>No Logo — use the HPT logo</strong><small>Tick this when your driving school does not have its own logo.</small></span>
+          </label>
+          <label>Driving school logo <span class="hptRegHint">Optional · PNG, JPG or WebP · maximum 5 MB</span>
+            <input id="hptSchoolLogoFile" name="schoolLogo" type="file" accept="image/png,image/jpeg,image/webp" disabled>
+            <span class="hptRegHint">Untick “No Logo” to enable browsing and upload your school's own logo.</span>
+            <span class="hptRegLogoFallback"><img id="hptRegistrationLogoPreview" src="assets/hpt-brand-logo-v129.png" alt="Hazard Perception Test default logo"><small id="hptRegistrationLogoPreviewLabel">No Logo selected. The official HPT logo will be used.</small></span>
+          </label>
+        </div>
         <div id="hptRegistrationError" class="hptRegError" role="alert" hidden></div>
         <button class="hptRegPrimary" type="submit">CONTINUE TO PAYMENT <span>→</span></button>
       </form>`);
 
-    $('hptSchoolRegistrationForm').addEventListener('submit', submitRegistration);
+    const form = $('hptSchoolRegistrationForm');
+    const logoInput = form.elements.schoolLogo;
+    const noLogoToggle = form.elements.noSchoolLogo;
+    const preview = $('hptRegistrationLogoPreview');
+    const previewLabel = $('hptRegistrationLogoPreviewLabel');
+    const platformLogo = 'assets/hpt-brand-logo-v129.png';
+    function syncLogoChoice() {
+      const usePlatformLogo = noLogoToggle.checked;
+      logoInput.disabled = usePlatformLogo;
+      if (usePlatformLogo && logoInput.files?.length) logoInput.value = '';
+      const file = usePlatformLogo ? null : (logoInput.files?.[0] || null);
+      if (preview?.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+      const url = file ? URL.createObjectURL(file) : platformLogo;
+      if (preview) {
+        preview.src = url;
+        preview.dataset.objectUrl = file ? url : '';
+        preview.alt = file ? 'Selected driving school logo preview' : 'Hazard Perception Test default logo';
+      }
+      if (previewLabel) {
+        previewLabel.textContent = usePlatformLogo
+          ? 'No Logo selected. The official HPT logo will be used.'
+          : (file ? 'Your driving school logo will be used.' : 'No file selected. The official HPT logo will be used unless you upload one.');
+      }
+    }
+    noLogoToggle.addEventListener('change', syncLogoChoice);
+    logoInput.addEventListener('change', syncLogoChoice);
+    syncLogoChoice();
+    form.addEventListener('submit', submitRegistration);
   }
 
   async function submitRegistration(event) {
     event.preventDefault();
     const form = event.currentTarget;
     const submit = form.querySelector('button[type="submit"]');
-    const file = form.elements.schoolLogo.files?.[0];
-    if (!file) return showError('Please select your driving school logo.');
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+    const file = form.elements.noSchoolLogo.checked ? null : (form.elements.schoolLogo.files?.[0] || null);
+    if (file && !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
       return showError('Logo must be a PNG, JPG or WebP image.');
     }
-    if (file.size > 5 * 1024 * 1024) return showError('Logo must be 5 MB or smaller.');
+    if (file && file.size > 5 * 1024 * 1024) return showError('Logo must be 5 MB or smaller.');
 
     const schoolName = form.elements.schoolName.value.trim();
     const location = form.elements.location.value.trim();
@@ -157,17 +191,19 @@
     let uploadedLogoPath = null;
     try {
       const supabase = getSupabase();
-      const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
-      const randomId = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      uploadedLogoPath = `public-registration/${randomId}.${extension}`;
-      const { error: uploadError } = await supabase.storage
-        .from('hpt-school-logos')
-        .upload(uploadedLogoPath, file, { upsert: false, contentType: file.type, cacheControl: '3600' });
-      if (uploadError) throw uploadError;
-
-      const { data: publicData } = supabase.storage.from('hpt-school-logos').getPublicUrl(uploadedLogoPath);
-      const logoUrl = publicData?.publicUrl;
-      if (!logoUrl) throw new Error('Could not prepare the school logo. Please try again.');
+      let logoUrl = null;
+      if (file) {
+        const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+        const randomId = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        uploadedLogoPath = `public-registration/${randomId}.${extension}`;
+        const { error: uploadError } = await supabase.storage
+          .from('hpt-school-logos')
+          .upload(uploadedLogoPath, file, { upsert: false, contentType: file.type, cacheControl: '3600' });
+        if (uploadError) throw uploadError;
+        const { data: publicData } = supabase.storage.from('hpt-school-logos').getPublicUrl(uploadedLogoPath);
+        logoUrl = publicData?.publicUrl || null;
+        if (!logoUrl) throw new Error('Could not prepare the school logo. Please try again.');
+      }
 
       const { data, error } = await supabase.rpc('register_hpt_school', {
         p_school_name: schoolName,

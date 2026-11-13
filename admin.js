@@ -231,7 +231,7 @@ function renderSchoolOverview(){
     const sum=schoolResultSummary(s.id);
     return `<article class="schoolResultCard">
       <div class="schoolResultCardHead">
-        <div class="schoolResultAvatar">${s.logo_url?`<img src="${esc(s.logo_url)}" alt="">`:`<span>${esc(String(s.school_name||'S').trim().slice(0,1).toUpperCase())}</span>`}</div>
+        <div class="schoolResultAvatar"><img src="${esc(s.logo_url||'assets/hpt-brand-logo-v129.png')}" alt="${esc(s.school_name||'Driving school')} logo" onerror="this.src='assets/hpt-brand-logo-v129.png'"></div>
         <div class="schoolResultName"><h3>${esc(s.school_name)}</h3><p>${esc(s.state||'Kerala')} · ${esc(s.location||'Location not set')}</p></div>
         <span class="schoolResultStatus ${s.active?'on':'off'}">${s.active?'ACTIVE':'DISABLED'}</span>
       </div>
@@ -410,7 +410,7 @@ async function pdfBrandHeader(doc,title,subtitle,school){
   const W=doc.internal.pageSize.getWidth();
   doc.setFillColor(5,15,24);doc.rect(0,0,W,42,'F');
   doc.setFillColor(255,196,0);doc.rect(0,41,W,1.4,'F');
-  const logo=await pdfLoadImage(school?.logo_url);
+  let logo=await pdfLoadImage(school?.logo_url||'assets/hpt-brand-logo-v129.png');if(!logo&&school?.logo_url)logo=await pdfLoadImage('assets/hpt-brand-logo-v129.png');
   if(logo){
     try{doc.addImage(logo.data,logo.format,13,8,25,25,undefined,'FAST')}catch{}
   }else{
@@ -791,7 +791,7 @@ async function downloadReport(id){
 async function downloadCertificate(id){const r=results.find(x=>x.id===id);if(!r||!isPassed(r))return;if(!window.jspdf?.jsPDF){notice('Certificate generator is not available. Please refresh the page.',true);return}const btn=document.querySelector(`[data-certificate="${CSS.escape(id)}"]`);if(btn){btn.disabled=true;btn.textContent='…'}try{const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});const W=297,H=210;
 // Light, print-friendly certificate design.
 doc.setFillColor(250,251,253);doc.rect(0,0,W,H,'F');doc.setDrawColor(212,162,32);doc.setLineWidth(1.1);doc.rect(8,8,W-16,H-16,'S');doc.setDrawColor(33,53,72);doc.setLineWidth(.35);doc.rect(13,13,W-26,H-26,'S');
-const school=r.hpt_schools||{};const logoPath=school.logo_url||'school-placeholder.svg';let logo=null;try{logo=await imageData(logoPath)}catch{}if(logo){const lw=43,lh=33.2;doc.addImage(logo,'PNG',(W-lw)/2,17,lw,lh);}
+const school=r.hpt_schools||{};const logoPath=school.logo_url||'assets/hpt-brand-logo-v129.png';let logo=null;try{logo=await imageData(logoPath)}catch{}if(logo){const lw=43,lh=33.2;doc.addImage(logo,'PNG',(W-lw)/2,17,lw,lh);}
 const schoolName=String(school.school_name||'Driving School').toUpperCase();const schoolLocation=school.location||'';doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(schoolName,W/2,57,{align:'center',maxWidth:230});doc.setTextColor(184,132,12);doc.setFontSize(25);doc.text('CERTIFICATE OF HAZARD PERCEPTION',W/2,73,{align:'center'});doc.setDrawColor(212,162,32);doc.setLineWidth(.7);doc.line(82,79,215,79);
 doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is awarded to',W/2,94,{align:'center'});doc.setTextColor(25,38,51);doc.setFont('helvetica','bold');doc.setFontSize(27);doc.text(String(r.candidate_name||'Candidate'),W/2,112,{align:'center'});doc.setDrawColor(180,188,195);doc.setLineWidth(.35);doc.line(70,118,227,118);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the '+(school.school_name||'Driving School')+' Hazard Perception Test',W/2,131,{align:'center',maxWidth:230});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`SCORE: ${Number(r.total_score||0)} / 100`,W/2,149,{align:'center'});doc.setTextColor(35,126,78);doc.setFontSize(16);doc.text('PASS',W/2,160,{align:'center'});const d=new Date(r.completed_at||r.started_at);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Date: ${d.toLocaleDateString('en-IN')}`,45,181);doc.text(`Certificate No: HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(r.id).slice(0,8).toUpperCase()}`,W-45,181,{align:'right'});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text([schoolName,schoolLocation,school.contact_number].filter(Boolean).join(' • ').slice(0,120),W/2,191,{align:'center',maxWidth:250});doc.save(`${String(school.school_name||'Driving-School').replace(/[^a-z0-9]+/gi,'-')}-HPT-Certificate-${String(r.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`);notice(`Certificate downloaded for ${r.candidate_name}.`)}catch(e){console.error(e);notice('Could not generate the certificate.',true)}finally{if(btn){btn.disabled=false;btn.textContent='PRINT'}}}
 

@@ -29,7 +29,7 @@
 <meta content="Hazard Perception Test" name="twitter:title"/>
 <meta content="A central Hazard Perception Test platform for driving schools and students, with interactive video-based learning and school access." name="twitter:description"/>
 <meta content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg" name="twitter:image"/>
-<link href="school-placeholder.svg" rel="icon" type="image/svg+xml"/>
+<link rel="icon" type="image/png" sizes="192x192" href="hpt-favicon-v129-192.png"><link rel="apple-touch-icon" href="hpt-favicon-v129-192.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <link href="style.css?v=100" rel="stylesheet"/>
 <link href="school-registration.css?v=3" rel="stylesheet"/>
@@ -50,7 +50,7 @@
 
 <div class="app" id="app">
 <header class="topbar">
-<div class="brand"><img alt="Driving school logo" class="logo" id="headerSchoolLogo" src="school-placeholder.svg"/><div><div class="school" id="headerSchoolName">HAZARD PERCEPTION PORTAL</div><div class="testname">HAZARD PERCEPTION TEST</div></div></div>
+<div class="brand"><img alt="Driving school logo" class="logo" id="headerSchoolLogo" src="assets/hpt-brand-logo-v129.png"/><div><div class="school" id="headerSchoolName">HAZARD PERCEPTION PORTAL</div><div class="testname">HAZARD PERCEPTION TEST</div></div></div>
 <div class="hud">
 <div class="candidate"><span id="candName">Candidate</span><small id="candPhone"></small></div>
 <div class="clip">CLIP <b id="clipNo">-- / --</b></div>
@@ -69,7 +69,7 @@
 <div class="landingHero">
 <div class="landingIntro">
 <div class="gateEyebrow"><span></span> DIGITAL ROAD SAFETY LEARNING</div>
-<img alt="HPT — Hazard Perception Test" class="hpt-landing-logo" src="assets/hpt-mark.svg"/>
+<img alt="HPT — Hazard Perception Test" class="hpt-landing-logo" src="assets/hpt-brand-logo-v129.png"/>
 <h1 id="gateHeading">Hazard Perception Test</h1>
 <p>Build safer driving habits through realistic, interactive video-based hazard perception training.</p>
 </div>
@@ -121,7 +121,7 @@
 <div class="homeKicker"><span></span> COMPUTER-BASED EXAMINATION</div>
 <div class="homeIntroTitle">
 <div aria-label="Driving school identity" class="mobileSchoolBrand" id="mobileSchoolBrand">
-<img alt="Driving school logo" id="mobileSchoolLogo" src="school-placeholder.svg"/>
+<img alt="Driving school logo" id="mobileSchoolLogo" src="assets/hpt-brand-logo-v129.png"/>
 <strong id="mobileSchoolName">DRIVING SCHOOL</strong>
 <span>HAZARD PERCEPTION TEST</span>
 </div>
@@ -160,16 +160,15 @@
 <div class="videoWrap"><video id="video" playsinline="" preload="auto"></video><div class="clickLayer" id="clickLayer"></div><div class="playOverlay" hidden="" id="playOverlay"><button id="playNow">▶ PLAY CLIP</button></div>
 <div class="topOverlay"><div class="pill">CLIP <b id="clipNo2">1 / 10</b></div><div class="pill responsePill">RESPONSES <b id="respCount">0 / 5</b></div></div>
 <div class="rightTools"><button id="helpBtn" title="Help">?</button><button id="soundBtn" title="Sound">🔊</button><button id="fullBtn" title="Fullscreen">⛶</button><button id="exitBtn" title="Exit">×</button></div>
-<div class="tapPrompt">TAP WHEN YOU SEE A<br/>DEVELOPING HAZARD</div>
-<div class="bottomHud"><div class="hint">💡 Look ahead, to the sides and behind.</div><button class="skip" id="skipBtn">SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
+<div class="bottomHud"><div class="hint" aria-live="polite" aria-label="Tap anywhere on the video to mark your response">Tap anywhere on video to mark your response.</div><button class="skip" id="skipBtn">SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
 </div></section>
-<section class="panel result" hidden="" id="resultScreen"><img alt="Driving school logo" class="resultLogo" id="resultSchoolLogo" src="school-placeholder.svg"/><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div class="candidateResult" id="candidateResult"></div><div class="finalScore" id="finalScore">0 / 100</div><div class="status" id="passText"></div><div id="resultDetails"></div><div class="save-status" id="resultSaveStatus"></div><div class="resultActions"><button class="primary" hidden="" id="printCertBtn">PRINT CERTIFICATE</button><button class="secondary" id="viewFullReportBtn">VIEW FULL REPORT</button><button class="secondary" id="newBtn">NEW EXAM</button><button class="secondary" id="resultClose">CLOSE</button></div></section>
+<section class="panel result" hidden="" id="resultScreen"><img alt="Driving school logo" class="resultLogo" id="resultSchoolLogo" src="assets/hpt-brand-logo-v129.png"/><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div class="candidateResult" id="candidateResult"></div><div class="finalScore" id="finalScore">0 / 100</div><div class="status" id="passText"></div><div id="resultDetails"></div><div class="save-status" id="resultSaveStatus"></div><div class="resultActions"><button class="primary" hidden="" id="printCertBtn">PRINT CERTIFICATE</button><button class="secondary" id="viewFullReportBtn">VIEW FULL REPORT</button><button class="secondary" id="newBtn">NEW EXAM</button><button class="secondary" id="resultClose">CLOSE</button></div></section>
 </main><div aria-labelledby="schoolStatsTitle" aria-modal="true" class="schoolStatsModal" hidden="" id="schoolStatsModal" role="dialog">
 <div class="schoolStatsBackdrop" data-stats-close=""></div>
 <section class="schoolStatsDialog">
 <header class="schoolStatsDialogHead">
 <div class="schoolStatsIdentity">
-<img alt="Driving school logo" id="schoolStatsLogo" src="school-placeholder.svg"/>
+<img alt="Driving school logo" id="schoolStatsLogo" src="assets/hpt-brand-logo-v129.png"/>
 <div><div class="eyebrow">SCHOOL PERFORMANCE</div><h2 id="schoolStatsTitle">Lifetime Statistics</h2><p id="schoolStatsSchoolName">Your driving school</p></div>
 </div>
 <div class="schoolStatsHeadActions">

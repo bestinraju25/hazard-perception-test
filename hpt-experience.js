@@ -124,13 +124,19 @@
       if (title) title.textContent = String(school?.school_name || 'Your Driving School');
       if (place) place.textContent = String(school?.location || school?.state || '');
       if (logo) {
-        logo.hidden = true;
-        logo.removeAttribute('src');
-        if (school?.logo_url) {
-          logo.onload = () => { logo.hidden = false; };
-          logo.onerror = () => { logo.hidden = true; };
-          logo.src = String(school.logo_url);
-        }
+        const platformLogo = 'assets/hpt-brand-logo-v129.png';
+        logo.hidden = false;
+        logo.onload = () => { logo.hidden = false; };
+        logo.onerror = () => {
+          if (logo.dataset.platformFallback !== '1') {
+            logo.dataset.platformFallback = '1';
+            logo.src = platformLogo;
+          } else {
+            logo.hidden = true;
+          }
+        };
+        logo.dataset.platformFallback = school?.logo_url ? '0' : '1';
+        logo.src = String(school?.logo_url || platformLogo);
       }
       if (progress) progress.style.width = '0%';
       if (percent) percent.textContent = '0';

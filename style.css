@@ -2490,3 +2490,35 @@ body.hpt-skip-disabled .bottomHud .skip{display:none!important}
 }
 @media(max-width:430px) and (orientation:portrait){.tapPrompt{bottom:49px;font-size:9px!important;max-width:90vw}}
 @media(max-width:800px) and (orientation:landscape){.tapPrompt{bottom:50px;font-size:9px!important}}
+
+
+/* V129 — compact exam instruction in the former lower-left guidance area.
+   The large centered prompt is removed so the full road scene remains visible. */
+.tapPrompt{display:none!important}
+.bottomHud .hint{
+  grid-column:1;grid-row:1/3;display:flex!important;align-items:center;align-self:center;
+  min-width:0;max-width:100%;margin:0;padding:0!important;
+  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+  color:#edf5f8!important;font-size:9.5px!important;font-weight:650!important;letter-spacing:.01em;
+  line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 1px 4px rgba(0,0,0,.98),0 0 8px rgba(0,0,0,.85);
+}
+.bottomHud .timeline{min-width:0}
+@media(max-width:800px){
+  .bottomHud{grid-template-columns:minmax(0,1fr) 90px!important;grid-template-rows:20px 13px!important;gap:2px 7px!important}
+  .bottomHud .hint{grid-column:1!important;grid-row:1!important;display:block!important;align-self:center;font-size:8px!important;line-height:1.1;max-width:100%;}
+  .bottomHud .timeline{grid-column:1!important;grid-row:2!important;gap:5px}
+  .bottomHud .skip{grid-column:2!important;grid-row:1/3!important;align-self:center;height:34px!important;font-size:9px!important}
+  body.hpt-skip-disabled .bottomHud{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:20px 13px!important}
+  body.hpt-skip-disabled .bottomHud .hint{grid-column:1!important;grid-row:1!important}
+  body.hpt-skip-disabled .bottomHud .timeline{grid-column:1!important;grid-row:2!important}
+}
+@media(max-width:430px) and (orientation:portrait){
+  .bottomHud .hint{font-size:7.5px!important;letter-spacing:0}
+  .bottomHud{grid-template-rows:18px 12px!important}
+  .bottomHud .skip{height:31px!important;font-size:8px!important}
+}
+@media(max-width:800px) and (orientation:landscape){
+  .bottomHud .hint{font-size:8px!important}
+  .bottomHud .skip{height:30px!important}
+}

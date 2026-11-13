@@ -57,8 +57,11 @@
     safeText("footerSchool",name);
     const logo=$("gameSchoolLogo");
     if(logo){
-      if(state.school.logo_url){logo.src=state.school.logo_url;logo.alt=`${name} logo`;logo.hidden=false;logo.onerror=()=>{logo.hidden=true;};}
-      else{logo.removeAttribute("src");logo.hidden=true;logo.alt="";}
+      const platformLogo="assets/hpt-brand-logo-v129.png";
+      logo.src=state.school.logo_url||platformLogo;
+      logo.alt=state.school.logo_url?`${name} logo`:"Hazard Perception Test platform logo";
+      logo.hidden=false;
+      logo.onerror=()=>{if(logo.src!==new URL(platformLogo,location.href).href)logo.src=platformLogo;else logo.hidden=true;};
     }
     const brand=/^#[0-9a-f]{6}$/i.test(state.school.brand_color||"")?state.school.brand_color:"#f4c542";
     document.documentElement.style.setProperty("--school-accent",brand);

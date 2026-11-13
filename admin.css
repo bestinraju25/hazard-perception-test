@@ -1421,3 +1421,8 @@ body.school-stats-open{overflow:hidden}
 .report-fallback-backdrop{position:fixed;inset:0;background:#000;opacity:.78;z-index:2050}
 .report-modal-open{overflow:hidden}
 @media(max-width:700px){.report-modal{padding:7px}.report-modal .modal-dialog{margin:0;width:100%}}
+
+/* V128 — shared official HPT platform logo in provider controls */
+.providerMarkLogo{display:block;width:132px!important;height:auto!important;max-height:58px;object-fit:contain;background:transparent;border:0;box-shadow:none;border-radius:0;flex:0 0 auto}
+.login-provider-mark{display:block;width:min(260px,100%)!important;height:auto!important;max-height:120px;object-fit:contain;margin:0 auto 22px;background:transparent;border:0;box-shadow:none;border-radius:0}
+@media(max-width:700px){.providerMarkLogo{width:104px!important;max-height:48px}.login-provider-mark{width:min(220px,100%)!important;max-height:100px}}

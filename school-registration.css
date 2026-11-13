@@ -47,3 +47,19 @@
 
 /* V120: emphasise the preset UPI amount shown by the QR */
 .hptFixedPaymentAmount{margin:12px auto 4px;padding:12px 14px;max-width:360px;text-align:center;border:1px solid rgba(16,43,66,.16);border-radius:12px;background:#f2f7fb;color:#23394b;font-size:14px;font-weight:800;letter-spacing:.02em}.hptFixedPaymentAmount strong{display:block;font-size:24px;color:#0b6542;margin:3px 0}.hptFixedPaymentAmount span{display:block;font-size:11px;font-weight:600;color:#6a7886;letter-spacing:0}
+
+/* V128 — optional school logo with platform-brand fallback preview */
+.hptRegLogoFallback{display:flex;align-items:center;gap:11px;margin-top:9px;padding:10px 12px;border:1px solid rgba(119,160,183,.24);border-radius:11px;background:rgba(5,18,28,.55)}
+.hptRegLogoFallback img{width:112px;height:48px;object-fit:contain;flex:0 0 auto}
+.hptRegLogoFallback small{font-size:10px;line-height:1.45;color:#9db3c0}
+@media(max-width:420px){.hptRegLogoFallback{align-items:flex-start;flex-direction:column}.hptRegLogoFallback img{width:130px;height:54px}}
+
+/* V128 — explicit no-logo choice: checked by default; custom logo browse stays disabled until unchecked. */
+.hptRegLogoSection{display:grid;gap:9px}
+.hptRegForm .hptRegNoLogoChoice{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid rgba(119,160,183,.28);border-radius:11px;background:rgba(5,18,28,.62);cursor:pointer}
+.hptRegForm .hptRegNoLogoChoice input[type=checkbox]{width:19px;height:19px;min-height:19px;flex:0 0 19px;margin:0;accent-color:#20b978;cursor:pointer}
+.hptRegNoLogoChoice span{display:grid;gap:3px}
+.hptRegNoLogoChoice strong{color:#f2f7fa;font-size:12px;font-weight:850}
+.hptRegNoLogoChoice small{color:#91a8b6;font-size:10px;font-weight:500;line-height:1.4}
+.hptRegForm input[type=file]:disabled{opacity:.45;cursor:not-allowed;border-style:dashed}
+.hptRegForm input[type=file]:disabled::file-selector-button{cursor:not-allowed}

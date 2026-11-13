@@ -266,7 +266,7 @@ async function finishExam(){
 }
 function schoolBrand(s=activeSchool){
   if(!s)return null;
-  return {id:s.id,school_name:s.school_name||'Driving School',contact_number:s.contact_number||'',location:s.location||'',logo_url:s.logo_url||'',brand_color:s.brand_color||'#ffc400',dark_color:s.dark_color||'#0b1b29'};
+  return {id:s.id,school_name:s.school_name||'Driving School',contact_number:s.contact_number||'',location:s.location||'',logo_url:s.logo_url||'assets/hpt-brand-logo-v129.png',brand_color:s.brand_color||'#ffc400',dark_color:s.dark_color||'#0b1b29'};
 }
 
 async function loadGlobalMonthlyTopFive(){
@@ -341,7 +341,7 @@ function applySchoolBranding(s,persist=true){
   const b=schoolBrand(s);
   window.HPTCurrentSchool=b;document.body.classList.toggle('school-selected',!!b);
   const name=b?.school_name||'HAZARD PERCEPTION PORTAL';
-  const logo=b?.logo_url||(b?.school_name?.toLowerCase().includes('raju')?'raju-logo.png':'school-placeholder.svg');
+  const logo=b?.logo_url||'assets/hpt-brand-logo-v129.png';
   // Some older local copies do not include every branding node. Missing optional nodes
   // must never interrupt successful access verification or prevent the test home screen.
   safeText('headerSchoolName',name.toUpperCase());
@@ -351,6 +351,11 @@ function applySchoolBranding(s,persist=true){
   safeImage('resultSchoolLogo',logo,name+' logo');
   safeText('loaderSchoolName',name.toUpperCase());
   safeImage('loaderSchoolLogo',logo,name+' logo');
+  const platformLogo='assets/hpt-brand-logo-v129.png';
+  ['headerSchoolLogo','mobileSchoolLogo','resultSchoolLogo','loaderSchoolLogo'].forEach(id=>{
+    const image=$(id);if(!image)return;
+    image.onerror=()=>{if(image.src!==new URL(platformLogo,location.href).href)image.src=platformLogo;};
+  });
   document.title=b?`${name} | Hazard Perception Test`:'Driving School Hazard Perception Test | Access Portal';
   const brandColor=b?.brand_color||'#ffc400',darkColor=b?.dark_color||'#0b1b29';
   document.documentElement.style.setProperty('--yellow',brandColor);
@@ -365,12 +370,12 @@ function resetSchoolBranding(){
   try{sessionStorage.removeItem('hpt_school_session')}catch{}
   applySchoolBranding(null,false);
   safeText('headerSchoolName','HAZARD PERCEPTION PORTAL');
-  safeImage('headerSchoolLogo','school-placeholder.svg','Hazard Perception Test Portal');
+  safeImage('headerSchoolLogo','assets/hpt-brand-logo-v129.png','Hazard Perception Test Portal');
   safeText('mobileSchoolName','DRIVING SCHOOL');
-  safeImage('mobileSchoolLogo','school-placeholder.svg','Driving school logo');
-  safeImage('resultSchoolLogo','school-placeholder.svg','Hazard Perception Test Portal');
+  safeImage('mobileSchoolLogo','assets/hpt-brand-logo-v129.png','Driving school logo');
+  safeImage('resultSchoolLogo','assets/hpt-brand-logo-v129.png','Hazard Perception Test Portal');
   safeText('loaderSchoolName','HAZARD PERCEPTION PORTAL');
-  safeImage('loaderSchoolLogo','school-placeholder.svg','Hazard Perception Test Portal');
+  safeImage('loaderSchoolLogo','assets/hpt-brand-logo-v129.png','Hazard Perception Test Portal');
   const tools=$('homeTools');if(tools)tools.hidden=true;
 }
 async function enterSchool(){
@@ -514,7 +519,7 @@ async function printCertificate(examOverride=null,candidateOverride=null){
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});const W=297,H=210;
   doc.setFillColor(250,251,253);doc.rect(0,0,W,H,'F');
   doc.setDrawColor(212,162,32);doc.setLineWidth(1.1);doc.rect(8,8,W-16,H-16,'S');doc.setDrawColor(33,53,72);doc.setLineWidth(.35);doc.rect(13,13,W-26,H-26,'S');
-  const school=exam.school||schoolBrand();const logoPath=school?.logo_url||(school?.school_name?.toLowerCase().includes('raju')?'raju-logo.png':'school-placeholder.svg');let logo=null;try{logo=await imageData(logoPath)}catch{}if(logo){const lw=43,lh=33.2;doc.addImage(logo,'PNG',(W-lw)/2,17,lw,lh);}
+  const school=exam.school||schoolBrand();const platformLogo='assets/hpt-brand-logo-v129.png';const logoPath=school?.logo_url||platformLogo;let logo=null;try{logo=await imageData(logoPath)}catch{}if(!logo&&school?.logo_url){try{logo=await imageData(platformLogo)}catch{}}if(logo){const lw=43,lh=33.2;doc.addImage(logo,'PNG',(W-lw)/2,17,lw,lh);}
   const schoolName=String(school?.school_name||'Driving School').toUpperCase();doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(schoolName,W/2,57,{align:'center',maxWidth:230});
   doc.setTextColor(184,132,12);doc.setFontSize(25);doc.text('CERTIFICATE OF HAZARD PERCEPTION',W/2,73,{align:'center'});
   doc.setDrawColor(212,162,32);doc.setLineWidth(.7);doc.line(82,79,215,79);
@@ -594,8 +599,8 @@ async function printProfileAchievementCertificate(kind){
  doc.setFillColor(250,252,255);doc.rect(0,0,W,H,'F');
  doc.setDrawColor(204,158,42);doc.setLineWidth(1.2);doc.roundedRect(8,8,W-16,H-16,2,2,'S');
  doc.setDrawColor(31,67,92);doc.setLineWidth(.35);doc.roundedRect(13,13,W-26,H-26,1.5,1.5,'S');
- const logoPath=school.logo_url||(schoolName.toLowerCase().includes('raju')?'raju-logo.png':'school-placeholder.svg');
- try{const logo=await imageData(logoPath);if(logo)doc.addImage(logo,'PNG',(W-31)/2,18,31,24)}catch{}
+ const platformLogo='assets/hpt-brand-logo-v129.png',logoPath=school.logo_url||platformLogo;
+ try{let logo=await imageData(logoPath);if(!logo&&school.logo_url)logo=await imageData(platformLogo);if(logo)doc.addImage(logo,'PNG',(W-31)/2,18,31,24)}catch{}
  doc.setTextColor(29,55,76);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(schoolName.toUpperCase(),W/2,49,{align:'center',maxWidth:235});
  doc.setTextColor(168,121,15);doc.setFontSize(isHpt?19:18);doc.text(certTitle,W/2,65,{align:'center',maxWidth:255});
  doc.setDrawColor(205,164,64);doc.setLineWidth(.65);doc.line(66,72,231,72);
@@ -626,12 +631,12 @@ function printStudentProfile(){
  const hptAttempts=Number(profile.hpt_attempt_count||0),learnerAttempts=Number(profile.learner_attempt_count||0);
  const hptBest=profile.best_hpt_score==null?null:Number(profile.best_hpt_score),learnerBest=profile.best_learner_score==null?null:Number(profile.best_learner_score);
  const hptPassed=hptBest!==null&&hptBest>=C.passMark,learnerPassed=learnerBest!==null&&learnerBest>=18;
- const schoolName=school?.school_name||profile.school_name||'Driving School',studentName=profile.candidate_name||'Student',logo=school?.logo_url||'';
+ const schoolName=school?.school_name||profile.school_name||'Driving School',studentName=profile.candidate_name||'Student',logo=school?.logo_url||'assets/hpt-brand-logo-v129.png';
  const w=window.open('','_blank','width=980,height=760');
  if(!w){toast('Please allow the report popup to print the student profile.',true);return}
  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Student Performance Report</title><style>
  @page{size:A4 portrait;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#172b46;margin:0;background:#eaf1f8;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{max-width:190mm;margin:10px auto;padding:11px;background:#0869c9;color:#fff;border-radius:8px;text-align:center;font-size:14px;font-weight:800;cursor:pointer}.sheet{width:190mm;min-height:277mm;margin:0 auto 15px;background:#fff;border:1px solid #d7e3f0;border-radius:10px;padding:12mm;position:relative;overflow:hidden}.brand{text-align:center;padding-bottom:13px;border-bottom:3px solid #1767b5}.brand img{max-height:66px;max-width:220px;object-fit:contain;display:block;margin:0 auto 7px}.brandName{font-size:24px;font-weight:900;letter-spacing:.03em;color:#12345c}.brandSub{font-size:10px;color:#63758b;margin-top:4px}.reportTitle{margin:16px 0 18px;background:linear-gradient(90deg,#075bb2,#1685e5);color:#fff;border-radius:7px;padding:12px;text-align:center;font-size:16px;font-weight:900;letter-spacing:.06em}.identity{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;padding:5px 5px 22px}.identity div{border-bottom:1px solid #d9e2ec;padding:8px 2px;font-size:12px}.identity b{display:inline-block;min-width:112px;color:#52657c}.sectionTitle{background:#0b66bd;color:#fff;border-radius:7px 7px 0 0;padding:11px 12px;font-weight:900;font-size:12px;letter-spacing:.04em;margin-top:14px}.summary{width:100%;border-collapse:collapse;margin:0 0 15px}.summary th,.summary td{border:1px solid #d3dfeb;padding:13px 9px;text-align:center;font-size:11px}.summary th{background:#edf4fb;color:#314a68;font-size:10px}.summary td:first-child,.summary th:first-child{text-align:left}.status{display:inline-block;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:900}.pass{background:#e2f7e9;color:#16803b}.fail{background:#ffeded;color:#b42332}.progress{margin-top:20px;border:1px solid #c8ddf2;background:#f0f7ff;border-radius:8px;overflow:hidden}.progress h3{margin:0;padding:10px 12px;background:#e0efff;color:#14549a;font-size:12px}.progress p{margin:0;padding:14px;font-size:12px;line-height:1.6}.footer{position:absolute;bottom:10mm;left:12mm;right:12mm;border-top:1px solid #dce6f0;padding-top:8px;color:#7b8da2;font-size:9px;display:flex;justify-content:space-between}.bottomAccent{position:absolute;bottom:0;right:0;width:75mm;height:5mm;background:linear-gradient(110deg,#d8ebff,#1685e5);clip-path:polygon(30% 0,100% 0,100% 100%,0 100%)}@media screen{.sheet{box-shadow:0 8px 28px #18365322}}@media print{body{background:#fff}.toolbar{display:none}.sheet{margin:0;border:0;border-radius:0;width:auto;min-height:277mm;padding:9mm}}
- </style></head><body><div class="toolbar" onclick="window.print()">▣ &nbsp; PRINT PERFORMANCE REPORT (A4)</div><main class="sheet"><header class="brand">${logo?`<img src="${safe(logo)}" alt="School logo" onerror="this.style.display='none'">`:''}<div class="brandName">${safe(schoolName)}</div><div class="brandSub">${safe(school?.location||'')} ${school?.contact_number?' | '+safe(school.contact_number):''}</div></header><div class="reportTitle">STUDENT PERFORMANCE REPORT</div>
+ </style></head><body><div class="toolbar" onclick="window.print()">▣ &nbsp; PRINT PERFORMANCE REPORT (A4)</div><main class="sheet"><header class="brand">${logo?`<img src="${safe(logo)}" alt="School logo" onerror="this.onerror=null;this.src='assets/hpt-brand-logo-v129.png'">`:''}<div class="brandName">${safe(schoolName)}</div><div class="brandSub">${safe(school?.location||'')} ${school?.contact_number?' | '+safe(school.contact_number):''}</div></header><div class="reportTitle">STUDENT PERFORMANCE REPORT</div>
  <section class="identity"><div><b>Student Name</b> : ${safe(studentName)}</div><div><b>Mobile Number</b> : ${safe(phone)}</div><div><b>Driving School</b> : ${safe(schoolName)}</div><div><b>Report Date</b> : ${safe(new Date().toLocaleDateString('en-IN'))}</div></section>
  <div class="sectionTitle">EXAMINATION PERFORMANCE SUMMARY</div><table class="summary"><thead><tr><th>Examination</th><th>Total Attempts</th><th>Maximum Score</th><th>Highest Score</th><th>Best Result</th></tr></thead><tbody><tr><td>Hazard Perception Test (HPT)</td><td>${hptAttempts}</td><td>100</td><td>${hptBest===null?'—':hptBest}</td><td><span class="status ${hptPassed?'pass':'fail'}">${hptBest===null?'NOT ATTEMPTED':hptPassed?'PASSED':'NOT PASSED'}</span></td></tr><tr><td>Learner’s Mock Test</td><td>${learnerAttempts}</td><td>30</td><td>${learnerBest===null?'—':learnerBest}</td><td><span class="status ${learnerPassed?'pass':'fail'}">${learnerBest===null?'NOT ATTEMPTED':learnerPassed?'PASSED':'NOT PASSED'}</span></td></tr></tbody></table>
  <section class="progress"><h3>LEARNING PROGRESS</h3><p>${(hptPassed&&learnerPassed)?'The student has achieved the pass benchmark in both examinations. Continue practising to maintain consistent performance.':(hptPassed||learnerPassed)?'The student has achieved the pass benchmark in one examination. Continued practice is recommended for the remaining examination.':'Further practice is recommended. The highest scores and total completed attempts are shown above.'}</p></section>

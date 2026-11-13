@@ -20,7 +20,7 @@
  $('schoolLabel').textContent=schoolName;$('schoolBrandEyebrow').textContent=schoolName.toUpperCase();$('schoolBrandName').textContent='LEARNER’S TEST';document.title=schoolName+' | Kerala Learner’s Test';
  document.documentElement.style.setProperty('--brand',school.brand_color||'#1769cf');
  document.documentElement.style.setProperty('--brand2',school.dark_color||'#0b5db5');
- if(school.logo_url){const logo=$('schoolLogo');logo.src=school.logo_url;logo.hidden=false;logo.onerror=()=>logo.hidden=true;const gateLogo=$('gateSchoolLogo');gateLogo.src=school.logo_url;gateLogo.hidden=false;gateLogo.onerror=()=>gateLogo.hidden=true}
+ {const platformLogo='assets/hpt-brand-logo-v129.png';const schoolLogo=school.logo_url||platformLogo;for(const id of ['schoolLogo','gateSchoolLogo']){const logo=$(id);if(!logo)continue;logo.hidden=false;logo.onerror=()=>{if(logo.src!==new URL(platformLogo,location.href).href)logo.src=platformLogo;else logo.hidden=true};logo.src=schoolLogo;logo.alt=school.logo_url?`${schoolName} logo`:'Hazard Perception Test platform logo'}}
  $('gateSchoolName').textContent=schoolName.toUpperCase();
  if(candidate?.name&&candidate?.phone&&String(candidate.school_id||school.id)===String(school.id)){
   $('accessGate').hidden=true;

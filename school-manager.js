@@ -8,6 +8,7 @@
   const el=$('schoolsPanel');
   if(!el)return;
   let schools=[],previewUrl=null,refreshing=false;
+  const DEFAULT_LOGO='assets/hpt-brand-logo-v129.png';
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function msg(text,kind='good'){$('schoolFormMsg').textContent=text;$('schoolFormMsg').className='message '+(kind==='bad'?'schoolMsgError':'schoolMsgGood')}
   function adminNotice(text,bad=false){const n=$('notice');if(n){n.hidden=false;n.textContent=text;n.className='notice '+(bad?'bad':'good');clearTimeout(n._t);n._t=setTimeout(()=>n.hidden=true,5000)}}
@@ -17,18 +18,18 @@
   function clearPreview(){if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}}
   function setPreview(url,name='Current logo'){
     const wrap=$('schoolLogoPreviewWrap'),img=$('schoolLogoPreview');
-    if(!url){wrap.hidden=true;img.removeAttribute('src');$('schoolLogoPreviewName').textContent='';return}
+    if(!url){url=DEFAULT_LOGO;name='Default HPT platform logo (no school logo uploaded)'}
     img.src=url;$('schoolLogoPreviewName').textContent=name;wrap.hidden=false;
   }
   function resetForm(){
     $('schoolForm').reset();$('schoolEditId').value='';$('schoolBrandColor').value='#ffc400';$('schoolDarkColor').value='#0b1b29';$('schoolActiveInput').checked=true;$('schoolStateInput').value='Kerala';
     $('schoolFormEyebrow').textContent='NEW SCHOOL';$('schoolFormTitle').textContent='Add a Driving School';$('saveSchoolBtn').textContent='＋ ADD SCHOOL';$('cancelSchoolEdit').hidden=true;
-    $('schoolLogoFile').value='';clearPreview();setPreview('');msg('Add the school details and create a unique access code.');
+    $('schoolLogoFile').value='';clearPreview();setPreview(DEFAULT_LOGO,'Default HPT platform logo (optional school logo)');msg('Add the school details. A custom school logo is optional; the HPT logo is used if none is uploaded.');
   }
   function render(){
     $('schoolCount').textContent=String(schools.length);
     $('schoolList').innerHTML=schools.map(s=>`<article class="schoolItem">
-      <div class="schoolItemLogo">${s.logo_url?`<img src="${esc(s.logo_url)}" alt="">`:esc(String(s.school_name||'S').trim().slice(0,1).toUpperCase())}</div>
+      <div class="schoolItemLogo"><img src="${esc(s.logo_url||DEFAULT_LOGO)}" alt="${esc(s.school_name||'Driving school')} logo" onerror="this.src='assets/hpt-brand-logo-v129.png'"></div>
       <div class="schoolItemInfo"><h4>${esc(s.school_name)} <span class="schoolStatus ${s.active?'on':'off'}">● ${s.active?'ACTIVE':'DISABLED'}</span></h4>
       <p>${esc(s.state||'Kerala')} · ${esc(s.location||'Location not set')} · ${esc(s.contact_number||'No contact')}</p>
       ${s.registration_status==='pending_approval'?'<p class="schoolRegistrationPending">NEW REGISTRATION · PAYMENT CHECK PENDING · ADMIN APPROVAL REQUIRED</p>':''}
@@ -56,8 +57,8 @@
     const s=schools.find(x=>x.id===id);if(!s)return;
     $('schoolEditId').value=s.id;$('schoolNameInput').value=s.school_name||'';$('schoolContactInput').value=s.contact_number||'';$('schoolLocationInput').value=s.location||'';$('schoolStateInput').value=s.state||'Kerala';$('schoolCodeInput').value=s.access_code||'';
     $('schoolBrandColor').value=s.brand_color||'#ffc400';$('schoolDarkColor').value=s.dark_color||'#0b1b29';$('schoolActiveInput').checked=!!s.active;
-    $('schoolLogoFile').value='';clearPreview();setPreview(s.logo_url||'',s.logo_url?'Current school logo':'');
-    $('schoolFormEyebrow').textContent='EDIT SCHOOL';$('schoolFormTitle').textContent='Update '+s.school_name;$('saveSchoolBtn').textContent='SAVE SCHOOL CHANGES';$('cancelSchoolEdit').hidden=false;msg('Editing school details. Leave the logo field empty to keep the current logo.');
+    $('schoolLogoFile').value='';clearPreview();setPreview(s.logo_url||DEFAULT_LOGO,s.logo_url?'Current school logo':'Default HPT platform logo (no custom school logo)');
+    $('schoolFormEyebrow').textContent='EDIT SCHOOL';$('schoolFormTitle').textContent='Update '+s.school_name;$('saveSchoolBtn').textContent='SAVE SCHOOL CHANGES';$('cancelSchoolEdit').hidden=false;msg('Editing school details. Leave the logo field empty to keep the current logo. A school without a custom logo uses the HPT platform logo.');
     $('schoolForm').scrollIntoView({behavior:'smooth',block:'start'});
   }
   async function uploadLogo(file,schoolId){
@@ -141,7 +142,7 @@
   $('schoolForm').addEventListener('submit',save);
   $('cancelSchoolEdit').onclick=resetForm;
   $('refreshSchools').onclick=refresh;
-  $('schoolLogoFile').onchange=()=>{const f=$('schoolLogoFile').files?.[0];clearPreview();if(!f){setPreview('');return}previewUrl=URL.createObjectURL(f);setPreview(previewUrl,f.name)};
+  $('schoolLogoFile').onchange=()=>{const f=$('schoolLogoFile').files?.[0];clearPreview();if(!f){const id=$('schoolEditId').value;const s=schools.find(x=>x.id===id);setPreview(s?.logo_url||DEFAULT_LOGO,s?.logo_url?'Current school logo':'Default HPT platform logo');return}previewUrl=URL.createObjectURL(f);setPreview(previewUrl,f.name)};
   window.HPTSchoolManager={refresh};
   (async()=>{if(await isAdmin())await refresh()})();
 })();

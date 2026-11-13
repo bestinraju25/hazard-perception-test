@@ -45,7 +45,7 @@ create policy hpt_school_logos_public_registration_insert
     and lower(storage.extension(name)) in ('png','jpg','jpeg','webp')
   );
 
--- Creates a disabled school and a unique four-digit code. It does NOT activate school access.
+-- Creates a disabled school and a unique four-digit code. School logo is optional; NULL uses the HPT platform logo. It does NOT activate school access.
 create or replace function public.register_hpt_school(
   p_school_name text,
   p_location text,
@@ -70,8 +70,8 @@ begin
     raise exception 'Enter a valid school name, location and contact number.';
   end if;
 
-  if p_logo_url is null
-     or left(p_logo_url, length('https://nceufqdvuuztdfyesbxx.supabase.co/storage/v1/object/public/hpt-school-logos/public-registration/'))
+  if p_logo_url is not null
+     and left(p_logo_url, length('https://nceufqdvuuztdfyesbxx.supabase.co/storage/v1/object/public/hpt-school-logos/public-registration/'))
         <> 'https://nceufqdvuuztdfyesbxx.supabase.co/storage/v1/object/public/hpt-school-logos/public-registration/' then
     raise exception 'Please upload a valid driving school logo.';
   end if;

@@ -1,0 +1,3 @@
+HPT V129
+
+Official platform logo default, optional school-specific logo registration with dynamic No Logo checkbox, and compact video instruction replacing the old Look ahead hint.

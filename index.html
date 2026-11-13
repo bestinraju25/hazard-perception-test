@@ -28,15 +28,15 @@
 <meta name="twitter:title" content="Hazard Perception Test">
 <meta name="twitter:description" content="A central Hazard Perception Test platform for driving schools and students, with interactive video-based learning and school access.">
 <meta name="twitter:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
-<link rel="icon" href="school-placeholder.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="192x192" href="hpt-favicon-v129-192.png"><link rel="apple-touch-icon" href="hpt-favicon-v129-192.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=127">
-<link rel="stylesheet" href="school-registration.css?v=3">
+<link rel="stylesheet" href="style.css?v=129">
+<link rel="stylesheet" href="school-registration.css?v=130">
 <link rel="stylesheet" href="mobile-safe-area.css?v=113">
 <link rel="stylesheet" href="hpt-experience.css?v=124">
 
 <script src="hpt-config.js?v=126"></script>
-<script src="hpt-maintenance-guard.js?v=1"></script>
+<script src="hpt-maintenance-guard.js?v=128"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="hpt-scoring.js?v=126"></script>
@@ -90,7 +90,7 @@
     <div class="hpt-opening-stack">
       <div class="hpt-brand-block">
         <div class="hpt-intro-eyebrow"><span></span>DIGITAL ROAD SAFETY LEARNING<span></span></div>
-        <img class="hpt-brand-mark" src="assets/hpt-mark.svg" alt="HPT">
+        <img class="hpt-brand-mark" src="assets/hpt-brand-logo-v129.png" alt="HPT">
         <div class="hpt-brand-title">HAZARD PERCEPTION TEST</div>
         <div class="hpt-brand-subtitle">SEE THE HAZARD · IDENTIFY · REACT · DRIVE SAFER</div>
       </div>
@@ -123,7 +123,7 @@
 </div>
 <div id="app" class="app">
 <header class="topbar">
-  <div class="brand"><img id="headerSchoolLogo" src="school-placeholder.svg" class="logo" alt="Driving school logo"><div><div id="headerSchoolName" class="school">HAZARD PERCEPTION PORTAL</div><div class="testname">HAZARD PERCEPTION TEST</div></div></div>
+  <div class="brand"><img id="headerSchoolLogo" src="assets/hpt-brand-logo-v129.png" class="logo" alt="Driving school logo"><div><div id="headerSchoolName" class="school">HAZARD PERCEPTION PORTAL</div><div class="testname">HAZARD PERCEPTION TEST</div></div></div>
   <div class="hud">
     <div class="candidate"><span id="candName">Candidate</span><small id="candPhone"></small></div>
     <div class="clip">CLIP <b id="clipNo">-- / --</b></div>
@@ -143,7 +143,7 @@
   <div class="landingHero">
     <div class="landingIntro">
       <div class="gateEyebrow"><span></span> DIGITAL ROAD SAFETY LEARNING</div>
-      <img class="hpt-landing-logo" src="assets/hpt-mark.svg" alt="HPT — Hazard Perception Test">
+      <img class="hpt-landing-logo" src="assets/hpt-brand-logo-v129.png" alt="HPT — Hazard Perception Test">
       <h1 id="gateHeading">Hazard Perception Test</h1>
       <p>Build safer driving habits through realistic, interactive video-based hazard perception training.</p>
     </div>
@@ -195,7 +195,7 @@
       <div class="homeKicker"><span></span> COMPUTER-BASED EXAMINATION</div>
       <div class="homeIntroTitle">
         <div id="mobileSchoolBrand" class="mobileSchoolBrand" aria-label="Driving school identity">
-          <img id="mobileSchoolLogo" src="school-placeholder.svg" alt="Driving school logo">
+          <img id="mobileSchoolLogo" src="assets/hpt-brand-logo-v129.png" alt="Driving school logo">
           <strong id="mobileSchoolName">DRIVING SCHOOL</strong>
           <span>HAZARD PERCEPTION TEST</span>
         </div>
@@ -235,16 +235,15 @@
 <div class="videoWrap"><video id="video" playsinline preload="auto"></video><div id="clickLayer" class="clickLayer"></div><div id="playOverlay" class="playOverlay" hidden><button id="playNow">▶ PLAY CLIP</button></div>
 <div class="topOverlay"><div class="pill">CLIP <b id="clipNo2">1 / 10</b></div><div class="pill responsePill">RESPONSES <b id="respCount">0 / 5</b></div></div>
 <div class="rightTools"><button id="helpBtn" title="Help">?</button><button id="soundBtn" title="Sound">🔊</button><button id="fullBtn" title="Fullscreen">⛶</button><button id="exitBtn" title="Exit">×</button></div>
-<div class="tapPrompt" aria-live="polite">Tap anywhere on the video to mark your response when you spot a developing hazard.</div>
-<div class="bottomHud"><div class="hint">💡 Look ahead, to the sides and behind.</div><button id="skipBtn" class="skip" type="button" hidden>SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
+<div class="bottomHud"><div class="hint" aria-live="polite" aria-label="Tap anywhere on the video to mark your response">Tap anywhere on video to mark your response.</div><button id="skipBtn" class="skip" type="button" hidden>SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
 </div></section>
-<section id="resultScreen" class="panel result" hidden><img id="resultSchoolLogo" src="school-placeholder.svg" class="resultLogo" alt="Driving school logo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="viewFullReportBtn" class="secondary">VIEW FULL REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
+<section id="resultScreen" class="panel result" hidden><img id="resultSchoolLogo" src="assets/hpt-brand-logo-v129.png" class="resultLogo" alt="Driving school logo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="viewFullReportBtn" class="secondary">VIEW FULL REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
 </main><div id="schoolStatsModal" class="schoolStatsModal" hidden role="dialog" aria-modal="true" aria-labelledby="schoolStatsTitle">
   <div class="schoolStatsBackdrop" data-stats-close></div>
   <section class="schoolStatsDialog">
     <header class="schoolStatsDialogHead">
       <div class="schoolStatsIdentity">
-        <img id="schoolStatsLogo" src="school-placeholder.svg" alt="Driving school logo">
+        <img id="schoolStatsLogo" src="assets/hpt-brand-logo-v129.png" alt="Driving school logo">
         <div><div class="eyebrow">SCHOOL PERFORMANCE</div><h2 id="schoolStatsTitle">Lifetime Statistics</h2><p id="schoolStatsSchoolName">Your driving school</p></div>
       </div>
       <div class="schoolStatsHeadActions">
@@ -313,9 +312,9 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=127"></script>
-<script src="school-registration.js?v=119"></script>
-<script src="hpt-experience.js?v=124"></script><script>
+<script src="app.js?v=129"></script>
+<script src="school-registration.js?v=130"></script>
+<script src="hpt-experience.js?v=129"></script><script>
 (()=>{
  let learnerLayer=null,learnerFrame=null,wasFullscreenBeforeLearner=false;
  function sameOriginMessage(event){return location.origin==='null'?event.origin==='null':event.origin===location.origin}
@@ -335,7 +334,7 @@
   learnerLayer=document.createElement('div');learnerLayer.id='learnerTestFullscreenLayer';
   learnerLayer.style.cssText='position:fixed;inset:0;z-index:2147483000;width:100vw;height:100vh;height:100svh;background:#fff;overflow:hidden;';
   learnerFrame=document.createElement('iframe');learnerFrame.title='Kerala Learner’s Test';
-  learnerFrame.src='learner-test.html?v=109';learnerFrame.allow='fullscreen';learnerFrame.setAttribute('allowfullscreen','');
+  learnerFrame.src='learner-test.html?v=129';learnerFrame.allow='fullscreen';learnerFrame.setAttribute('allowfullscreen','');
   learnerFrame.style.cssText='display:block;width:100%;height:100%;border:0;background:#fff;';
   const schoolSession=JSON.parse(session);
   learnerFrame.addEventListener('load',()=>{

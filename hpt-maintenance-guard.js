@@ -114,7 +114,7 @@
       const card = document.createElement('div');
       card.className = 'hpt-maintenance-card';
       const road = document.createElement('div'); road.className = 'hpt-maintenance-roadline';
-      const logo = document.createElement('img'); logo.className = 'hpt-maintenance-logo'; logo.src = 'assets/hpt-mark.svg'; logo.alt = 'HPT';
+      const logo = document.createElement('img'); logo.className = 'hpt-maintenance-logo'; logo.src = 'assets/hpt-brand-logo-v129.png'; logo.alt = 'HPT';
       const eyebrow = document.createElement('div'); eyebrow.className = 'hpt-maintenance-eyebrow'; eyebrow.textContent = 'DIGITAL ROAD SAFETY LEARNING';
       const state = document.createElement('div'); state.className = 'hpt-maintenance-state';
       const dot = document.createElement('span'); dot.className = 'hpt-maintenance-dot'; state.append(dot, document.createTextNode('SYSTEM MAINTENANCE IN PROGRESS'));
