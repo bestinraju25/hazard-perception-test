@@ -2522,3 +2522,43 @@ body.hpt-skip-disabled .bottomHud .skip{display:none!important}
   .bottomHud .hint{font-size:8px!important}
   .bottomHud .skip{height:30px!important}
 }
+
+
+/* V130 — compact bulb instruction chip; keep the road view unobstructed. */
+.bottomHud .hint{
+  grid-column:1;grid-row:1/3;display:flex!important;align-items:center;gap:7px;align-self:center;
+  width:max-content;max-width:min(100%,330px);min-width:0;margin:0;padding:6px 10px!important;
+  border:1px solid rgba(158,189,207,.28)!important;border-radius:10px!important;
+  background:rgba(5,15,23,.76)!important;box-shadow:0 3px 12px rgba(0,0,0,.28)!important;
+  color:#edf5f8!important;font-size:9px!important;font-weight:700!important;letter-spacing:.01em;
+  line-height:1.2;white-space:normal;overflow:hidden;text-overflow:ellipsis;pointer-events:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.65);
+}
+.bottomHud .hint-bulb{display:grid;place-items:center;flex:0 0 18px;width:18px;height:18px;border-radius:6px;background:rgba(255,196,0,.15);color:#ffd34e;font-size:12px;line-height:1}
+.bottomHud .hint-text{min-width:0;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:800px){
+  .bottomHud .hint{grid-column:1!important;grid-row:1!important;display:flex!important;width:max-content;max-width:100%;padding:4px 7px!important;gap:5px;font-size:8px!important;line-height:1.15}
+  .bottomHud .hint-bulb{width:15px;height:15px;flex-basis:15px;font-size:10px}
+}
+@media(max-width:430px) and (orientation:portrait){.bottomHud .hint{font-size:7.5px!important;padding:3px 6px!important}}
+
+/* V130 — game-style examination preload interstitial. */
+.hpt-exam-loading{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:22px;background:radial-gradient(ellipse at 50% 24%,rgba(22,66,87,.94),rgba(2,9,15,.985) 68%),#030a10;color:#f4f8fb;opacity:1;transition:opacity .32s ease,transform .32s ease}
+.hpt-exam-loading[hidden]{display:none!important}
+.hpt-exam-loading.is-leaving{opacity:0;transform:scale(1.018);pointer-events:none}
+.hpt-game-loader-card{width:min(560px,100%);padding:clamp(22px,5vw,42px);border:1px solid rgba(147,191,212,.24);border-radius:24px;background:linear-gradient(145deg,rgba(10,29,42,.96),rgba(4,14,23,.97));box-shadow:0 30px 100px rgba(0,0,0,.5),inset 0 1px rgba(255,255,255,.04);text-align:center;overflow:hidden}
+.hpt-game-loader-brand{display:flex;align-items:center;justify-content:center;gap:14px;color:#8eaebe;font-size:9px;font-weight:900;letter-spacing:2.2px}
+.hpt-game-loader-brand img{width:82px;height:62px;object-fit:contain}
+.hpt-loader-road{height:102px;margin:22px 0 17px;position:relative;overflow:hidden;border:1px solid rgba(161,192,207,.12);border-radius:16px;background:linear-gradient(180deg,#16364a 0%,#0c2535 48%,#142c37 49%,#0a1922 100%)}
+.hpt-loader-road:before{content:"";position:absolute;left:10%;right:10%;bottom:-53px;height:105px;border:2px solid rgba(214,225,230,.66);border-bottom:0;border-radius:55% 55% 0 0;transform:perspective(120px) rotateX(18deg)}
+.hpt-loader-road-line{position:absolute;left:50%;bottom:-20px;height:116px;width:4px;background:repeating-linear-gradient(to bottom,#ffe16b 0 15px,transparent 15px 29px);transform:perspective(65px) rotateX(25deg);animation:hptRoadDash .7s linear infinite}
+.hpt-loader-car{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:27px;filter:drop-shadow(0 5px 8px #0009);animation:hptCarFloat 1.5s ease-in-out infinite}
+@keyframes hptRoadDash{to{background-position:0 29px}}@keyframes hptCarFloat{50%{transform:translate(-50%,-4px)}}
+.hpt-loader-title{font-size:clamp(25px,5vw,34px);font-weight:950;letter-spacing:-.7px}
+.hpt-loader-subtitle{min-height:21px;margin:9px 0 20px;color:#a9c0cc;font-size:12px;line-height:1.5}
+.hpt-game-progress{height:11px;overflow:hidden;border:1px solid #4a6878;border-radius:99px;background:#07131d;box-shadow:inset 0 2px 5px #0009}
+.hpt-game-progress>div{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#12bde7,#28d39a,#ffd54b);box-shadow:0 0 16px rgba(29,196,190,.35);transition:width .22s ease}
+.hpt-game-progress-meta{display:flex;justify-content:space-between;margin-top:8px;color:#f5d46a;font-size:10px;font-weight:950;letter-spacing:1px}
+.hpt-loader-tip{margin-top:25px;padding:12px 14px;border:1px solid rgba(255,207,70,.2);border-radius:11px;background:rgba(255,196,0,.055);text-align:left}
+.hpt-loader-tip span,.hpt-loader-tip strong{display:block}.hpt-loader-tip span{color:#f6d05b;font-size:8px;font-weight:950;letter-spacing:1.5px}.hpt-loader-tip strong{margin-top:4px;color:#d5e0e6;font-size:10px;font-weight:650;line-height:1.45}
+@media(prefers-reduced-motion:reduce){.hpt-exam-loading,.hpt-game-progress>div{transition:none}.hpt-loader-road-line,.hpt-loader-car{animation:none}}

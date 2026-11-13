@@ -11,7 +11,7 @@ function setGateMessage(text,bad=false){const e=gateMessageElement();if(e){e.tex
 const C=window.RAJU_HPT_CONFIG;
 let clips=[], order=[], pos=0, responses=[], scores=[], running=false, finishing=false, timer=null, responseLocked=false;
 let candidate={name:'',phone:''}, sound=true, activeSchool=null, schoolAccessCode='', examStartedAt=null;
-let allowSkip=false, examSessionId=null, examHeartbeatTimer=null;
+let allowSkip=false, examSessionId=null, examHeartbeatTimer=null, hptExamLoaderStartedAt=0, hptExamLoaderAnimationFrame=0;
 const video=$('video');
 let audioCtx=null;
 let roadAudio=null;
@@ -250,7 +250,84 @@ for(let attempt=1;attempt<=2;attempt++){
   await new Promise(r=>setTimeout(r,600));
 }
 return {ok:false,error:'Could not save the examination result.'}}
-function loadClip(){resetClip();running=false;clearTimeout(timer);video.pause();video.removeAttribute('src');video.crossOrigin='anonymous';video.src=order[pos].file;video.muted=!sound;video.load();$('playOverlay').hidden=true;video.onloadedmetadata=()=>{video.currentTime=0;update();timeline();startRoadAudio();const p=video.play();if(p?.catch)p.catch(()=>{$('playOverlay').hidden=false});running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000)};video.onerror=()=>{running=false;$('playOverlay').hidden=false;$('playNow').textContent='PLAY CLIP';toast('Video could not be loaded',true)}}
+function loadClip(preloaded=false){
+  resetClip();running=false;clearTimeout(timer);video.pause();video.muted=!sound;$('playOverlay').hidden=true;
+  let activated=false;
+  const activate=()=>{
+    if(activated)return;activated=true;
+    try{video.currentTime=0}catch{}
+    update();timeline();startRoadAudio();
+    const p=video.play();if(p?.catch)p.catch(()=>{$('playOverlay').hidden=false});
+    running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000);
+  };
+  video.onloadedmetadata=activate;
+  video.onerror=()=>{running=false;$('playOverlay').hidden=false;$('playNow').textContent='RETRY CLIP';toast('Video could not be loaded. Please retry or contact your driving school.',true)};
+  if(!preloaded || video.dataset.hptPreloadedUrl!==String(order[pos].file)){
+    video.removeAttribute('src');video.crossOrigin='anonymous';video.preload='auto';video.dataset.hptPreloadedUrl=String(order[pos].file);video.src=order[pos].file;video.load();
+  } else if(video.readyState>=1){requestAnimationFrame(activate);}
+}
+function openHptExamLoading(){
+  const overlay=$('hptExamLoading');if(!overlay)return;
+  hptExamLoaderStartedAt=performance.now();overlay.hidden=false;overlay.classList.remove('is-leaving');document.body.classList.add('hpt-exam-loading-open');
+  const fill=$('hptExamLoadingFill'),percent=$('hptExamLoadingPercent'),status=$('hptExamLoadingStatus'),step=$('hptExamLoadingStep');
+  if(fill)fill.style.width='12%';if(percent)percent.textContent='12%';
+  if(status)status.textContent='Verifying your school and preparing the exam…';if(step)step.textContent='CHECKING EXAMINATION';
+  const openedAt=hptExamLoaderStartedAt;
+  const progressTick=now=>{
+    if(overlay.hidden||openedAt!==hptExamLoaderStartedAt)return;
+    const elapsed=now-openedAt,value=Math.min(66,12+Math.round(elapsed/6500*54));
+    if(fill)fill.style.width=value+'%';if(percent)percent.textContent=value+'%';
+    if(status)status.textContent=elapsed<1300?'Verifying school access…':elapsed<3200?'Loading examination details…':'Preparing your first road-safety video…';
+    if(step)step.textContent=elapsed<3200?'CHECKING EXAMINATION':'PREPARING FIRST CLIP';
+    if(elapsed<6500)hptExamLoaderAnimationFrame=requestAnimationFrame(progressTick);
+  };
+  cancelAnimationFrame(hptExamLoaderAnimationFrame);hptExamLoaderAnimationFrame=requestAnimationFrame(progressTick);
+}
+function closeHptExamLoading(){
+  const overlay=$('hptExamLoading');if(overlay){overlay.hidden=true;overlay.classList.remove('is-leaving');}
+  document.body.classList.remove('hpt-exam-loading-open');cancelAnimationFrame(hptExamLoaderAnimationFrame);hptExamLoaderAnimationFrame=0;hptExamLoaderStartedAt=0;
+}
+async function showHptExamLoading(firstClip){
+  const overlay=$('hptExamLoading'),fill=$('hptExamLoadingFill'),percent=$('hptExamLoadingPercent'),status=$('hptExamLoadingStatus'),step=$('hptExamLoadingStep');
+  if(!overlay)return false;
+  if(overlay.hidden)openHptExamLoading();
+  cancelAnimationFrame(hptExamLoaderAnimationFrame);
+  const start=hptExamLoaderStartedAt||performance.now(),minimumMs=4000,maximumMs=14000;
+  let ready=false,settled=false;
+  if(firstClip?.file){
+    try{
+      video.pause();video.preload='auto';video.crossOrigin='anonymous';video.muted=true;video.removeAttribute('src');video.dataset.hptPreloadedUrl=String(firstClip.file);video.src=firstClip.file;
+      const loaded=new Promise(resolve=>{
+        const finish=value=>{if(settled)return;settled=true;ready=value;resolve(value)};
+        video.addEventListener('canplay',()=>finish(true),{once:true});
+        video.addEventListener('error',()=>finish(false),{once:true});
+        setTimeout(()=>finish(video.readyState>=2),maximumMs);
+      });
+      video.load();
+      // Keep the branded game-style screen visible for at least four seconds while the first clip buffers.
+      await new Promise(resolve=>{
+        const tick=now=>{
+          const elapsed=now-start,minimumProgress=Math.min(88,Math.round(elapsed/minimumMs*88));
+          const value=ready?Math.min(96,minimumProgress+5):minimumProgress;
+          if(fill)fill.style.width=value+'%';if(percent)percent.textContent=value+'%';
+          if(status){status.textContent=elapsed<1200?'Checking examination settings…':elapsed<2600?'Loading your first road-safety video…':'Preparing the video player…';}
+          if(step)step.textContent=ready?'FIRST VIDEO READY':'LOADING FIRST VIDEO';
+          if(elapsed>=minimumMs && (settled || elapsed>=maximumMs)){resolve();return;}
+          requestAnimationFrame(tick);
+        };requestAnimationFrame(tick);
+      });
+      await loaded;
+    }catch(error){console.warn('First HPT clip preload did not complete:',error);ready=false;video.dataset.hptPreloadedUrl='';}
+  } else {
+    await new Promise(resolve=>setTimeout(resolve,minimumMs));
+  }
+  if(fill)fill.style.width='100%';if(percent)percent.textContent='100%';if(status)status.textContent=ready?'Your examination is ready.':'Opening the video player…';if(step)step.textContent='READY';
+  await new Promise(resolve=>setTimeout(resolve,260));
+  overlay.classList.add('is-leaving');
+  await new Promise(resolve=>setTimeout(resolve,320));
+  closeHptExamLoading();
+  return ready;
+}
 async function finishClip(){if(finishing)return;finishing=true;running=false;clearTimeout(timer);video.pause();scores.push(Math.max(0,Math.min(10,scoreThis())));pos++;if(pos>=order.length){await finishExam();return}setTimeout(()=>{finishing=false;loadClip()},220)}
 function scoreThis(){return responses.reduce((a,r)=>a+r.points,0)}
 async function finishExam(){
@@ -476,9 +553,15 @@ function changeSchool(){
 async function beginHPTExam(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const phoneDigits=p.replace(/\D/g,'');if(phoneDigits.length<10||phoneDigits.length>15){toast('Enter a valid mobile number with 10 to 15 digits.',true);$('phone').focus();return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}
   try{const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:schoolAccessCode});if(error)throw error;const status=Array.isArray(data)?data[0]:data;if(status?.status==='disabled'||!(status?.school?.id||status?.id)){changeSchool();setGateMessage(status?.status==='disabled'?'HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.':'SCHOOL ACCESS COULD NOT BE VERIFIED. PLEASE CONTACT THE PROVIDER.',true);return}}
   catch(e){console.warn('School access revalidation failed:',e);toast('Could not verify school access. Please try again.',true);return}
-  clips=await loadClips();if(clips.length<C.examClipCount){toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
+  openHptExamLoading();
+  try{clips=await loadClips()}catch(error){closeHptExamLoading();console.error('HPT video catalogue failed to load:',error);toast('Could not load the examination videos. Please check your connection and try again.',true);return}
+  if(clips.length<C.examClipCount){closeHptExamLoading();toast(`Need ${C.examClipCount} active clips with at least one hazard each`,true);return}
+  candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
   await loadExamControls();await startExamSessionTracking();
-  updateFullscreenButtons();engineStartSequence();startRoadAudio();order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];show('startScreen',false);show('resultScreen',false);show('examScreen',true);loadClip()}
+  order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];
+  updateFullscreenButtons();engineStartSequence();show('startScreen',false);show('resultScreen',false);
+  const firstReady=await showHptExamLoading(order[0]);
+  show('examScreen',true);loadClip(firstReady)}
 function isKeralaSchool(){
   // Existing schools are migrated with state='Kerala'; missing state remains Kerala-compatible for older cached sessions.
   return String(activeSchool?.state||'Kerala').trim().toLowerCase()==='kerala';

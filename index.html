@@ -30,7 +30,7 @@
 <meta name="twitter:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
 <link rel="icon" type="image/png" sizes="192x192" href="hpt-favicon-v129-192.png"><link rel="apple-touch-icon" href="hpt-favicon-v129-192.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=129">
+<link rel="stylesheet" href="style.css?v=130">
 <link rel="stylesheet" href="school-registration.css?v=130">
 <link rel="stylesheet" href="mobile-safe-area.css?v=113">
 <link rel="stylesheet" href="hpt-experience.css?v=124">
@@ -117,6 +117,17 @@
       <div class="hpt-progress-track"><div class="hpt-progress-fill" id="hptIntroProgressFill"></div></div>
     </div>
   </section>
+</div>
+<div id="hptExamLoading" class="hpt-exam-loading" hidden role="status" aria-live="polite" aria-label="Preparing your HPT examination">
+  <div class="hpt-game-loader-card">
+    <div class="hpt-game-loader-brand"><img src="assets/hpt-brand-logo-v129.png" alt="Hazard Perception Test"><span>EXAMINATION INITIALISING</span></div>
+    <div class="hpt-loader-road" aria-hidden="true"><div class="hpt-loader-road-line"></div><div class="hpt-loader-car">🚘</div></div>
+    <div class="hpt-loader-title">Get ready. Stay alert.</div>
+    <div class="hpt-loader-subtitle" id="hptExamLoadingStatus">Preparing your examination environment…</div>
+    <div class="hpt-game-progress"><div id="hptExamLoadingFill"></div></div>
+    <div class="hpt-game-progress-meta"><span id="hptExamLoadingPercent">0%</span><span id="hptExamLoadingStep">LOADING FIRST VIDEO</span></div>
+    <div class="hpt-loader-tip"><span>ROAD SAFETY TIP</span><strong>Look well ahead. Developing hazards can appear before they become immediate danger.</strong></div>
+  </div>
 </div>
 <div id="hptSchoolWelcome" hidden aria-live="polite" aria-label="School access verified">
   <div class="hpt-welcome-card"><div class="hpt-welcome-state" id="hptWelcomeState">ACCESS VERIFIED</div><img class="hpt-welcome-logo" id="hptWelcomeSchoolLogo" alt="Driving school logo" hidden><div class="hpt-welcome-brand">WELCOME TO YOUR SCHOOL PORTAL</div><div class="hpt-welcome-title" id="hptWelcomeSchoolName">Your Driving School</div><div class="hpt-welcome-location" id="hptWelcomeSchoolLocation"></div><div class="hpt-welcome-loading">Preparing your learning environment…</div><div class="hpt-progress-track"><div class="hpt-progress-fill" id="hptWelcomeProgressFill"></div></div><div class="hpt-welcome-percent"><span id="hptWelcomePercent">0</span><small>%</small></div></div>
@@ -235,7 +246,7 @@
 <div class="videoWrap"><video id="video" playsinline preload="auto"></video><div id="clickLayer" class="clickLayer"></div><div id="playOverlay" class="playOverlay" hidden><button id="playNow">▶ PLAY CLIP</button></div>
 <div class="topOverlay"><div class="pill">CLIP <b id="clipNo2">1 / 10</b></div><div class="pill responsePill">RESPONSES <b id="respCount">0 / 5</b></div></div>
 <div class="rightTools"><button id="helpBtn" title="Help">?</button><button id="soundBtn" title="Sound">🔊</button><button id="fullBtn" title="Fullscreen">⛶</button><button id="exitBtn" title="Exit">×</button></div>
-<div class="bottomHud"><div class="hint" aria-live="polite" aria-label="Tap anywhere on the video to mark your response">Tap anywhere on video to mark your response.</div><button id="skipBtn" class="skip" type="button" hidden>SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
+<div class="bottomHud"><div class="hint" aria-live="polite" aria-label="Tap anywhere on the video to mark your response"><span class="hint-bulb" aria-hidden="true">💡</span><span class="hint-text">Tap anywhere on the video to mark your response.</span></div><button id="skipBtn" class="skip" type="button" hidden>SKIP CLIP »</button><div class="timeline"><span id="elapsed">00:00</span><div class="track" id="track"><div class="progressFill" id="progressFill"></div><div class="playHead" id="playHead"></div></div><span id="duration">00:50</span></div></div>
 </div></section>
 <section id="resultScreen" class="panel result" hidden><img id="resultSchoolLogo" src="assets/hpt-brand-logo-v129.png" class="resultLogo" alt="Driving school logo"><div class="eyebrow">EXAMINATION COMPLETE</div><h2>RESULT</h2><div id="candidateResult" class="candidateResult"></div><div id="finalScore" class="finalScore">0 / 100</div><div id="passText" class="status"></div><div id="resultDetails"></div><div id="resultSaveStatus" class="save-status"></div><div class="resultActions"><button id="printCertBtn" class="primary" hidden>PRINT CERTIFICATE</button><button id="viewFullReportBtn" class="secondary">VIEW FULL REPORT</button><button id="newBtn" class="secondary">NEW EXAM</button><button id="resultClose" class="secondary">CLOSE</button></div></section>
 </main><div id="schoolStatsModal" class="schoolStatsModal" hidden role="dialog" aria-modal="true" aria-labelledby="schoolStatsTitle">
@@ -312,7 +323,7 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=129"></script>
+<script src="app.js?v=130"></script>
 <script src="school-registration.js?v=130"></script>
 <script src="hpt-experience.js?v=129"></script><script>
 (()=>{

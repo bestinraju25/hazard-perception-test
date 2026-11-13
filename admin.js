@@ -60,21 +60,42 @@ function renderTodayActivity(){
     const time=new Date(r.started_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Kolkata'});
     const completedAt=r.completed_at?new Date(r.completed_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Kolkata'}):'—';
     const school=schoolDirectory.find(s=>String(s.id)===String(r.school_id));
-    return `<tr><td>${esc(time)}</td><td><strong>${esc(r.candidate_name||'Student')}</strong></td><td>${esc(r.phone||'—')}</td><td>${esc(school?.school_name||'Unknown school')}</td><td><span class="today-status ${state}">${label}</span></td><td>${esc(completedAt)}</td><td>${state==='completed'&&r.total_score!=null?`${Number(r.total_score)} / 100`:'—'}</td></tr>`;
-  }).join(''):'<tr><td colspan="7" class="today-activity-empty">No HPT exam sessions match this filter today.</td></tr>';
+    const isSessionId=typeof r.id==='string'&&!r.id.startsWith('completed-');
+    const sessionId=isSessionId?r.id:'';
+    const attemptId=r.attempt_id||(!isSessionId?String(r.id||'').replace(/^completed-/,''):'');
+    return `<tr><td>${esc(time)}</td><td><strong>${esc(r.candidate_name||'Student')}</strong></td><td>${esc(r.phone||'—')}</td><td>${esc(school?.school_name||'Unknown school')}</td><td><span class="today-status ${state}">${label}</span></td><td>${esc(completedAt)}</td><td>${state==='completed'&&r.total_score!=null?`${Number(r.total_score)} / 100`:'—'}</td><td><button class="today-delete-btn" type="button" data-hide-session="${esc(sessionId)}" data-hide-attempt="${esc(attemptId)}" title="Remove this entry from today's activity" aria-label="Remove ${esc(r.candidate_name||'student')} activity entry">🗑</button></td></tr>`;
+  }).join(''):'<tr><td colspan="8" class="today-activity-empty">No HPT exam sessions match this filter today.</td></tr>';
+  document.querySelectorAll('[data-hide-session], [data-hide-attempt]').forEach(button=>button.addEventListener('click',()=>hideTodayActivityEntry(button.dataset.hideSession,button.dataset.hideAttempt)));
+}
+async function hideTodayActivityEntry(sessionId,attemptId){
+  if(!sessionId&&!attemptId)return;
+  const row=todayActivityRows.find(r=>(sessionId&&String(r.id)===String(sessionId))||(attemptId&&String(r.attempt_id||'')===String(attemptId))||(!sessionId&&attemptId&&String(r.id||'')===`completed-${attemptId}`));
+  const name=row?.candidate_name||'this activity entry';
+  if(!confirm(`Remove ${name} from Today's HPT Student Activity?
+
+The activity entry will be hidden from this dashboard. The official student record, attempt, score and report will remain unchanged.`))return;
+  try{
+    const {error}=await sb.rpc('hpt_hide_exam_activity',{p_session_id:sessionId||null,p_attempt_id:attemptId||null});
+    if(error)throw error;
+    notice(`${name} was removed from Today's Activity. Official exam records were retained.`);
+    await loadTodayActivity();
+  }catch(error){notice(`Could not remove activity entry. Run 26-hpt-activity-hide.sql in Supabase first. ${error.message||''}`,true)}
 }
 async function loadTodayActivity(){
   const msg=$('todayActivityMsg');if(!msg)return;
   const range=indiaDayRange();$('todayActivityDate').textContent=`TODAY · ${range.label} · IST`;
   try{
-    const [sessionResult,attemptResult]=await Promise.all([
+    const [sessionResult,attemptResult,hiddenResult]=await Promise.all([
       sb.from('hpt_exam_sessions').select('id,candidate_name,phone,school_id,exam_type,status,started_at,last_seen_at,completed_at,total_score,attempt_id').gte('started_at',range.start).lt('started_at',range.end).order('started_at',{ascending:false}).limit(500),
       // Backfill completed HPT attempts from the existing results table so today's
       // activity remains complete on the day this feature is first deployed.
-      sb.from('hpt_attempts').select('id,candidate_name,phone,school_id,started_at,completed_at,total_score').gte('started_at',range.start).lt('started_at',range.end).order('started_at',{ascending:false}).limit(500)
+      sb.from('hpt_attempts').select('id,candidate_name,phone,school_id,started_at,completed_at,total_score').gte('started_at',range.start).lt('started_at',range.end).order('started_at',{ascending:false}).limit(500),
+      sb.from('hpt_hidden_exam_activity').select('session_id,attempt_id')
     ]);
-    if(sessionResult.error)throw sessionResult.error;if(attemptResult.error)throw attemptResult.error;
-    const sessions=sessionResult.data||[],attempts=attemptResult.data||[];
+    if(sessionResult.error)throw sessionResult.error;if(attemptResult.error)throw attemptResult.error;if(hiddenResult.error)throw hiddenResult.error;
+    const hiddenSessions=new Set((hiddenResult.data||[]).map(x=>String(x.session_id||'')).filter(Boolean));
+    const hiddenAttempts=new Set((hiddenResult.data||[]).map(x=>String(x.attempt_id||'')).filter(Boolean));
+    const sessions=(sessionResult.data||[]).filter(x=>!hiddenSessions.has(String(x.id))&&!(x.attempt_id&&hiddenAttempts.has(String(x.attempt_id)))),attempts=(attemptResult.data||[]).filter(x=>!hiddenAttempts.has(String(x.id)));
     const matchedAttempts=new Set();
     for(const session of sessions){
       if(session.attempt_id)matchedAttempts.add(String(session.attempt_id));
@@ -649,15 +670,15 @@ function nextClipCode(){
   return String(n).padStart(2,'0');
 }
 function newVideo(){
-  resetEditor();editingCode=nextClipCode();$('editor').hidden=false;
+  resetEditor();editingCode=nextClipCode();$('editor').hidden=false;$('videoEditorModal').hidden=false;document.body.classList.add('video-editor-open');
   $('editorEyebrow').textContent='NEW VIDEO';$('editorTitle').textContent='Upload HPT Video';
   $('editorSub').textContent='Choose a video, mark one or two developing hazards, then upload directly to Cloudflare R2.';
   $('clipCodeDisplay').textContent=editingCode;$('videoPathDisplay').textContent=`R2: clips/${editingCode}.[mp4/webm]`;
-  $('videosPanel').hidden=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'});
+  $('videosPanel').hidden=false;setTimeout(()=>$('videoFile').focus({preventScroll:true}),30);
 }
 function editVideo(id){
   const v=videos.find(x=>x.id===id);if(!v)return;clearLocal();editingId=v.id;editingCode=v.clip_code;
-  $('editor').hidden=false;$('editorEyebrow').textContent='EDIT CLIP';$('editorTitle').textContent=`Edit Clip ${v.clip_code}`;
+  $('editor').hidden=false;$('videoEditorModal').hidden=false;document.body.classList.add('video-editor-open');$('editorEyebrow').textContent='EDIT CLIP';$('editorTitle').textContent=`Edit Clip ${v.clip_code}`;
   $('editorSub').textContent='Replace the video if needed, adjust the hazard points, then save to Cloudflare R2 and Supabase.';
   $('clipCodeDisplay').textContent=v.clip_code;$('videoPathDisplay').textContent=v.video_path;$('videoTitle').value=v.title;
   $('active').checked=!!v.active;$('videoFile').value='';$('fileName').textContent='No replacement selected';
@@ -666,7 +687,7 @@ function editVideo(id){
   $('h1label').value=h1?.label??'';$('h2label').value=h2?.label??'';
   $('hasHazard2').checked=!!h2;$('hazard2Block').hidden=!h2;$('marker2').hidden=!h2;$('mark2').hidden=!h2;
   updateHazardPreviews();$('preview').src=resolveVideoPath(v.video_path);$('previewEmpty').hidden=true;$('preview').load();
-  $('deleteVideo').hidden=false;$('videosPanel').hidden=false;$('editor').scrollIntoView({behavior:'smooth',block:'start'});
+  $('deleteVideo').hidden=false;$('videosPanel').hidden=false;setTimeout(()=>$('videoTitle').focus({preventScroll:true}),30);
 }
 function setMarkers(){
   const d=Number($('preview').duration)||50,fill=Math.min(100,(Number($('preview').currentTime)||0)/Math.max(1,d)*100);
@@ -742,9 +763,9 @@ async function saveVideo(){
     if($('hasHazard2').checked){const {error:h2Error}=await sb.from('hpt_hazards').upsert([{video_id:id,hazard_no:2,timestamp_seconds:Number($('h2t').value),label:$('h2label').value.trim()||'Developing hazard 2'}],{onConflict:'video_id,hazard_no'});if(h2Error)throw h2Error;}
     else{const {error:del2Error}=await sb.from('hpt_hazards').delete().eq('video_id',id).eq('hazard_no',2);if(del2Error)throw del2Error;}
     const {error:activateError}=await sb.from('hpt_videos').update({active:$('active').checked,updated_at:new Date().toISOString()}).eq('id',id);if(activateError)throw activateError;
-    editingId=id;await loadVideos();updateStats();
-    emsg($('hasHazard2').checked?'✓ Uploaded to R2. Two hazards saved, 5 marks each.':'✓ Uploaded to R2. One hazard saved, worth 10 marks.');
-    notice(`Clip ${editingCode} saved successfully to Cloudflare R2.`);
+    const savedCode=editingCode;await loadVideos();updateStats();
+    closeEditor();
+    notice(`Clip ${savedCode} saved successfully to Cloudflare R2 and the video library.`);
   }catch(e){
     const detail=e.message||'Could not save this clip.';
     emsg(detail,true);notice(detail,true);
@@ -769,7 +790,7 @@ async function deleteVideo(){
   }catch(e){emsg(e.message||'Could not delete this clip.',true);notice(e.message||'Could not delete this clip.',true);}
   finally{$('deleteVideo').disabled=false;$('deleteVideo').textContent='Delete clip';}
 }
-function closeEditor(){clearLocal();$('editor').hidden=true;editingId=null;editingCode='';}
+function closeEditor(){clearLocal();try{$('preview').pause();$('preview').removeAttribute('src');$('preview').load();}catch{}$('videoEditorModal').hidden=true;$('editor').hidden=false;document.body.classList.remove('video-editor-open');editingId=null;editingCode='';}
 async function imageData(url){return await new Promise((resolve,reject)=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{const c=document.createElement('canvas');c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;const x=c.getContext('2d');x.drawImage(img,0,0);resolve(c.toDataURL('image/png'))};img.onerror=reject;img.src=url+'?v='+Date.now()})}
 async function downloadReport(id){
   const r=results.find(x=>x.id===id);if(!r||!window.RajuHPTReport){notice('Report generator is not available. Please refresh the page.',true);return}
@@ -796,7 +817,7 @@ const schoolName=String(school.school_name||'Driving School').toUpperCase();cons
 doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text('This certificate is awarded to',W/2,94,{align:'center'});doc.setTextColor(25,38,51);doc.setFont('helvetica','bold');doc.setFontSize(27);doc.text(String(r.candidate_name||'Candidate'),W/2,112,{align:'center'});doc.setDrawColor(180,188,195);doc.setLineWidth(.35);doc.line(70,118,227,118);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('for successfully completing the '+(school.school_name||'Driving School')+' Hazard Perception Test',W/2,131,{align:'center',maxWidth:230});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(19);doc.text(`SCORE: ${Number(r.total_score||0)} / 100`,W/2,149,{align:'center'});doc.setTextColor(35,126,78);doc.setFontSize(16);doc.text('PASS',W/2,160,{align:'center'});const d=new Date(r.completed_at||r.started_at);doc.setTextColor(92,105,116);doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Date: ${d.toLocaleDateString('en-IN')}`,45,181);doc.text(`Certificate No: HPT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(r.id).slice(0,8).toUpperCase()}`,W-45,181,{align:'right'});doc.setTextColor(33,53,72);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text([schoolName,schoolLocation,school.contact_number].filter(Boolean).join(' • ').slice(0,120),W/2,191,{align:'center',maxWidth:250});doc.save(`${String(school.school_name||'Driving-School').replace(/[^a-z0-9]+/gi,'-')}-HPT-Certificate-${String(r.candidate_name||'Candidate').replace(/[^a-z0-9]+/gi,'-')}.pdf`);notice(`Certificate downloaded for ${r.candidate_name}.`)}catch(e){console.error(e);notice('Could not generate the certificate.',true)}finally{if(btn){btn.disabled=false;btn.textContent='PRINT'}}}
 
 function openRequestedAdminTab(){const requested=new URLSearchParams(window.location.search).get('tab');if(requested)document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===requested)t.click()})}
-$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('saveExamControls').onclick=saveExamControls;$('todayActivitySchoolFilter').onchange=renderTodayActivity;$('todayActivityStatusFilter').onchange=renderTodayActivity;$('refreshTodayActivity').onclick=loadTodayActivity;$('exportTodayActivity').onclick=exportTodayActivity;$('maintenanceModeToggle').onclick=toggleMaintenanceMode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;$('backExamChoices').onclick=()=>{selectedExamView=null;$('schoolExamChoices').hidden=false;$('hptExamRecords').hidden=true;$('learnerExamRecords').hidden=true;const sc=schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId));if(sc)$('resultsHeading').textContent=`${sc.school_name} — Examinations`;};$('backHptExamChoices').onclick=()=>$('backExamChoices').click();$('searchLearnerSummary').oninput=renderLearnerSummaries;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});window.addEventListener('hpt:school-deleted',async()=>{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';$('editor').hidden=true;if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
+$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('saveAccessCode').onclick=saveAccessCode;$('saveExamControls').onclick=saveExamControls;$('todayActivitySchoolFilter').onchange=renderTodayActivity;$('todayActivityStatusFilter').onchange=renderTodayActivity;$('refreshTodayActivity').onclick=loadTodayActivity;$('exportTodayActivity').onclick=exportTodayActivity;$('maintenanceModeToggle').onclick=toggleMaintenanceMode;$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refreshAll').onclick=refreshAll;$('searchResults').oninput=renderResults;$('resultFilter').onchange=renderResults;$('schoolResultsFilter').onchange=renderResults;$('resultPeriod').onchange=renderResults;$('exportStudentPdf').onclick=exportStudentPdf;$('exportPerformancePdf').onclick=exportPerformancePdf;$('backSchoolOverview').onclick=closeSchoolResults;$('backExamChoices').onclick=()=>{selectedExamView=null;$('schoolExamChoices').hidden=false;$('hptExamRecords').hidden=true;$('learnerExamRecords').hidden=true;const sc=schoolDirectory.find(x=>String(x.id)===String(selectedResultsSchoolId));if(sc)$('resultsHeading').textContent=`${sc.school_name} — Examinations`;};$('backHptExamChoices').onclick=()=>$('backExamChoices').click();$('searchLearnerSummary').oninput=renderLearnerSummaries;window.addEventListener('hpt:filter-school',e=>{const id=e.detail?.schoolId;if(id){document.querySelector('.tab[data-tab=results]')?.click();openSchoolResults(id);}});window.addEventListener('hpt:school-deleted',async()=>{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()});$('newVideo').onclick=newVideo;$('closeEditor').onclick=closeEditor;$('videoEditorModal').addEventListener('click',e=>{if(e.target.classList.contains('video-editor-backdrop')||e.target.hasAttribute('data-close-video-editor'))closeEditor()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('videoEditorModal').hidden)closeEditor()});$('saveVideo').onclick=saveVideo;$('deleteVideo').onclick=deleteVideo;$('mark1').onclick=()=>setHaz(1);$('mark2').onclick=()=>{if($('hasHazard2').checked)setHaz(2)};$('hasHazard2').onchange=()=>{const on=$('hasHazard2').checked;$('hazard2Block').hidden=!on;$('marker2').hidden=!on;$('mark2').hidden=!on;if(!on){$('h2t').value='';$('h2label').value='';}updateHazardPreviews();};$('annotationTrack').onclick=e=>{const r=$('annotationTrack').getBoundingClientRect();$('preview').currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(Number($('preview').duration)||50);setMarkers()};for(const n of [1,2])$(`marker${n}`).onclick=e=>{e.stopPropagation();$('preview').currentTime=Number($(`h${n}t`).value)||0};$('preview').ontimeupdate=()=>{$('now').textContent=fmt($('preview').currentTime);$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onloadedmetadata=()=>{$('previewEmpty').hidden=true;$('dur').textContent=fmt($('preview').duration);setMarkers()};$('preview').onerror=()=>{$('previewEmpty').hidden=false;$('previewEmpty').textContent='Video could not be loaded. If this is an existing clip, verify its published path.'};$('videoFile').onchange=()=>{clearLocal();localFile=$('videoFile').files[0]||null;if(localFile){$('fileName').textContent=localFile.name;localUrl=URL.createObjectURL(localFile);$('preview').src=localUrl;$('previewEmpty').hidden=true;$('videoTitle').value=$('videoTitle').value||localFile.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');$('preview').load()}};$('closeModal').onclick=()=>$('detailModal').hidden=true;$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.dataset.tab;$('resultsPanel').hidden=tab!=='results';$('videosPanel').hidden=tab!=='videos';if($('schoolsPanel'))$('schoolsPanel').hidden=tab!=='schools';if(!$('videoEditorModal').hidden)closeEditor();if(tab==='schools'&&window.HPTSchoolManager)window.HPTSchoolManager.refresh()});
 let resultsPoll=null,todayActivityPoll=null;
 function startResultsPolling(){clearInterval(resultsPoll);clearInterval(todayActivityPoll);resultsPoll=setInterval(async()=>{if(document.hidden||$('dashboard').hidden)return;try{await loadStudentDirectory();await Promise.all([loadResults(),loadLearnerSummaries()]);updateStats()}catch(e){console.error('HPT results refresh failed',e)}},5000);todayActivityPoll=setInterval(()=>{if(!document.hidden&&!$('dashboard').hidden)loadTodayActivity()},20000)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden){loadResults();loadTodayActivity()}});

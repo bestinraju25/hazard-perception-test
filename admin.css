@@ -1426,3 +1426,19 @@ body.school-stats-open{overflow:hidden}
 .providerMarkLogo{display:block;width:132px!important;height:auto!important;max-height:58px;object-fit:contain;background:transparent;border:0;box-shadow:none;border-radius:0;flex:0 0 auto}
 .login-provider-mark{display:block;width:min(260px,100%)!important;height:auto!important;max-height:120px;object-fit:contain;margin:0 auto 22px;background:transparent;border:0;box-shadow:none;border-radius:0}
 @media(max-width:700px){.providerMarkLogo{width:104px!important;max-height:48px}.login-provider-mark{width:min(220px,100%)!important;max-height:100px}}
+
+
+/* V130 — Video Library editor opens as a centred modal, not an inline page section. */
+.video-editor-modal{position:fixed;inset:0;z-index:1600;display:grid;place-items:center;padding:clamp(8px,2vw,24px);}
+.video-editor-modal[hidden]{display:none!important}
+.video-editor-backdrop{position:absolute;inset:0;background:rgba(0,5,10,.84);backdrop-filter:blur(9px)}
+#videoEditorModal .editor{position:relative;inset:auto;width:min(1420px,100%);max-width:1420px;max-height:calc(100dvh - 32px);margin:0;padding:clamp(13px,2vw,24px);overflow:auto;overscroll-behavior:contain;background:linear-gradient(145deg,#0c1c29,#07131d);border:1px solid #496579;border-radius:18px;box-shadow:0 28px 100px rgba(0,0,0,.7)}
+#videoEditorModal .editor .panel-head{position:sticky;top:-1px;z-index:4;padding:4px 0 12px;background:linear-gradient(180deg,#0c1c29 85%,rgba(12,28,41,0));}
+#videoEditorModal .editor-grid{grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr);align-items:start}
+body.video-editor-open{overflow:hidden}
+.today-delete-btn{display:inline-grid;place-items:center;width:32px;height:32px;border:1px solid rgba(245,110,125,.32);border-radius:8px;background:rgba(151,40,55,.13);color:#ff8b9c;cursor:pointer;font-size:14px;transition:background .15s ease,border-color .15s ease,transform .15s ease}
+.today-delete-btn:hover{background:rgba(183,49,66,.28);border-color:#fb7488;transform:translateY(-1px)}
+.today-delete-btn:disabled{opacity:.45;cursor:wait}
+.today-activity-table{min-width:790px}
+@media(max-width:1050px){#videoEditorModal .editor-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.video-editor-modal{padding:6px}#videoEditorModal .editor{max-height:calc(100dvh - 12px);padding:12px;border-radius:13px}#videoEditorModal .editor .panel-head{position:sticky;top:-1px}#videoEditorModal .editor-grid{grid-template-columns:1fr;gap:10px}#videoEditorModal .video-shell{min-height:175px}#videoEditorModal .video-shell video{height:30vh;min-height:155px}}
