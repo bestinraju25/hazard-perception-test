@@ -3,3 +3,4 @@ Function: hpt-publish-video
 The currently deployed code source is supabase/functions/hpt-publish-video/index.ts in this package.
 For future UI deployments, open Supabase -> Edge Functions -> hpt-publish-video -> Code and replace the function source.
 See R2-VIDEO-UPLOAD-SETUP.txt for required secrets and R2 CORS.
+OK
