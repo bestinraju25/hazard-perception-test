@@ -8,6 +8,7 @@
   const el=$('schoolsPanel');
   if(!el)return;
   let schools=[],previewUrl=null,refreshing=false;
+  const DEFAULT_DISABLED_MESSAGE='This driving school’s access is temporarily disabled. Please contact your school administrator for assistance.';
   const DEFAULT_LOGO='assets/hpt-brand-logo-v129.png';
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function msg(text,kind='good'){$('schoolFormMsg').textContent=text;$('schoolFormMsg').className='message '+(kind==='bad'?'schoolMsgError':'schoolMsgGood')}
@@ -22,7 +23,7 @@
     img.src=url;$('schoolLogoPreviewName').textContent=name;wrap.hidden=false;
   }
   function resetForm(){
-    $('schoolForm').reset();$('schoolEditId').value='';$('schoolBrandColor').value='#ffc400';$('schoolDarkColor').value='#0b1b29';$('schoolActiveInput').checked=true;$('schoolStateInput').value='Kerala';
+    $('schoolForm').reset();$('schoolEditId').value='';if($('schoolDisabledMessageInput'))$('schoolDisabledMessageInput').value=DEFAULT_DISABLED_MESSAGE;$('schoolBrandColor').value='#ffc400';$('schoolDarkColor').value='#0b1b29';$('schoolActiveInput').checked=true;$('schoolStateInput').value='Kerala';
     $('schoolFormEyebrow').textContent='NEW SCHOOL';$('schoolFormTitle').textContent='Add a Driving School';$('saveSchoolBtn').textContent='＋ ADD SCHOOL';$('cancelSchoolEdit').hidden=true;
     $('schoolLogoFile').value='';clearPreview();setPreview(DEFAULT_LOGO,'Default HPT platform logo (optional school logo)');msg('Add the school details. A custom school logo is optional; the HPT logo is used if none is uploaded.');
   }
@@ -35,7 +36,8 @@
       ${s.registration_status==='pending_approval'?'<p class="schoolRegistrationPending">NEW REGISTRATION · PAYMENT CHECK PENDING · ADMIN APPROVAL REQUIRED</p>':''}
       ${s.payment_status==='pending_manual_verification'?'<p class="schoolPaymentPending">AWAITING CUSTOMER PAYMENT CONFIRMATION</p>':''}
       ${s.payment_status==='customer_confirmed'?`<p class="schoolPaymentConfirmed">CUSTOMER MARKED PAYMENT COMPLETED · VERIFY IN GOPAY${s.payment_confirmed_at?` · ${esc(new Date(s.payment_confirmed_at).toLocaleString('en-IN'))}`:''}</p>`:''}
-      <p>ACCESS CODE <span class="schoolCodeChip">${esc(s.access_code)}</span></p></div>
+      <p>ACCESS CODE <span class="schoolCodeChip">${esc(s.access_code)}</span></p>
+      ${!s.active?`<div class="schoolDisabledMessagePreview"><b>MESSAGE SHOWN TO USERS</b><span>${esc(s.disabled_message||DEFAULT_DISABLED_MESSAGE)}</span></div>`:''}</div>
       <div class="schoolItemActions"><button type="button" class="small" data-school-results="${esc(s.id)}">VIEW STUDENTS</button><button type="button" class="small" data-school-edit="${esc(s.id)}">EDIT</button><button type="button" class="small ${s.active?'danger-outline':''}" data-school-toggle="${esc(s.id)}">${s.active?'DISABLE':(s.registration_status==='pending_approval'?'APPROVE & ENABLE':'ENABLE')}</button><button type="button" class="small danger-outline delete-school-btn" data-school-delete="${esc(s.id)}">DELETE SCHOOL</button></div>
     </article>`).join('')||'<div class="empty">No schools registered yet. Add the first school using the form.</div>';
     document.querySelectorAll('[data-school-edit]').forEach(b=>b.onclick=()=>editSchool(b.dataset.schoolEdit));
@@ -48,7 +50,7 @@
     refreshing=true;
     try{
       if(!(await isAdmin())){ $('schoolList').innerHTML='<div class="empty">Sign in with an active manager account to manage schools.</div>';return; }
-      const {data,error}=await sb.from('hpt_schools').select('id,school_name,contact_number,location,state,access_code,logo_url,brand_color,dark_color,active,registration_status,payment_status,payment_confirmed_at,created_at,updated_at').order('school_name');
+      const {data,error}=await sb.from('hpt_schools').select('id,school_name,contact_number,location,state,access_code,logo_url,brand_color,dark_color,active,disabled_message,registration_status,payment_status,payment_confirmed_at,created_at,updated_at').order('school_name');
       if(error)throw error;schools=data||[];render();
     }catch(e){$('schoolList').innerHTML=`<div class="empty">Could not load schools. ${esc(e.message||'Check that the multi-school SQL migration has been run.')}</div>`;}
     finally{refreshing=false}
@@ -57,6 +59,7 @@
     const s=schools.find(x=>x.id===id);if(!s)return;
     $('schoolEditId').value=s.id;$('schoolNameInput').value=s.school_name||'';$('schoolContactInput').value=s.contact_number||'';$('schoolLocationInput').value=s.location||'';$('schoolStateInput').value=s.state||'Kerala';$('schoolCodeInput').value=s.access_code||'';
     $('schoolBrandColor').value=s.brand_color||'#ffc400';$('schoolDarkColor').value=s.dark_color||'#0b1b29';$('schoolActiveInput').checked=!!s.active;
+    if($('schoolDisabledMessageInput'))$('schoolDisabledMessageInput').value=s.disabled_message||DEFAULT_DISABLED_MESSAGE;
     $('schoolLogoFile').value='';clearPreview();setPreview(s.logo_url||DEFAULT_LOGO,s.logo_url?'Current school logo':'Default HPT platform logo (no custom school logo)');
     $('schoolFormEyebrow').textContent='EDIT SCHOOL';$('schoolFormTitle').textContent='Update '+s.school_name;$('saveSchoolBtn').textContent='SAVE SCHOOL CHANGES';$('cancelSchoolEdit').hidden=false;msg('Editing school details. Leave the logo field empty to keep the current logo. A school without a custom logo uses the HPT platform logo.');
     $('schoolForm').scrollIntoView({behavior:'smooth',block:'start'});
@@ -89,7 +92,7 @@
     try{
       let logoUrl=schools.find(s=>s.id===id)?.logo_url||null;
       if(file){msg('Uploading school logo…');logoUrl=await uploadLogo(file,id)}
-      const payload={id,school_name:name,contact_number:contact,location,state,access_code:code,logo_url:logoUrl,brand_color:$('schoolBrandColor').value||'#ffc400',dark_color:$('schoolDarkColor').value||'#0b1b29',active:$('schoolActiveInput').checked,updated_at:new Date().toISOString()};
+      const payload={id,school_name:name,contact_number:contact,location,state,access_code:code,logo_url:logoUrl,brand_color:$('schoolBrandColor').value||'#ffc400',dark_color:$('schoolDarkColor').value||'#0b1b29',active:$('schoolActiveInput').checked,disabled_message:($('schoolDisabledMessageInput')?.value||'').trim().slice(0,500)||DEFAULT_DISABLED_MESSAGE,updated_at:new Date().toISOString()};
       const existingSchool=schools.find(s=>s.id===id);
       const existing=!!existingSchool;
       if(existingSchool?.registration_status==='pending_approval'&&payload.active){
@@ -108,20 +111,37 @@
   async function toggleSchool(id){
     const s=schools.find(x=>x.id===id);if(!s)return;
     const verb=s.active?'disable':'enable';
+    let disabledMessage=s.disabled_message||DEFAULT_DISABLED_MESSAGE;
+    if(s.active){
+      const entered=prompt(`Enter the message students will see when they use ${s.school_name}’s access code while the school is disabled.
+
+You can include a reason, contact details or instructions. Maximum 500 characters.`,disabledMessage);
+      if(entered===null)return;
+      disabledMessage=String(entered).trim().slice(0,500)||DEFAULT_DISABLED_MESSAGE;
+    }
     const confirmText=s.active
-      ? `Disable HPT access for ${s.school_name}?`
+      ? `Disable HPT access for ${s.school_name}?
+
+Students will see this message:
+
+“${disabledMessage}”`
       : (s.registration_status==='pending_approval'
-          ? `Have you independently checked and received the ₹5,000 payment for ${s.school_name}?\n\nThe customer has marked payment completed, but that is not proof of receipt. Confirm only after checking GPay/bank account.\n\nApproving will enable the access code.`
+          ? `Have you independently checked and received the ₹5,000 payment for ${s.school_name}?
+
+The customer has marked payment completed, but that is not proof of receipt. Confirm only after checking GPay/bank account.
+
+Approving will enable the access code.`
           : `Enable HPT access for ${s.school_name}?`);
     if(!confirm(confirmText))return;
     try{
       const update={active:!s.active,updated_at:new Date().toISOString()};
+      if(s.active)update.disabled_message=disabledMessage;
       if(!s.active&&s.registration_status==='pending_approval'){
         update.registration_status='approved';
         update.payment_status='verified';
       }
       const {error}=await sb.from('hpt_schools').update(update).eq('id',id);if(error)throw error;
-      adminNotice(s.active?`${s.school_name} access disabled.`:`${s.school_name} approved and access enabled.`);await refresh();
+      adminNotice(s.active?`${s.school_name} access disabled with a custom student message.`:`${s.school_name} approved and access enabled.`);await refresh();
     }
     catch(e){adminNotice(e.message||'Could not update school status.',true)}
   }

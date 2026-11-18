@@ -30,7 +30,7 @@
 <meta name="twitter:image" content="https://www.hazardperceptiontest.co.in/hpt-preview.jpg">
 <link rel="icon" type="image/png" sizes="192x192" href="hpt-favicon-v129-192.png"><link rel="apple-touch-icon" href="hpt-favicon-v129-192.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=130">
+<link rel="stylesheet" href="style.css?v=133">
 <link rel="stylesheet" href="school-registration.css?v=130">
 <link rel="stylesheet" href="mobile-safe-area.css?v=113">
 <link rel="stylesheet" href="hpt-experience.css?v=124">
@@ -177,6 +177,17 @@
       </div>
     </section>
   </div>
+</div>
+<div id="hptSchoolDisabledModal" class="hpt-school-disabled-modal" hidden role="alertdialog" aria-modal="true" aria-labelledby="hptSchoolDisabledTitle" aria-describedby="hptSchoolDisabledMessage">
+  <div class="hpt-school-disabled-backdrop"></div>
+  <section class="hpt-school-disabled-card">
+    <div class="hpt-school-disabled-icon" aria-hidden="true">!</div>
+    <div class="hpt-school-disabled-kicker">SCHOOL ACCESS NOTICE</div>
+    <h2 id="hptSchoolDisabledTitle">School Access Temporarily Disabled</h2>
+    <p class="hpt-school-disabled-name" id="hptSchoolDisabledName">Driving School</p>
+    <p class="hpt-school-disabled-message" id="hptSchoolDisabledMessage">This school's access is temporarily disabled. Please contact your school administrator.</p>
+    <button id="hptSchoolDisabledClose" type="button" class="hpt-school-disabled-button">OK, I UNDERSTAND</button>
+  </section>
 </div>
 <div id="hptSchoolWelcome" hidden aria-live="polite" aria-label="School access verified">
   <div class="hpt-welcome-card"><div class="hpt-welcome-state" id="hptWelcomeState">ACCESS VERIFIED</div><img class="hpt-welcome-logo" id="hptWelcomeSchoolLogo" alt="Driving school logo" hidden><div class="hpt-welcome-brand">WELCOME TO YOUR SCHOOL PORTAL</div><div class="hpt-welcome-title" id="hptWelcomeSchoolName">Your Driving School</div><div class="hpt-welcome-location" id="hptWelcomeSchoolLocation"></div><div class="hpt-welcome-loading">Preparing your learning environment…</div><div class="hpt-progress-track"><div class="hpt-progress-fill" id="hptWelcomeProgressFill"></div></div><div class="hpt-welcome-percent"><span id="hptWelcomePercent">0</span><small>%</small></div></div>
@@ -372,7 +383,7 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=131"></script>
+<script src="app.js?v=133"></script>
 <script src="school-registration.js?v=130"></script>
 <script src="hpt-experience.js?v=129"></script><script>
 (()=>{

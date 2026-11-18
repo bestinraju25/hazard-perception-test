@@ -1442,3 +1442,9 @@ body.video-editor-open{overflow:hidden}
 .today-activity-table{min-width:790px}
 @media(max-width:1050px){#videoEditorModal .editor-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.video-editor-modal{padding:6px}#videoEditorModal .editor{max-height:calc(100dvh - 12px);padding:12px;border-radius:13px}#videoEditorModal .editor .panel-head{position:sticky;top:-1px}#videoEditorModal .editor-grid{grid-template-columns:1fr;gap:10px}#videoEditorModal .video-shell{min-height:175px}#videoEditorModal .video-shell video{height:30vh;min-height:155px}}
+
+.schoolDisabledMessageField textarea{width:100%;min-height:86px;resize:vertical;margin-top:7px;padding:11px 12px;border:1px solid #344b5c;border-radius:11px;background:#0a1722;color:#f0f5f7;font:inherit;line-height:1.45}
+.schoolDisabledMessageField textarea:focus{outline:0;border-color:#f4c542;box-shadow:0 0 0 3px rgba(244,197,66,.12)}
+.schoolDisabledMessagePreview{display:grid;gap:5px;margin-top:9px;padding:9px 10px;border:1px solid rgba(255,196,0,.22);border-radius:9px;background:rgba(255,196,0,.055)}
+.schoolDisabledMessagePreview b{font-size:8px;letter-spacing:.12em;color:#d9ad3e}
+.schoolDisabledMessagePreview span{font-size:11px;line-height:1.4;color:#c9d5dc;white-space:pre-wrap;overflow-wrap:anywhere}

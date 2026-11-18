@@ -8,10 +8,25 @@ const safeValue=(id,value)=>{const e=$(id);if(e)e.value=value;return e};
 const safeImage=(id,src,alt)=>{const e=$(id);if(e){if(src)e.src=src;if(alt!==undefined)e.alt=alt;}return e};
 function gateMessageElement(){let e=$('schoolGateMsg');if(e)return e;const input=$('schoolAccessCode'),card=input?.closest('.gateCard');if(!card)return null;e=document.createElement('div');e.id='schoolGateMsg';e.className='gateMessage';e.setAttribute('role','status');e.setAttribute('aria-live','polite');const button=$('enterSchoolBtn');if(button)card.insertBefore(e,button);else card.appendChild(e);if(input)input.setAttribute('aria-describedby','schoolGateMsg');return e}
 function setGateMessage(text,bad=false){const e=gateMessageElement();if(e){e.textContent=String(text??'');e.className='gateMessage'+(bad?' bad':'')}return e}
+function showSchoolDisabledPopup(schoolName,message){
+  const modal=$('hptSchoolDisabledModal');
+  if(!modal){setGateMessage(message||'This school’s access is temporarily disabled. Please contact your school administrator.',true);return;}
+  safeText('hptSchoolDisabledName',schoolName||'Driving School');
+  safeText('hptSchoolDisabledMessage',message||'This school’s access is temporarily disabled. Please contact your school administrator.');
+  modal.hidden=false;
+  document.body.classList.add('school-disabled-modal-open');
+  $('hptSchoolDisabledClose')?.focus();
+}
+function closeSchoolDisabledPopup(){const modal=$('hptSchoolDisabledModal');if(modal)modal.hidden=true;document.body.classList.remove('school-disabled-modal-open')}
+
 const C=window.RAJU_HPT_CONFIG;
 let clips=[], order=[], pos=0, responses=[], scores=[], running=false, finishing=false, timer=null, responseLocked=false;
 let candidate={name:'',phone:''}, sound=true, activeSchool=null, schoolAccessCode='', examStartedAt=null;
 let allowSkip=false, examSessionId=null, examHeartbeatTimer=null, hptExamLoaderStartedAt=0, hptExamLoaderAnimationFrame=0;
+// Keep a small rolling set of upcoming R2 videos warm without flooding mobile connections.
+const hptVideoPreloads=new Map();
+let hptPreloadQueue=[],hptPreloadActive=0,hptPreloadOrder=[];
+const HPT_PRELOAD_CONCURRENCY=2,HPT_PRELOAD_AHEAD=3;
 const video=$('video');
 let audioCtx=null;
 let roadAudio=null;
@@ -161,7 +176,7 @@ const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math
 const show=(id,on)=>{const e=$(id);if(!e)return;e.hidden=!on;if(id==='examScreen')document.body.classList.toggle('exam-active',on);if(id==='startScreen')document.body.classList.toggle('home-active',on);if(id==='resultScreen')document.body.classList.toggle('result-active',on)};
 const toast=(t,bad=false)=>{const e=$('toast');e.textContent=t;e.className='toast show'+(bad?' bad':'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='toast',1100)};
 function responseLimitWarning(){const m=$('responseLimitModal');if(!m)return;show('responseLimitModal',true);clearTimeout(m._t);m._t=setTimeout(()=>show('responseLimitModal',false),2200)}
-function update(){const d=Math.min(C.clipLimitSeconds,video.duration||C.clipLimitSeconds);const shown=Math.min(pos+1,order.length);$('clipNo').textContent=`${shown} / ${order.length}`;$('clipNo2').textContent=`${shown} / ${order.length}`;$('timer').textContent=fmt(Math.max(0,C.clipLimitSeconds-video.currentTime));$('elapsed').textContent=fmt(video.currentTime);$('duration').textContent=fmt(d);$('respCount').textContent=`${responses.length} / ${C.maxResponsesPerClip}`;const pct=d?Math.min(100,Math.max(0,(video.currentTime/d)*100)):0;const fill=$('progressFill');const head=$('playHead');if(fill)fill.style.width=pct+'%';if(head)head.style.left=pct+'%'}
+function update(){const d=Math.min(C.clipLimitSeconds,video.duration||C.clipLimitSeconds);const shown=Math.min(pos+1,order.length);safeText('clipNo',`${shown} / ${order.length}`);safeText('clipNo2',`${shown} / ${order.length}`);const timerDisplay=$('timer');if(timerDisplay)timerDisplay.textContent=fmt(Math.max(0,C.clipLimitSeconds-video.currentTime));safeText('elapsed',fmt(video.currentTime));safeText('duration',fmt(d));safeText('respCount',`${responses.length} / ${C.maxResponsesPerClip}`);const pct=d?Math.min(100,Math.max(0,(video.currentTime/d)*100)):0;const fill=$('progressFill');const head=$('playHead');if(fill)fill.style.width=pct+'%';if(head)head.style.left=pct+'%'}
 function timeline(){const t=$('track');if(!t)return;const d=Math.max(1,Math.min(C.clipLimitSeconds,video.duration||C.clipLimitSeconds));t.querySelectorAll('.mark').forEach(e=>e.remove());responses.forEach((r,i)=>{const m=document.createElement('div');m.className='mark';m.style.left=Math.min(100,Math.max(0,(Number(r.t)||0)/d*100))+'%';m.title=`Response ${i+1}`;m.setAttribute('aria-label',`Response ${i+1}`);m.innerHTML='<span></span>';t.appendChild(m)})}
 function resetClip(){responses=[];responseLocked=false;finishing=false;timeline();update()}
 function staticHazards(code){return [];}
@@ -172,6 +187,53 @@ function resolveHptVideoUrl(path){
   let clean=String(path).replace(/^\.\//,'').replace(/^\/+/, '');
   if(clean.startsWith('videos/'))clean='clips/'+clean.slice('videos/'.length);
   return C.videoBase+clean.split('/').map(encodeURIComponent).join('/');
+}
+function disposeHptPreload(index){
+  const entry=hptVideoPreloads.get(index);if(!entry)return;
+  if(entry.timeout)clearTimeout(entry.timeout);
+  if(entry.state==='loading')hptPreloadActive=Math.max(0,hptPreloadActive-1);
+  if(entry.video){try{entry.video.pause();entry.video.removeAttribute('src');entry.video.load()}catch{}}
+  hptVideoPreloads.delete(index);
+}
+function clearHptVideoPreloads(){
+  for(const index of [...hptVideoPreloads.keys()])disposeHptPreload(index);
+  hptPreloadQueue=[];hptPreloadOrder=[];hptPreloadActive=0;
+}
+function pumpHptVideoPreloads(){
+  let retained=[...hptVideoPreloads.values()].filter(x=>x.state==='ready'||x.state==='loading').length;
+  while(hptPreloadActive<HPT_PRELOAD_CONCURRENCY&&retained<HPT_PRELOAD_AHEAD&&hptPreloadQueue.length){
+    const index=hptPreloadQueue.shift();
+    if(index<pos||hptVideoPreloads.has(index))continue;
+    const clip=hptPreloadOrder[index];if(!clip?.file)continue;
+    const preloadVideo=document.createElement('video');
+    preloadVideo.preload='auto';preloadVideo.muted=true;preloadVideo.playsInline=true;preloadVideo.crossOrigin='anonymous';
+    const entry={video:preloadVideo,state:'loading',index};hptVideoPreloads.set(index,entry);hptPreloadActive++;retained++;
+    let settled=false;
+    const settle=(ok)=>{
+      if(settled||hptVideoPreloads.get(index)!==entry)return;settled=true;
+      if(entry.timeout)clearTimeout(entry.timeout);
+      hptPreloadActive=Math.max(0,hptPreloadActive-1);
+      entry.state=ok?'ready':'failed';
+      if(!ok){disposeHptPreload(index)}
+      pumpHptVideoPreloads();
+    };
+    preloadVideo.addEventListener('canplay',()=>settle(true),{once:true});
+    preloadVideo.addEventListener('error',()=>settle(false),{once:true});
+    // Do not let one unreachable/slow R2 object block the rest of the preload queue.
+    entry.timeout=window.setTimeout(()=>settle(preloadVideo.readyState>=2),14000);
+    preloadVideo.src=clip.file;preloadVideo.load();
+  }
+}
+function startHptVideoPreloading(examOrder){
+  clearHptVideoPreloads();hptPreloadOrder=examOrder||[];
+  // Clip 1 is preloaded by the visible player during the instruction screen.
+  hptPreloadQueue=hptPreloadOrder.map((_,index)=>index).filter(index=>index>0);
+  pumpHptVideoPreloads();
+}
+function releaseHptPreloadFor(index){
+  const entry=hptVideoPreloads.get(index);if(!entry)return;
+  if(entry.timeout)clearTimeout(entry.timeout);
+  disposeHptPreload(index);pumpHptVideoPreloads();
 }
 async function loadClips(){
   clips=[];
@@ -261,6 +323,7 @@ function loadClip(preloaded=false){
     running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000);
   };
   video.onloadedmetadata=activate;
+  video.oncanplay=()=>releaseHptPreloadFor(pos);
   video.onerror=()=>{running=false;$('playOverlay').hidden=false;$('playNow').textContent='RETRY CLIP';toast('Video could not be loaded. Please retry or contact your driving school.',true)};
   if(!preloaded || video.dataset.hptPreloadedUrl!==String(order[pos].file)){
     video.removeAttribute('src');video.crossOrigin='anonymous';video.preload='auto';video.dataset.hptPreloadedUrl=String(order[pos].file);video.src=order[pos].file;video.load();
@@ -355,7 +418,7 @@ async function showHptExamLoading(firstClip){
   closeHptExamLoading();
   return ready;
 }
-async function finishClip(){if(finishing)return;finishing=true;running=false;clearTimeout(timer);video.pause();scores.push(Math.max(0,Math.min(10,scoreThis())));pos++;if(pos>=order.length){await finishExam();return}setTimeout(()=>{finishing=false;loadClip()},220)}
+async function finishClip(){if(finishing)return;finishing=true;running=false;clearTimeout(timer);video.pause();scores.push(Math.max(0,Math.min(10,scoreThis())));pos++;for(const index of [...hptVideoPreloads.keys()])if(index<pos)disposeHptPreload(index);pumpHptVideoPreloads();if(pos>=order.length){clearHptVideoPreloads();await finishExam();return}setTimeout(()=>{finishing=false;loadClip()},220)}
 function scoreThis(){return responses.reduce((a,r)=>a+r.points,0)}
 async function finishExam(){
   stopRoadAudio();
@@ -482,19 +545,19 @@ function resetSchoolBranding(){
   safeImage('loaderSchoolLogo','assets/hpt-brand-logo-v129.png','Hazard Perception Test Portal');
   const tools=$('homeTools');if(tools)tools.hidden=true;
 }
-async function enterSchool({auto=false}={}){
+async function enterSchool(){
   const codeInput=$('schoolAccessCode'),button=$('enterSchoolBtn');
   const msg=gateMessageElement();
-  if(!codeInput||!button){console.error('School access form is incomplete: missing code input or continue button.');setGateMessage('ACCESS FORM NOT READY. Refresh the page and try again.',true);return false}
+  if(!codeInput||!button){console.error('School access form is incomplete: missing code input or continue button.');setGateMessage('ACCESS FORM NOT READY. Refresh the page and try again.',true);return}
   const code=String(codeInput.value||'').trim();
   setGateMessage('');
-  if(!code){setGateMessage('ENTER YOUR SCHOOL ACCESS CODE',true);return false}
+  if(!code){setGateMessage('ENTER YOUR SCHOOL ACCESS CODE',true);return}
   // Close the access-code keyboard when the user submits the login form.
   try{codeInput.blur()}catch{}
-  // Fullscreen can only be requested reliably from a direct user gesture.
-  // URL-based automatic access therefore verifies the school without requesting fullscreen.
+  // Start fullscreen synchronously from the login gesture, before network awaits.
+  // Browsers may show their own native fullscreen notice; the app adds no extra message.
   let loginFullscreenPromise=null;
-  if(!auto&&!document.fullscreenElement&&document.documentElement.requestFullscreen){
+  if(!document.fullscreenElement&&document.documentElement.requestFullscreen){
     try{
       loginFullscreenPromise=document.documentElement.requestFullscreen({navigationUI:'hide'});
       loginFullscreenPromise?.then(updateFullscreenButtons).catch(()=>{});
@@ -502,8 +565,7 @@ async function enterSchool({auto=false}={}){
   }
   button.disabled=true;
   const buttonLabel=button.querySelector('span');
-  if(buttonLabel)buttonLabel.textContent=auto?'CONNECTING…':'VERIFYING ACCESS…';
-  if(auto)setGateMessage('CONNECTING TO RAJU DRIVING SCHOOL…');
+  if(buttonLabel)buttonLabel.textContent='VERIFYING ACCESS…';
   try{
     const sb=await supabase();
     if(!sb)throw new Error('The portal cannot connect to the access service. Check the Supabase URL, publishable key, and internet connection.');
@@ -512,30 +574,29 @@ async function enterSchool({auto=false}={}){
     // The updated verification RPC distinguishes an unknown code from a disabled school.
     const payload=Array.isArray(data)?data[0]:data;
     if(payload?.status==='disabled'){
-      if(!auto){try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}}
+      try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
       updateFullscreenButtons();
-      setGateMessage('HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.',true);return false;
+      showSchoolDisabledPopup(payload.school_name||'Driving School',payload.message||'This school’s access is temporarily disabled. Please contact your school administrator.');return;
     }
     const schoolData=payload?.school&&typeof payload.school==='object'?payload.school:payload;
     if(!schoolData||!schoolData.id){
-      if(!auto){try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}}
+      try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
       updateFullscreenButtons();
-      setGateMessage('ACCESS CODE NOT RECOGNISED. PLEASE CHECK THE CODE OR CONTACT YOUR DRIVING SCHOOL.',true);return false;
+      setGateMessage('ACCESS CODE NOT RECOGNISED. PLEASE CHECK THE CODE OR CONTACT YOUR DRIVING SCHOOL.',true);return
     }
     const school={...schoolData,access_code:code};
     applySchoolBranding(school,true);
     codeInput.value='';
     setGateMessage('');
-    // Keep the existing welcome animation for manual logins; direct school links go straight to the portal.
-    if(!auto&&window.HPTExperience?.showSchoolWelcome){
+    // Personalized cinematic welcome after the access code has been verified.
+    if(window.HPTExperience?.showSchoolWelcome){
       try{await window.HPTExperience.showSchoolWelcome(school)}catch(welcomeError){console.warn('School welcome animation skipped:',welcomeError)}
     }
     show('schoolGate',false);show('startScreen',true);show('examScreen',false);show('resultScreen',false);
     safeText('candName','Candidate');safeText('candPhone','');
     updateFullscreenButtons();
-    return true;
   }catch(e){
-    if(!auto){try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}}
+    try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
     updateFullscreenButtons();
     console.error('School access verification failed:',e?.stack||e);
     const detail=String(e?.message||'').trim();
@@ -543,36 +604,15 @@ async function enterSchool({auto=false}={}){
       ?'SCHOOL ACCESS SERVICE IS NOT UPDATED. Run 11-provider-admin-and-school-status-v83.sql in the connected Supabase project.'
       :(detail?`ACCESS VERIFICATION FAILED: ${detail.slice(0,180)}`:'ACCESS VERIFICATION UNAVAILABLE. PLEASE TRY AGAIN.');
     setGateMessage(message,true);
-    return false;
   }finally{
     button.disabled=false;
     if(buttonLabel)buttonLabel.textContent='LOGIN TO SCHOOL';
   }
 }
-function readSchoolAccessCodeFromUrl(){
-  try{
-    // Use a URL fragment (#school=1132), so the code is not sent in the HTTP request URL.
-    const params=new URLSearchParams(String(window.location.hash||'').replace(/^#/,'').replace(/^\?/,'') );
-    const code=String(params.get('school')||params.get('access_code')||'').trim().slice(0,64);
-    if(code){
-      // Remove the one-time code from the address bar after reading it.
-      window.history.replaceState(window.history.state,'',window.location.pathname+window.location.search);
-      return code;
-    }
-  }catch(error){console.warn('Could not read the school access link:',error)}
-  return '';
-}
 async function bootSchoolSession(){
-  // A school code in the URL takes priority over any previously saved school session.
-  const directCode=readSchoolAccessCodeFromUrl();
   // Read the saved code before clearing the current in-memory branding.
   let saved=null;try{saved=JSON.parse(sessionStorage.getItem('hpt_school_session')||'null')}catch{}
   resetSchoolBranding();show('startScreen',false);show('schoolGate',true);show('examScreen',false);show('resultScreen',false);
-  if(directCode){
-    safeValue('schoolAccessCode',directCode);
-    await enterSchool({auto:true});
-    return;
-  }
   if(!saved?.access_code||!saved?.id)return;
   try{
     const sb=await supabase();if(!sb)return;
@@ -581,7 +621,7 @@ async function bootSchoolSession(){
     const schoolData=payload?.school&&typeof payload.school==='object'?payload.school:payload;
     if(!error&&payload?.status==='disabled'){
       try{sessionStorage.removeItem('hpt_school_session')}catch{}
-      setGateMessage('HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.',true);
+      showSchoolDisabledPopup(payload.school_name||saved.school_name||'Driving School',payload.message||'This school’s access is temporarily disabled. Please contact your school administrator.');
     }else if(!error&&schoolData?.id&&String(schoolData.id)===String(saved.id)){
       applySchoolBranding({...schoolData,access_code:saved.access_code},true);
       show('schoolGate',false);show('startScreen',true);
@@ -592,7 +632,7 @@ function changeSchool(){
   stopExamHeartbeat();examSessionId=null;
   if(!$('schoolStatsModal')?.hidden)closeSchoolStatsModal();
   // Return safely to the access-code gate and discard only the incomplete in-memory exam.
-  clearTimeout(timer);running=false;finishing=false;responseLocked=false;pos=0;order=[];scores=[];responses=[];
+  clearTimeout(timer);clearHptVideoPreloads();running=false;finishing=false;responseLocked=false;pos=0;order=[];scores=[];responses=[];
   try{if(video){video.pause();video.removeAttribute('src');video.load()}}catch(e){console.warn('Could not reset the video element while changing school.',e)}
   stopRoadAudio();resetSchoolBranding();
   safeValue('schoolAccessCode','');safeValue('name','');safeValue('phone','');setGateMessage('');
@@ -601,7 +641,7 @@ function changeSchool(){
   loadGlobalMonthlyTopFive();
 }
 async function beginHPTExam(){buttonFeedback();ensureAudio();if(!video){toast('The video player is missing. Please refresh the website.',true);return}const n=$('name').value.trim(),p=$('phone').value.trim();if(!activeSchool?.id){toast('Enter your driving school access code first.',true);changeSchool();return}if(!n||!p){toast('Enter candidate name and phone number',true);return}const phoneDigits=p.replace(/\D/g,'');if(phoneDigits.length<10||phoneDigits.length>15){toast('Enter a valid mobile number with 10 to 15 digits.',true);$('phone').focus();return}const sb=await supabase();if(!sb){toast('The examination service is unavailable. Please try again.',true);return}
-  try{const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:schoolAccessCode});if(error)throw error;const status=Array.isArray(data)?data[0]:data;if(status?.status==='disabled'||!(status?.school?.id||status?.id)){changeSchool();setGateMessage(status?.status==='disabled'?'HAZARD PERCEPTION TEST DISABLED. PLEASE CONTACT THE PROVIDER TO CONTINUE USING THE SOFTWARE.':'SCHOOL ACCESS COULD NOT BE VERIFIED. PLEASE CONTACT THE PROVIDER.',true);return}}
+  try{const {data,error}=await sb.rpc('verify_hpt_school_access_code',{p_code:schoolAccessCode});if(error)throw error;const status=Array.isArray(data)?data[0]:data;if(status?.status==='disabled'){const schoolName=status.school_name||activeSchool?.school_name||'Driving School';const customMessage=status.message||'This school’s access is temporarily disabled. Please contact your school administrator.';changeSchool();showSchoolDisabledPopup(schoolName,customMessage);return}if(!(status?.school?.id||status?.id)){changeSchool();setGateMessage('SCHOOL ACCESS COULD NOT BE VERIFIED. PLEASE CONTACT YOUR DRIVING SCHOOL.',true);return}}
   catch(e){console.warn('School access revalidation failed:',e);toast('Could not verify school access. Please try again.',true);return}
   openHptExamLoading();
   try{clips=await loadClips()}catch(error){closeHptExamLoading();console.error('HPT video catalogue failed to load:',error);toast('Could not load the examination videos. Please check your connection and try again.',true);return}
@@ -609,6 +649,7 @@ async function beginHPTExam(){buttonFeedback();ensureAudio();if(!video){toast('T
   candidate={name:n,phone:p};examStartedAt=new Date().toISOString();$('candName').textContent=n;$('candPhone').textContent=p;
   await loadExamControls();await startExamSessionTracking();
   order=shuffle(clips).slice(0,C.examClipCount);pos=0;scores=[];
+  startHptVideoPreloading(order);
   updateFullscreenButtons();engineStartSequence();show('startScreen',false);show('resultScreen',false);
   const firstReady=await showHptExamLoading(order[0]);
   show('examScreen',true);loadClip(firstReady)}
@@ -863,7 +904,7 @@ bind('exitSchoolBtn','click',()=>{
   if(!confirm(`Exit ${schoolName} and return to the school access screen?`))return;
   changeSchool();
 });
-bind('enterSchoolBtn','click',enterSchool);
+bind('enterSchoolBtn','click',enterSchool);bind('hptSchoolDisabledClose','click',closeSchoolDisabledPopup);bind('hptSchoolDisabledModal','click',e=>{if(e.target.classList.contains('hpt-school-disabled-backdrop'))closeSchoolDisabledPopup()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('hptSchoolDisabledModal')?.hidden)closeSchoolDisabledPopup()});
 bind('schoolAccessCode','keydown',e=>{if(e.key==='Enter')enterSchool()});
 bind('startBtn','click',begin);
 bind('chooseHptBtn','click',chooseHptTest);bind('chooseLearnerBtn','click',chooseLearnerTest);bind('testSelectionClose','click',closeTestSelection);
@@ -882,7 +923,7 @@ bind('attemptPhone','keydown',e=>{if(e.key==='Enter')lookupAttempts()});
 bind('attemptsModal','click',e=>{if(e.target===$('attemptsModal'))closeAttempts()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('attemptsModal')?.hidden)closeAttempts()});
 bind('skipBtn','click',()=>{if(allowSkip&&running&&!finishing)finishClip()});bind('soundBtn','click',()=>setSoundState(!sound));bind('fullBtn','click',toggleFullscreen);
 bind('helpBtn','click',()=>toast('Tap when a developing hazard becomes apparent. You can make up to 5 responses per clip.'));
-bind('exitBtn','click',()=>{if(confirm('Exit the examination? This attempt will be incomplete.')){clearTimeout(timer);stopExamHeartbeat();video.pause();running=false;stopRoadAudio();show('examScreen',false);show('startScreen',true)}});
+bind('exitBtn','click',()=>{if(confirm('Exit the examination? This attempt will be incomplete.')){clearTimeout(timer);clearHptVideoPreloads();stopExamHeartbeat();video.pause();running=false;stopRoadAudio();show('examScreen',false);show('startScreen',true)}});
 bind('playNow','click',()=>video.play().then(()=>{const o=$('playOverlay');if(o)o.hidden=true;running=true;clearTimeout(timer);timer=setTimeout(finishClip,C.clipLimitSeconds*1000)}).catch(()=>toast('Video could not start',true)));
 if(video){video.addEventListener('timeupdate',()=>{update();timeline()});video.addEventListener('ended',finishClip)}
 function captureResponseFrame(){

@@ -2677,3 +2677,27 @@ body.hpt-skip-disabled .bottomHud .skip{display:none!important}
   .hpt-loader-tip{margin-top:9px;min-height:48px}
 }
 @media(prefers-reduced-motion:reduce){.hpt-exam-loading,.hpt-game-progress>div{transition:none}}
+
+/* V132: hide the on-screen countdown during the live exam; the internal clip limit remains active. */
+body.exam-active .topbar .timer{display:none!important}
+
+
+/* V133 — per-school disabled access popup and manager message editor */
+.hpt-school-disabled-modal{position:fixed;inset:0;z-index:12000;display:grid;place-items:center;padding:22px}
+.hpt-school-disabled-modal[hidden]{display:none!important}
+.hpt-school-disabled-backdrop{position:absolute;inset:0;background:rgba(2,8,14,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.hpt-school-disabled-card{position:relative;width:min(460px,100%);padding:30px 28px 26px;border-radius:22px;border:1px solid rgba(255,198,62,.42);background:radial-gradient(circle at 50% 0,rgba(255,196,0,.12),transparent 42%),linear-gradient(150deg,#142b39,#07131e);box-shadow:0 28px 90px rgba(0,0,0,.58);text-align:center;color:#f7fafc;animation:hptDisabledPop .24s ease-out}
+.hpt-school-disabled-icon{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin:0 auto 13px;background:rgba(255,196,0,.14);border:1px solid rgba(255,207,83,.55);color:#ffda74;font-size:30px;font-weight:1000}
+.hpt-school-disabled-kicker{font-size:10px;font-weight:950;letter-spacing:.2em;color:#e9c66a}
+.hpt-school-disabled-card h2{margin:9px 0 8px;font-size:clamp(20px,4.5vw,25px);line-height:1.15;color:#fff}
+.hpt-school-disabled-name{margin:0 0 15px;color:#b9cbd5;font-size:13px;font-weight:800}
+.hpt-school-disabled-message{margin:0;padding:16px 15px;border:1px solid rgba(164,195,211,.22);border-radius:13px;background:rgba(255,255,255,.055);color:#e4edf2;font-size:14px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.hpt-school-disabled-button{width:100%;margin-top:20px;min-height:46px;border:0;border-radius:12px;background:linear-gradient(100deg,#f7cf54,#ffc21a);color:#16212a;font-size:12px;font-weight:1000;letter-spacing:.11em;cursor:pointer}
+body.school-disabled-modal-open{overflow:hidden}
+@keyframes hptDisabledPop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:520px){.hpt-school-disabled-card{padding:25px 18px 20px;border-radius:18px}.hpt-school-disabled-message{font-size:13px;padding:13px}}
+.schoolDisabledMessageField textarea{width:100%;min-height:86px;resize:vertical;margin-top:7px;padding:11px 12px;border:1px solid #344b5c;border-radius:11px;background:#0a1722;color:#f0f5f7;font:inherit;line-height:1.45}
+.schoolDisabledMessageField textarea:focus{outline:0;border-color:#f4c542;box-shadow:0 0 0 3px rgba(244,197,66,.12)}
+.schoolDisabledMessagePreview{display:grid;gap:5px;margin-top:9px;padding:9px 10px;border:1px solid rgba(255,196,0,.22);border-radius:9px;background:rgba(255,196,0,.055)}
+.schoolDisabledMessagePreview b{font-size:8px;letter-spacing:.12em;color:#d9ad3e}
+.schoolDisabledMessagePreview span{font-size:11px;line-height:1.4;color:#c9d5dc;white-space:pre-wrap;overflow-wrap:anywhere}

@@ -46,7 +46,7 @@
     const {data,error}=await sb.rpc("verify_hpt_school_access_code",{p_code:code});
     if(error)throw error;
     const payload=Array.isArray(data)?data[0]:data;
-    if(payload?.status==="disabled")throw new Error("Hazard Perception Test is disabled for this school. Please contact the provider.");
+    if(payload?.status==="disabled")throw new Error(payload.message||"This school’s access is temporarily disabled. Please contact your school administrator.");
     const school=payload?.school&&typeof payload.school==="object"?payload.school:payload;
     if(!school?.id)throw new Error("School access code was not recognised. Please check and try again.");
     state.school={...school,access_code:code};

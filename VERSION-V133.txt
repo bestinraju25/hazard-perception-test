@@ -1,0 +1,9 @@
+V133 — ROLLING VIDEO PRELOAD + CUSTOM SCHOOL DISABLED MESSAGE
+
+- Carries forward V132 rolling Cloudflare R2 preloading (first clip prioritised; up to 3 upcoming clips; max 2 simultaneous preload requests).
+- Keeps the visible live-exam countdown hidden while retaining the internal 50-second clip timer.
+- Adds per-school disabled_message field and admin prompts when disabling a school.
+- Shows a branded custom-message popup when students enter a disabled school's access code or a saved session is revalidated.
+- Updates the driving practice revalidation error to use the same custom message.
+- Adds Supabase migration 27-hpt-school-custom-disabled-message.sql.
+- No Edge Function redeployment required.
