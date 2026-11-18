@@ -16,7 +16,6 @@
 .hptRegPrimary span{font-size:19px;margin-left:auto}
 .hptRegPrimary:disabled{opacity:.62;cursor:wait}
 .hptRegError{padding:11px 12px;border:1px solid rgba(255,117,117,.4);border-radius:9px;background:rgba(126,25,25,.18);color:#ffbcbc;font-size:13px;line-height:1.5}
-.hptPaymentQr{display:block;width:min(100%,365px);height:auto;margin:17px auto 12px;border:1px solid #e3e8eb;border-radius:16px;background:#fff;box-shadow:0 12px 36px rgba(0,0,0,.22)}
 .hptUpiId{margin:0 auto 16px;text-align:center;color:#b8c9d3;font-size:13px;overflow-wrap:anywhere}
 .hptUpiId strong{display:block;margin-top:4px;color:#fff;font-size:16px;letter-spacing:.02em}
 .hptPaymentReminder{margin:17px 0 10px;padding:13px 14px;border:1px solid rgba(255,196,0,.26);border-radius:10px;background:rgba(255,196,0,.07);color:#d8e1e6;font-size:12px;line-height:1.6}
@@ -38,14 +37,14 @@
 .hptGetAccessBtn span{margin-right:auto}
 .hptForgotAccessBtn{display:block;margin:14px auto 0;border:0;background:transparent;color:#d9b64a;text-decoration:underline;text-underline-offset:3px;font-size:13px;font-weight:800;cursor:pointer}
 .landingRegisterCard .hptForgotAccessBtn{align-self:center}
-@media(max-width:560px){.hptRegistrationModal{padding:10px}.hptRegistrationDialog{max-height:96vh;padding:24px 18px;border-radius:17px}.hptPaymentQr{width:min(100%,315px)}.hptRegForm input{font-size:16px}}
+@media(max-width:560px){.hptRegistrationModal{padding:10px}.hptRegistrationDialog{max-height:96vh;padding:24px 18px;border-radius:17px}.hptRegForm input{font-size:16px}}
 
 .hptRegForm select{width:100%;min-height:47px;padding:11px 13px;border:1px solid #355568;border-radius:10px;outline:none;background:#06131d;color:#f7fbfd;font:inherit;font-size:14px;appearance:auto}
 
 .hptInlineRecovery{display:inline;border:0;background:transparent;color:#ffd34d;text-decoration:underline;font:inherit;font-weight:900;padding:2px 3px;cursor:pointer}
 
 
-/* V120: emphasise the preset UPI amount shown by the QR */
+/* Fixed UPI payment amount */
 .hptFixedPaymentAmount{margin:12px auto 4px;padding:12px 14px;max-width:360px;text-align:center;border:1px solid rgba(16,43,66,.16);border-radius:12px;background:#f2f7fb;color:#23394b;font-size:14px;font-weight:800;letter-spacing:.02em}.hptFixedPaymentAmount strong{display:block;font-size:24px;color:#0b6542;margin:3px 0}.hptFixedPaymentAmount span{display:block;font-size:11px;font-weight:600;color:#6a7886;letter-spacing:0}
 
 /* V128 — optional school logo with platform-brand fallback preview */
@@ -74,3 +73,20 @@
 .hptRegSecondary{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:50px;margin-top:10px;padding:12px 16px;border:1px solid rgba(255,255,255,.25);border-radius:11px;background:transparent;color:inherit;font-size:13px;font-weight:900;letter-spacing:.045em;cursor:pointer}
 .hptRegSecondary span{font-size:18px;margin-left:auto}
 .hptRegSecondary:disabled{opacity:.62;cursor:wait}
+
+
+/* V136 — explicit three-step Google Pay registration payment flow; no QR presentation. */
+.hptPaymentStep{display:flex;align-items:flex-start;gap:12px;margin:18px 0 10px;padding:12px 13px;border:1px solid rgba(119,160,183,.25);border-radius:12px;background:rgba(5,18,28,.58)}
+.hptPaymentStepNumber{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:#0b9861;color:#fff;font-size:14px;font-weight:950}
+.hptPaymentStep>div{display:grid;gap:4px;min-width:0}
+.hptPaymentStep strong{color:#f4f8fb;font-size:12px;font-weight:950;letter-spacing:.055em}
+.hptPaymentStep small{color:#a9bdc9;font-size:11px;line-height:1.5}
+.hptPaymentStepSecond{margin-top:20px}
+.hptPaymentStepSuccess{margin:0 0 18px;border-color:rgba(123,227,168,.3);background:rgba(21,130,84,.12)}
+.hptFixedPaymentAmount{margin:12px auto 4px;padding:12px 14px;max-width:360px;text-align:center;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.055);color:#b8c9d3;font-size:11px;font-weight:800;letter-spacing:.08em}
+.hptFixedPaymentAmount strong{display:block;font-size:25px;color:#fff;margin:4px 0}
+.hptFixedPaymentAmount span{display:block;font-size:10px;font-weight:600;color:#9db3c0;letter-spacing:0}
+.hptGpayButton .hptGpayMark{margin-left:0;margin-right:2px}
+.hptGpayButton .hptGpayLabel{margin-left:0;flex:1;text-align:center}
+.hptGpayButton .hptGpayArrow{margin-left:0}
+.hptRegSecondary:disabled{opacity:.48;cursor:not-allowed}

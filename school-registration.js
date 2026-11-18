@@ -245,22 +245,26 @@
     openModal(`
       <div class="hptRegEyebrow">REGISTRATION PAYMENT</div>
       <h2 id="hptRegistrationTitle">Pay ₹5,000</h2>
-      <p class="hptRegIntro">Continue to Google Pay. The recipient and ₹5,000 amount will be pre-filled for you.</p>
-      <div class="hptGpayPayee"><span>PAY TO</span><strong>${esc(payeeName)}</strong><small>${esc(upiId)}</small></div>
-      <div class="hptFixedPaymentAmount">PAYMENT AMOUNT: <strong>₹5,000.00</strong> <span>Pre-filled in Google Pay</span></div>
-      <button id="hptContinueGpay" class="hptRegPrimary hptGpayButton" type="button"><span class="hptGpayMark">G</span> CONTINUE TO GPAY <span>↗</span></button>
-      <p class="hptPaymentReminder">Complete the payment in Google Pay. Then return to this page and tap PAYMENT COMPLETED. Your access code will be shown, but the school remains pending until the administrator manually verifies the payment and approves it.</p>
-      <div id="hptRegistrationError" class="hptRegError" role="alert" hidden></div>
-      <button id="hptPaymentCompleted" class="hptRegSecondary" type="button">PAYMENT COMPLETED <span>✓</span></button>`);
+      <p class="hptRegIntro">Follow these steps to complete your school registration payment and receive your four-digit access code.</p>
 
+      <div class="hptPaymentStep"><span class="hptPaymentStepNumber">1</span><div><strong>CONTINUE TO GPAY</strong><small>Google Pay will open with the recipient, UPI ID and ₹5,000 amount pre-filled.</small></div></div>
+      <div class="hptGpayPayee"><span>PAY TO</span><strong>${esc(payeeName)}</strong><small>${esc(upiId)}</small></div>
+      <div class="hptFixedPaymentAmount">PAYMENT AMOUNT<strong>₹5,000.00</strong><span>Pre-filled in Google Pay</span></div>
+      <button id="hptContinueGpay" class="hptRegPrimary hptGpayButton" type="button"><span class="hptGpayMark">G</span><span class="hptGpayLabel">CONTINUE TO GPAY</span><span class="hptGpayArrow">↗</span></button>
+
+      <div class="hptPaymentStep hptPaymentStepSecond"><span class="hptPaymentStepNumber">2</span><div><strong>PAYMENT COMPLETED</strong><small>After completing the payment in Google Pay, return to this page and tap the button below.</small></div></div>
+      <div id="hptRegistrationError" class="hptRegError" role="alert" hidden></div>
+      <button id="hptPaymentCompleted" class="hptRegSecondary" type="button" disabled>PAYMENT COMPLETED <span>✓</span></button>
+      <p class="hptPaymentReminder">Your access code will be displayed after you tap PAYMENT COMPLETED. Your school will remain pending until the administrator manually verifies the payment and approves it.</p>`);
+
+    const completedButton = $('hptPaymentCompleted');
     $('hptContinueGpay').addEventListener('click', () => {
-      // Android opens the Google Pay app with payee, amount and note prefilled.
-      // On devices without GPay, the UPI handler may offer another installed UPI app.
+      // The button click is the required first step. Payment receipt is still verified manually by the administrator.
+      completedButton.disabled = false;
       window.location.href = gpayIntent;
     });
 
-    $('hptPaymentCompleted').addEventListener('click', async () => {
-      const completedButton = $('hptPaymentCompleted');
+    completedButton.addEventListener('click', async () => {
       completedButton.disabled = true;
       completedButton.textContent = 'SUBMITTING CONFIRMATION…';
       try {
@@ -278,6 +282,7 @@
         return;
       }
       openModal(`
+        <div class="hptPaymentStep hptPaymentStepSuccess"><span class="hptPaymentStepNumber">3</span><div><strong>ACCESS CODE DISPLAYED</strong><small>Your four-digit school access code is shown below.</small></div></div>
         <div class="hptRegSuccessIcon" aria-hidden="true">✓</div>
         <div class="hptRegEyebrow">REGISTRATION SUBMITTED</div>
         <h2 id="hptRegistrationTitle">Your access code is ready</h2>

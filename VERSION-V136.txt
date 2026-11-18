@@ -1,0 +1,3 @@
+HPT V136
+
+Fixes the registration payment page cache-busting and makes the GPay payment experience explicitly follow steps 1, 2 and 3. The payment page has no QR code element or QR image asset.
