@@ -1,0 +1,11 @@
+HPT V143 — QR Payment Flow + Responsive Backgrounds
+
+Changes:
+- Replaced Google Pay handoff with the supplied UPI QR artwork.
+- QR payload UPI ID: bestinraju25-2@okicici. Customer enters ₹5,000 in their UPI app after scanning.
+- Added a downloadable QR code.
+- Added a large payment-completed checkbox and GET ACCESS CODE button.
+- Access code appears after customer confirmation is submitted; payment verification and activation remain manual.
+- Clearly states that school access activation can take up to 6 hours after registration.
+- Replaced desktop and mobile site backgrounds with the two supplied images.
+- Added image preloads and cache-busted CSS/JS references.

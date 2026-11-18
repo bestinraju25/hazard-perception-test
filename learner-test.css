@@ -149,7 +149,7 @@ html,body,.exam-shell{background:var(--page);color:var(--ink)}
 .answerReviewDialog header button,.answerReviewDialog footer button{background:#10283a;color:#edf4fa;border-color:#355166}
 .testChoice{background:#10283a;border-color:#34546b;color:#eef4fa}
 .testChoice:hover{border-color:var(--brand)}
-.access-gate{background:linear-gradient(135deg,rgba(2,12,21,.96),rgba(5,27,43,.95)),url("home-background.jpg") center/cover no-repeat}
+.access-gate{background:linear-gradient(135deg,rgba(2,12,21,.96),rgba(5,27,43,.95)),url("assets/hpt-bg-desktop-v143.webp") center/cover no-repeat}
 .access-card{background:linear-gradient(145deg,rgba(9,31,47,.99),rgba(4,18,30,.99));border-color:color-mix(in srgb,var(--brand) 40%,#36556b)}
 .access-card h2{color:#f4f8fb}.access-card>p{color:#b6c8d6}
 .access-card label{color:#a5c6de}.access-card input{background:#061522;color:#fff;border-color:#405f75}
@@ -483,3 +483,7 @@ html,body,.exam-shell{background:var(--page);color:var(--ink)}
 @media (max-width: 800px) {
   .keyboard-hint { display: none !important; }
 }
+
+
+/* V143 — dedicated portrait background for the learner portal on small screens. */
+@media(max-width:760px){.access-gate{background-image:linear-gradient(135deg,rgba(2,12,21,.82),rgba(5,27,43,.78)),url('assets/hpt-bg-mobile-v143.webp')!important;background-size:cover!important;background-position:center center!important}}

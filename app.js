@@ -525,11 +525,12 @@ function hptNextTwoPaints(){return new Promise(resolve=>requestAnimationFrame(()
 async function prepareSchoolHomepage(school){
   const platformLogo='assets/hpt-brand-logo-v129.png';
   const schoolLogo=school?.logo_url||platformLogo;
+  const responsiveBackground = window.matchMedia && window.matchMedia('(max-width: 760px)').matches
+    ? 'assets/hpt-bg-mobile-v143.webp'
+    : 'assets/hpt-bg-desktop-v143.webp';
   const imageTasks=[
     preloadSchoolHomepageImage(schoolLogo),
-    preloadSchoolHomepageImage('home-background.jpg'),
-    preloadSchoolHomepageImage('assets/hpt-road-desktop.webp'),
-    preloadSchoolHomepageImage('assets/hpt-road-mobile.webp')
+    preloadSchoolHomepageImage(responsiveBackground)
   ];
   if(schoolLogo!==platformLogo)imageTasks.push(preloadSchoolHomepageImage(platformLogo));
   const leaderboardTask=loadTopScorers().catch(error=>{console.warn('School homepage leaderboard preload skipped:',error)});

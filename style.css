@@ -1169,7 +1169,7 @@ body.home-active .homeTool{
   -webkit-backdrop-filter:blur(8px)!important;
 }
 body.home-active .stage{
-  background-image:linear-gradient(90deg,rgba(2,8,12,.60) 0%,rgba(2,8,12,.34) 46%,rgba(2,8,12,.48) 100%),url('home-background.jpg');
+  background-image:linear-gradient(90deg,rgba(2,8,12,.60) 0%,rgba(2,8,12,.34) 46%,rgba(2,8,12,.48) 100%),url('assets/hpt-bg-desktop-v143.webp');
   background-size:cover;
   background-position:center center;
   background-repeat:no-repeat;
@@ -1178,13 +1178,13 @@ body.home-active .stage:before{opacity:.07!important}
 body.home-active .start.panel{background:transparent!important}
 body.home-active .examCard{background:linear-gradient(145deg,rgba(8,21,30,.78),rgba(3,10,16,.82))!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 @media(max-width:700px){
-  body.home-active .stage{background-position:58% center;background-image:linear-gradient(90deg,rgba(2,8,12,.62),rgba(2,8,12,.38)),url('home-background.jpg')}
+  body.home-active .stage{background-position:58% center;background-image:linear-gradient(90deg,rgba(2,8,12,.62),rgba(2,8,12,.38)),url('assets/hpt-bg-desktop-v143.webp')}
 }
 
 
 /* Multi-school portal gate and school branding layer */
 body.school-gate-active .topbar{background:rgba(3,9,14,.36)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom-color:#ffffff18}
-body.school-gate-active .stage{background:linear-gradient(115deg,rgba(2,8,13,.84),rgba(3,13,20,.62)),url('home-background.jpg') center/cover no-repeat}
+body.school-gate-active .stage{background:linear-gradient(115deg,rgba(2,8,13,.84),rgba(3,13,20,.62)),url('assets/hpt-bg-desktop-v143.webp') center/cover no-repeat}
 .schoolGate{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;overflow:auto;padding:clamp(18px,4vh,44px) clamp(18px,5vw,76px);color:#f5f8fb}
 .schoolGate[hidden]{display:none!important}
 .gateGlow{position:absolute;pointer-events:none;inset:0;background:radial-gradient(circle at 18% 45%,color-mix(in srgb,var(--yellow) 11%,transparent),transparent 39%),linear-gradient(115deg,transparent 47%,rgba(255,255,255,.035) 47.1%,transparent 47.4%)}
@@ -1203,7 +1203,7 @@ body.school-gate-active .homeTools{display:none!important}body.home-active .scho
 @media(max-width:850px){.gateContent{grid-template-columns:1fr;gap:22px;max-width:500px;margin:65px auto 30px}.schoolGate{justify-content:flex-start;padding-top:0}.gateCopy{text-align:center}.gateEyebrow{justify-content:center}.gateCopy h1{font-size:clamp(34px,8vw,52px);margin:12px 0}.gateCopy p{font-size:13px}.gateFeatures{display:none}.gateCard{justify-self:stretch;max-width:none;padding:22px}.gateCardTop{margin-bottom:17px}.gateBrand{top:12px}.gateBrand img{width:36px;height:34px}.gateBrand span{font-size:7px;letter-spacing:1.4px}.gateFooter{bottom:8px;font-size:7px}.gateCard input{height:49px}.gateButton{height:50px}}
 @media(max-width:480px){.gateContent{margin-top:55px;gap:16px}.gateCopy h1{font-size:35px;letter-spacing:-1.5px}.gateCopy p{font-size:12px;line-height:1.45}.gateCard{padding:17px;border-radius:17px}.gateIcon{width:41px;height:41px}.gateCard h2{font-size:22px}.gateKicker{font-size:8px}.gateSecure{font-size:7px}.gateFooter span{max-width:60%;line-height:1.5}}
 
-body.home-active .stage{background-image:linear-gradient(90deg,color-mix(in srgb,var(--school-dark,#0b1b29) 78%,transparent) 0%,color-mix(in srgb,var(--school-dark,#0b1b29) 40%,transparent) 46%,color-mix(in srgb,var(--school-dark,#0b1b29) 60%,transparent) 100%),url('home-background.jpg')!important}
+body.home-active .stage{background-image:linear-gradient(90deg,color-mix(in srgb,var(--school-dark,#0b1b29) 78%,transparent) 0%,color-mix(in srgb,var(--school-dark,#0b1b29) 40%,transparent) 46%,color-mix(in srgb,var(--school-dark,#0b1b29) 60%,transparent) 100%),url('assets/hpt-bg-desktop-v143.webp')!important}
 
 @media(max-width:800px){#changeSchoolBtn{width:37px;min-width:37px;justify-content:center;padding:0 6px}#changeSchoolBtn span:not(.toolIcon){display:none!important}}
 /* Apply the chosen school's accent consistently across the existing exam UI. */
@@ -1280,7 +1280,7 @@ body.school-selected .homeStats b,body.school-selected .stats b{color:var(--yell
 /* V61: simpler driving-school access screen with road photography */
 body:not(.school-selected) .topbar{display:none!important}
 body:not(.school-selected) .stage{height:100dvh!important}
-.schoolGate{inset:0!important;padding:0!important;justify-content:center!important;background:linear-gradient(90deg,rgba(2,10,15,.72),rgba(4,14,21,.56) 48%,rgba(2,9,14,.77)),linear-gradient(0deg,rgba(2,9,14,.75),transparent 65%),url('home-background.jpg') center center/cover no-repeat!important}
+.schoolGate{inset:0!important;padding:0!important;justify-content:center!important;background:linear-gradient(90deg,rgba(2,10,15,.72),rgba(4,14,21,.56) 48%,rgba(2,9,14,.77)),linear-gradient(0deg,rgba(2,9,14,.75),transparent 65%),url('assets/hpt-bg-desktop-v143.webp') center center/cover no-repeat!important}
 .gateGlow{background:radial-gradient(circle at 75% 48%,rgba(255,196,0,.09),transparent 36%)!important}
 .gateContentSimple{width:min(1120px,calc(100% - 48px))!important;max-width:1120px;margin:0 auto!important;grid-template-columns:minmax(0,1.1fr) minmax(300px,.65fr)!important;gap:clamp(26px,7vw,100px)!important;padding:36px 0!important}
 .gateCopySimple{max-width:560px!important}
@@ -2570,7 +2570,7 @@ body.hpt-skip-disabled .bottomHud .skip{display:none!important}
   padding:clamp(10px,2vw,28px);overflow-y:auto;overscroll-behavior:contain;
   background:linear-gradient(90deg,rgba(1,10,18,.38),rgba(2,13,23,.58)),
     linear-gradient(180deg,rgba(2,10,18,.22),rgba(2,10,18,.58)),
-    url("assets/hpt-road-desktop.webp") center center/cover no-repeat,#061522;
+    url("assets/hpt-bg-desktop-v143.webp") center center/cover no-repeat,#061522;
   color:#f4f8fc;opacity:1;transition:opacity .32s ease,transform .32s ease;
 }
 .hpt-exam-loading[hidden]{display:none!important}
@@ -2621,7 +2621,7 @@ body.hpt-skip-disabled .bottomHud .skip{display:none!important}
 .hpt-tip-divider{width:2px;height:28px;background:#ffd21b;flex:0 0 2px}
 .hpt-loader-tip strong{color:#f0f4f7;font-size:clamp(10px,1.2vw,15px);font-weight:600;line-height:1.35}
 @media(max-width:760px){
-  .hpt-exam-loading{padding:12px;background-image:linear-gradient(90deg,rgba(1,10,18,.42),rgba(2,13,23,.58)),linear-gradient(180deg,rgba(2,10,18,.22),rgba(2,10,18,.62)),url("assets/hpt-road-mobile.webp");background-position:center center;background-size:cover}
+  .hpt-exam-loading{padding:12px;background-image:linear-gradient(90deg,rgba(1,10,18,.42),rgba(2,13,23,.58)),linear-gradient(180deg,rgba(2,10,18,.22),rgba(2,10,18,.62)),url("assets/hpt-bg-mobile-v143.webp");background-position:center center;background-size:cover}
   .hpt-initialise-card{width:min(470px,100%);max-height:calc(100dvh - 20px);padding:12px;border-radius:23px}
   .hpt-initialise-brandbar{min-height:56px;margin-bottom:9px;gap:10px}
   .hpt-initialise-logo{width:clamp(130px,38vw,190px);height:55px}
@@ -2701,3 +2701,12 @@ body.school-disabled-modal-open{overflow:hidden}
 .schoolDisabledMessagePreview{display:grid;gap:5px;margin-top:9px;padding:9px 10px;border:1px solid rgba(255,196,0,.22);border-radius:9px;background:rgba(255,196,0,.055)}
 .schoolDisabledMessagePreview b{font-size:8px;letter-spacing:.12em;color:#d9ad3e}
 .schoolDisabledMessagePreview span{font-size:11px;line-height:1.4;color:#c9d5dc;white-space:pre-wrap;overflow-wrap:anywhere}
+
+
+/* V143 — user-supplied responsive Kerala road backgrounds. */
+@media(max-width:760px){
+  body.home-active .stage{background-image:linear-gradient(90deg,rgba(2,8,12,.63),rgba(2,8,12,.43)),url('assets/hpt-bg-mobile-v143.webp')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+  body.school-gate-active .stage{background-image:linear-gradient(115deg,rgba(2,8,13,.76),rgba(3,13,20,.54)),url('assets/hpt-bg-mobile-v143.webp')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+  .schoolGate{background-image:linear-gradient(180deg,rgba(2,10,15,.67),rgba(2,9,14,.72)),url('assets/hpt-bg-mobile-v143.webp')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+  body.home-active .stage,body.school-gate-active .stage{background-attachment:scroll!important}
+}

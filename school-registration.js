@@ -237,44 +237,45 @@
 
   function paymentScreen(registration) {
     const payeeName = 'Bestin Raju';
-    const upiId = 'bestinraju25-2@oksbi';
-    const amount = '5000.00';
-    const transactionNote = `Hazard Perception Test School Registration - ${registration.school_name || 'Driving School'}`;
-    const upiParams = new URLSearchParams({ pa: upiId, pn: payeeName, am: amount, cu: 'INR', tn: transactionNote });
-    const encodedUpiParams = upiParams.toString().replace(/\+/g, '%20');
-    const gpayIntent = `intent://pay?${encodedUpiParams}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+    const upiId = 'bestinraju25-2@okicici';
+    const qrImage = 'assets/hpt-registration-upi-qr-v143.jpeg';
+    const whatsappUrl = 'https://wa.me/918943764734?text=Hello%20Bestin%20Raju%2C%20I%20need%20help%20with%20the%20school%20registration%20payment.%20I%20will%20attach%20my%20payment%20screenshot%20here.';
+
     openModal(`
-      <div class="hptRegEyebrow">REGISTRATION PAYMENT</div>
-      <h2 id="hptRegistrationTitle">Pay ₹5,000</h2>
-      <p class="hptRegIntro">Follow these steps to complete your school registration payment and receive your four-digit access code.</p>
+      <div class="hptRegEyebrow">SCHOOL REGISTRATION PAYMENT</div>
+      <h2 id="hptRegistrationTitle">Activate your school code</h2>
+      <p class="hptRegIntro hptPaymentIntro">Scan and pay ₹5,000 to activate the school code. Enter ₹5,000 in your UPI app after scanning.</p>
 
-      <div class="hptPaymentStep"><span class="hptPaymentStepNumber">1</span><div><strong>CONTINUE TO GPAY</strong><small>Google Pay will open with the recipient, UPI ID and ₹5,000 amount pre-filled.</small></div></div>
-      <div class="hptGpayPayee"><span>PAY TO</span><strong>${esc(payeeName)}</strong><small>${esc(upiId)}</small></div>
-      <div class="hptFixedPaymentAmount">PAYMENT AMOUNT<strong>₹5,000.00</strong><span>Pre-filled in Google Pay</span></div>
-      <div class="hptGpayLimitHint"><strong>IMPORTANT — PAYMENT METHOD</strong><span>In Google Pay, choose your regular linked bank account for the ₹5,000 payment. Do not choose UPI Lite, which has a ₹1,000 per-transaction limit. If your bank declines ₹5,000 or asks for a smaller amount, the limit is set by your bank/account—not this website. Try another eligible linked bank account or contact your bank. Do not tap PAYMENT COMPLETED unless the payment succeeds.</span></div>
-      <button id="hptContinueGpay" class="hptRegPrimary hptGpayButton" type="button"><span class="hptGpayMark">G</span><span class="hptGpayLabel">CONTINUE TO GPAY</span><span class="hptGpayArrow">↗</span></button>
+      <div class="hptPaymentStep"><span class="hptPaymentStepNumber">1</span><div><strong>SCAN &amp; PAY</strong><small>Use Google Pay, PhonePe, Paytm or any UPI app to scan this QR code.</small></div></div>
+      <div class="hptRegistrationQrCard">
+        <img class="hptRegistrationQrImage" src="${qrImage}" alt="UPI payment QR code for Bestin Raju" width="1152" height="1600">
+        <div class="hptRegistrationQrDetails"><strong>${esc(payeeName)}</strong><span>UPI ID: ${esc(upiId)}</span></div>
+        <a class="hptQrDownloadButton" href="${qrImage}" download="HPT-School-Registration-QR.jpeg"><span aria-hidden="true">↓</span> DOWNLOAD QR CODE</a>
+      </div>
 
-      <div class="hptPaymentStep hptPaymentStepSecond"><span class="hptPaymentStepNumber">2</span><div><strong>PAYMENT COMPLETED</strong><small>After completing the payment in Google Pay, return to this page and tap the large button below.</small></div></div>
+      <div class="hptPaymentStep hptPaymentStepSecond"><span class="hptPaymentStepNumber">2</span><div><strong>CONFIRM YOUR PAYMENT</strong><small>After paying ₹5,000, tick the checkbox below to continue.</small></div></div>
+      <label class="hptPaymentConfirmChoice" for="hptPaymentConfirmedCheck">
+        <input id="hptPaymentConfirmedCheck" type="checkbox">
+        <span class="hptPaymentConfirmIcon" aria-hidden="true"><span>✓</span></span>
+        <span class="hptPaymentConfirmText"><strong>I HAVE COMPLETED THE ₹5,000 PAYMENT</strong><small>Tick only after your UPI app shows that the payment was successful.</small></span>
+      </label>
       <div id="hptRegistrationError" class="hptRegError" role="alert" hidden></div>
-      <button id="hptPaymentCompleted" class="hptPaymentCompletedButton" type="button" disabled><span class="hptPaymentCompletedIcon">✓</span><span class="hptPaymentCompletedLabel">PAYMENT COMPLETED</span><span class="hptPaymentCompletedArrow">→</span></button>
-      <p class="hptPaymentButtonHint" id="hptPaymentButtonHint">This button becomes active after you tap CONTINUE TO GPAY. Return here after paying.</p>
-      <a id="hptUnablePaymentWhatsApp" class="hptUnablePaymentWhatsApp" href="https://wa.me/918943764734?text=Hello%20Bestin%20Raju%2C%20I%20am%20unable%20to%20complete%20the%20%E2%82%B95000%20school%20registration%20payment.%20I%20will%20attach%20the%20payment%20error%20screenshot%20here.%20Please%20help%20me." target="_blank" rel="noopener noreferrer"><span class="hptWhatsAppIcon" aria-hidden="true">✆</span><span><strong>UNABLE TO MAKE PAYMENT?</strong><small>Click here to enquire on WhatsApp: 8943764734</small><small class="hptWhatsAppAttachHint">Please attach your GPay / UPI payment error screenshot in WhatsApp.</small></span><span class="hptWhatsAppArrow" aria-hidden="true">↗</span></a>
-      <p class="hptPaymentReminder">Your access code will be displayed after you tap PAYMENT COMPLETED. Your school will remain pending until the administrator manually verifies the payment and approves it.</p>`);
+      <button id="hptGetAccessCode" class="hptRegPrimary hptGetAccessBtn hptGetAccessCodeButton" type="button" disabled><span>GET ACCESS CODE</span><b aria-hidden="true">→</b></button>
+      <p class="hptPaymentReminder">Your access code will be displayed after confirmation. Payment is checked manually. School access activation can take up to 6 hours after registration.</p>
+      <a id="hptUnablePaymentWhatsApp" class="hptUnablePaymentWhatsApp" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer"><span class="hptWhatsAppIcon" aria-hidden="true">✆</span><span><strong>UNABLE TO MAKE PAYMENT?</strong><small>Click here to enquire on WhatsApp: 8943764734</small><small class="hptWhatsAppAttachHint">Please attach your UPI payment error screenshot in WhatsApp.</small></span><span class="hptWhatsAppArrow" aria-hidden="true">↗</span></a>`);
 
-    const completedButton = $('hptPaymentCompleted');
-    $('hptContinueGpay').addEventListener('click', () => {
-      // The button click is the required first step. Payment receipt is still verified manually by the administrator.
-      completedButton.disabled = false;
-      completedButton.classList.add('is-ready');
-      const buttonHint = $('hptPaymentButtonHint');
-      if (buttonHint) buttonHint.textContent = 'Once your payment is successful, return to this page and tap PAYMENT COMPLETED to display your access code.';
-      window.location.href = gpayIntent;
+    const paymentCheckbox = $('hptPaymentConfirmedCheck');
+    const accessCodeButton = $('hptGetAccessCode');
+    paymentCheckbox.addEventListener('change', () => {
+      accessCodeButton.disabled = !paymentCheckbox.checked;
+      accessCodeButton.classList.toggle('is-ready', paymentCheckbox.checked);
     });
 
-    completedButton.addEventListener('click', async () => {
-      completedButton.disabled = true;
-      completedButton.classList.add('is-submitting');
-      completedButton.innerHTML = '<span class="hptPaymentCompletedIcon">…</span><span class="hptPaymentCompletedLabel">SUBMITTING CONFIRMATION</span>';
+    accessCodeButton.addEventListener('click', async () => {
+      if (!paymentCheckbox.checked) return;
+      accessCodeButton.disabled = true;
+      accessCodeButton.classList.add('is-submitting');
+      accessCodeButton.innerHTML = '<span>SUBMITTING CONFIRMATION…</span>';
       try {
         const { data, error } = await getSupabase().rpc('confirm_hpt_school_payment', {
           p_school_id: registration.school_id
@@ -285,20 +286,20 @@
       } catch (error) {
         console.error('HPT payment confirmation failed:', error);
         showError(error?.message || 'Could not submit payment confirmation. Please try again.');
-        completedButton.disabled = false;
-        completedButton.classList.remove('is-submitting');
-        completedButton.classList.add('is-ready');
-        completedButton.innerHTML = '<span class="hptPaymentCompletedIcon">✓</span><span class="hptPaymentCompletedLabel">PAYMENT COMPLETED</span><span class="hptPaymentCompletedArrow">→</span>';
+        accessCodeButton.disabled = false;
+        accessCodeButton.classList.remove('is-submitting');
+        accessCodeButton.classList.add('is-ready');
+        accessCodeButton.innerHTML = '<span>GET ACCESS CODE</span><b aria-hidden="true">→</b>';
         return;
       }
       openModal(`
-        <div class="hptPaymentStep hptPaymentStepSuccess"><span class="hptPaymentStepNumber">3</span><div><strong>ACCESS CODE DISPLAYED</strong><small>Your four-digit school access code is shown below.</small></div></div>
+        <div class="hptPaymentStep hptPaymentStepSuccess"><span class="hptPaymentStepNumber">3</span><div><strong>YOUR SCHOOL ACCESS CODE</strong><small>Save this four-digit code for your driving school.</small></div></div>
         <div class="hptRegSuccessIcon" aria-hidden="true">✓</div>
         <div class="hptRegEyebrow">REGISTRATION SUBMITTED</div>
         <h2 id="hptRegistrationTitle">Your access code is ready</h2>
-        <p class="hptRegIntro">Keep this four-digit code safe. It will work only after your school is manually enabled by the administrator.</p>
+        <p class="hptRegIntro">Your four-digit school access code has been generated. Keep it safe.</p>
         <div class="hptIssuedCode">${esc(registration.access_code)}</div>
-        <div class="hptPendingNotice"><strong>STATUS: PENDING APPROVAL</strong><span>Payment will be checked manually before access is enabled.</span></div>
+        <div class="hptPendingNotice"><strong>ACTIVATION MAY TAKE UP TO 6 HOURS</strong><span>Your school access code can take up to 6 hours after registration to become active. Payment will be verified manually, and your school must be approved before students can log in.</span></div>
         <button id="hptRegistrationDone" class="hptRegPrimary" type="button">DONE</button>`);
       $('hptRegistrationDone').addEventListener('click', closeModal);
     });
