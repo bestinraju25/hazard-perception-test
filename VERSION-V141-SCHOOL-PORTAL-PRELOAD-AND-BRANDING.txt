@@ -1,0 +1,11 @@
+HPT V141 — SCHOOL HOMEPAGE PRELOAD & BRANDING
+
+Changes:
+- Removed the prominent Kerala guide link from the access-code hero. The dedicated SEO guide page remains available and discoverable through the lower page content and sitemap.
+- Increased school-logo size on the school welcome/loading screen and school homepage.
+- School logo, school home background and road-loader backgrounds are preloaded before the welcome overlay completes.
+- School leaderboard data is fetched during the welcome screen.
+- The school homepage is rendered behind the welcome overlay before it fades out, preventing a blank/unstyled frame or visible layout jump.
+- Restored school sessions also wait for homepage assets/data before revealing the portal.
+
+No database or Supabase migration is required.

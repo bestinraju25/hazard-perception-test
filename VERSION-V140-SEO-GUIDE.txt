@@ -1,0 +1,18 @@
+HPT WEBSITE V140 – KERALA HAZARD PERCEPTION TEST SEO GUIDE
+
+New public page:
+https://www.hazardperceptiontest.co.in/hazard-perception-test-kerala.html
+
+This release adds a dedicated, crawlable information page for driving schools and learners. It explains the meaning of hazard perception, developing hazards, Kerala-relevant hazard examples, the publicly reported announced examination format, how driving schools can prepare, FAQs and the independent status of this practice platform.
+
+Exam information is described as the announced/reported format as of 18 November 2026. The page states the reported 1 December 2026 rollout date and advises readers to follow the latest official Kerala MVD instructions. It does not claim this website is an official MVD portal.
+
+Technical SEO included:
+- Unique page title, meta description, canonical URL and social sharing metadata
+- Semantic headings, crawlable internal links and responsive page layout
+- WebPage, Article, BreadcrumbList and FAQPage structured data
+- Updated XML sitemap with the new guide URL
+- Homepage title/description refresh and direct internal links to the guide
+- Existing robots.txt access rules retained
+
+No Supabase, payment, registration, HPT exam, admin or Edge Function logic was changed.

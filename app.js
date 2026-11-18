@@ -503,6 +503,45 @@ async function loadTopScorers(){
     host.innerHTML='<div class="leaderboardEmpty">Leaderboard is temporarily unavailable. Please contact your school administrator if this continues.</div>';
   }
 }
+const hptSchoolHomepageImageCache=new Map();
+function preloadSchoolHomepageImage(source,timeoutMs=2600){
+  if(!source)return Promise.resolve(false);
+  let absoluteUrl;
+  try{absoluteUrl=new URL(source,document.baseURI).href}catch{return Promise.resolve(false)}
+  if(hptSchoolHomepageImageCache.has(absoluteUrl))return hptSchoolHomepageImageCache.get(absoluteUrl);
+  const task=new Promise(resolve=>{
+    const image=new Image();let settled=false;
+    const finish=ok=>{if(settled)return;settled=true;clearTimeout(timeout);if(!ok)hptSchoolHomepageImageCache.delete(absoluteUrl);resolve(!!ok)};
+    const timeout=setTimeout(()=>finish(image.complete&&image.naturalWidth>0),timeoutMs);
+    image.onload=()=>{if(typeof image.decode==='function')image.decode().catch(()=>{}).finally(()=>finish(true));else finish(true)};
+    image.onerror=()=>finish(false);
+    image.src=absoluteUrl;
+    if(image.complete)finish(image.naturalWidth>0);
+  });
+  hptSchoolHomepageImageCache.set(absoluteUrl,task);
+  return task;
+}
+function hptNextTwoPaints(){return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))}
+async function prepareSchoolHomepage(school){
+  const platformLogo='assets/hpt-brand-logo-v129.png';
+  const schoolLogo=school?.logo_url||platformLogo;
+  const imageTasks=[
+    preloadSchoolHomepageImage(schoolLogo),
+    preloadSchoolHomepageImage('home-background.jpg'),
+    preloadSchoolHomepageImage('assets/hpt-road-desktop.webp'),
+    preloadSchoolHomepageImage('assets/hpt-road-mobile.webp')
+  ];
+  if(schoolLogo!==platformLogo)imageTasks.push(preloadSchoolHomepageImage(platformLogo));
+  const leaderboardTask=loadTopScorers().catch(error=>{console.warn('School homepage leaderboard preload skipped:',error)});
+  const allReady=Promise.allSettled([...imageTasks,leaderboardTask]);
+  // Keep the welcome screen up while the school logo, homepage background and
+  // school leaderboard are prepared. A bounded wait prevents a slow connection
+  // from trapping the user on the loading screen.
+  await Promise.race([allReady,new Promise(resolve=>setTimeout(resolve,5200))]);
+  await hptNextTwoPaints();
+  return true;
+}
+
 function applySchoolBranding(s,persist=true){
   activeSchool=s||null;schoolAccessCode=s?.access_code||'';
   const b=schoolBrand(s);
@@ -528,7 +567,7 @@ function applySchoolBranding(s,persist=true){
   document.documentElement.style.setProperty('--yellow',brandColor);
   document.documentElement.style.setProperty('--panel',darkColor);document.documentElement.style.setProperty('--school-dark',darkColor);
   if(persist&&s){try{sessionStorage.setItem('hpt_school_session',JSON.stringify({...s,access_code:schoolAccessCode}))}catch{}}
-  if(s?.id){setTimeout(loadTopScorers,0)}
+  window.HPTSchoolHomepageReady=s?.id?prepareSchoolHomepage(s).catch(error=>{console.warn('School homepage preparation encountered an issue:',error);return false}):Promise.resolve(true);
   const change=$('changeSchoolBtn');if(change)change.hidden=true;
   const tools=$('homeTools');if(tools)tools.hidden=!b;
 }
@@ -588,12 +627,17 @@ async function enterSchool(){
     applySchoolBranding(school,true);
     codeInput.value='';
     setGateMessage('');
-    // Personalized cinematic welcome after the access code has been verified.
-    if(window.HPTExperience?.showSchoolWelcome){
-      try{await window.HPTExperience.showSchoolWelcome(school)}catch(welcomeError){console.warn('School welcome animation skipped:',welcomeError)}
-    }
+    // Render the real school homepage underneath the welcome loader first.
+    // That lets the browser complete layout, logo decoding, background loading
+    // and leaderboard hydration before the overlay fades away.
     show('schoolGate',false);show('startScreen',true);show('examScreen',false);show('resultScreen',false);
     safeText('candName','Candidate');safeText('candPhone','');
+    const schoolHomepageReady=window.HPTSchoolHomepageReady||Promise.resolve(true);
+    if(window.HPTExperience?.showSchoolWelcome){
+      try{await window.HPTExperience.showSchoolWelcome(school,schoolHomepageReady)}catch(welcomeError){console.warn('School welcome animation skipped:',welcomeError);await schoolHomepageReady.catch(()=>{})}
+    }else{
+      await Promise.race([schoolHomepageReady,new Promise(resolve=>setTimeout(resolve,5200))]);
+    }
     updateFullscreenButtons();
   }catch(e){
     try{if(document.fullscreenElement)await document.exitFullscreen()}catch{}
@@ -624,6 +668,8 @@ async function bootSchoolSession(){
       showSchoolDisabledPopup(payload.school_name||saved.school_name||'Driving School',payload.message||'This school’s access is temporarily disabled. Please contact your school administrator.');
     }else if(!error&&schoolData?.id&&String(schoolData.id)===String(saved.id)){
       applySchoolBranding({...schoolData,access_code:saved.access_code},true);
+      await (window.HPTSchoolHomepageReady||Promise.resolve(true)).catch(()=>{});
+      await hptNextTwoPaints();
       show('schoolGate',false);show('startScreen',true);
     }else{try{sessionStorage.removeItem('hpt_school_session')}catch{}}
   }catch(e){console.warn('Could not restore the school session',e)}

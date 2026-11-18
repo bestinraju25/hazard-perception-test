@@ -1,0 +1,56 @@
+HAZARD PERCEPTION TEST WEBSITE – SEO KEYWORD AND GROWTH PLAN
+Prepared: 18 November 2026
+
+PRIMARY TOPIC / SEARCH INTENT
+- Hazard Perception Test Kerala
+- Kerala Hazard Perception Test / Kerala MVD Hazard Perception Test
+- Hazard Perception Test exam format / video test / pass mark
+- What is a hazard / developing hazard / hazard perception meaning
+- Hazard Perception Test training Kerala
+
+DRIVING SCHOOL / BUSINESS SEARCH INTENT
+- Hazard Perception Test software for driving schools
+- Hazard perception training for driving schools in Kerala
+- HPT practice platform for motor driving schools
+- Computer-based hazard perception training for learner drivers
+- Driving school student hazard perception practice
+
+LEARNER / EXAM SEARCH INTENT
+- Kerala driving licence test 2026 / Kerala driving license test 2026
+- Learner's licence test Kerala / learners license Kerala
+- Driving test new rules Kerala / new driving test Kerala
+- HPT exam Kerala / HPT 100 marks / HPT 60 marks pass
+- Road hazard examples / how to identify road hazards
+
+LOCAL CONTENT OPPORTUNITIES (BUILD ONLY WITH UNIQUE, USEFUL CONTENT)
+- Hazard perception training for driving schools in Ernakulam, Thrissur, Kozhikode, Thiruvananthapuram, Kottayam, Palakkad and other districts
+- Kerala-specific hazard examples: monsoon roads, school zones, bus stops, two-wheelers, narrow roads, blind junctions, cattle and pedestrians
+- Driving-school computer setup checklist for HPT practice
+- Instructor guide: teaching developing hazards and reviewing learner responses
+- Learner guide: how to practise hazard perception before the official test
+- FAQ/update page that is refreshed when the MVD publishes new instructions
+
+KEYWORD STRATEGY
+Do not place a huge comma-separated keyword list or repeat the same phrases unnaturally. Google does not use the meta keywords tag, and keyword stuffing can violate Search spam policies. Use a small number of closely related phrases naturally in each page title, H1, headings, body text, image alt text and descriptive internal links.
+
+INTENT MISMATCH TO AVOID
+Broad phrases such as “best driving school”, “driving school near me”, “driving licence”, “Kerala MVD” or “learner's licence” can mean that a searcher wants a driving-school directory, local driving lessons, official government services or licence application services. This HPT platform should not claim to provide those services. Target those broad phrases only with genuinely useful, accurate content that matches the visitor's intent.
+
+NEXT CONTENT PAGES TO BUILD
+1. /kerala-hpt-exam-format.html – exact announced test sequence, 10 clips, timing, scoring, pass criteria, updates and sources.
+2. /road-hazards-kerala-driving.html – practical developing-hazard examples from Kerala road conditions.
+3. /hpt-training-for-driving-schools.html – instructor workflow, computer setup, student practice and school access.
+4. /hpt-practice-for-learner-drivers.html – preparation guide and common learner mistakes.
+5. District-specific pages only when they contain genuinely local guidance, real school information or local examples. Do not publish thin near-duplicate district pages.
+
+AFTER DEPLOYMENT
+1. Confirm the new URL loads over HTTPS and canonical points to the exact preferred URL.
+2. In Google Search Console, inspect the new page URL and request indexing. Submit https://www.hazardperceptiontest.co.in/sitemap.xml.
+3. Check Page indexing and HTTPS reports after Google recrawls.
+4. In Search Console Performance, monitor impressions, clicks, average position and queries for the guide and homepage. Use query data to improve content.
+5. Add analytics only with a valid property ID, then track school WhatsApp enquiries and school registrations as conversions.
+6. Ask genuine partner driving schools to link to this guide from their own websites and social profiles where relevant. Do not buy bulk backlinks.
+7. Review the MVD exam information when new circulars are issued; update the visible review date and sitemap lastmod.
+
+IMPORTANT
+SEO cannot guarantee first position or a fixed number of daily visitors. Ranking and traffic depend on competition, site reputation, relevant links, helpful updates, technical accessibility and search demand. Search Console data is needed to measure progress rather than guessing.

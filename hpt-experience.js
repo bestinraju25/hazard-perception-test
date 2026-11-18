@@ -111,7 +111,7 @@
     finishTimer = window.setTimeout(finishIntro, reducedMotion ? 1400 : 6200);
   }
 
-  function showSchoolWelcome(school) {
+  function showSchoolWelcome(school, homepageReady = Promise.resolve(true)) {
     return new Promise(resolve => {
       const overlay = $('hptSchoolWelcome');
       if (!overlay) { resolve(); return; }
@@ -121,46 +121,72 @@
       const progress = $('hptWelcomeProgressFill');
       const percent = $('hptWelcomePercent');
       const state = $('hptWelcomeState');
+      const loadingText = $('hptWelcomeLoadingText');
       if (title) title.textContent = String(school?.school_name || 'Your Driving School');
       if (place) place.textContent = String(school?.location || school?.state || '');
-      if (logo) {
-        const platformLogo = 'assets/hpt-brand-logo-v129.png';
+      if (progress) progress.style.width = '0%';
+      if (percent) percent.textContent = '0';
+      if (state) state.textContent = 'ACCESS VERIFIED';
+      if (loadingText) loadingText.textContent = 'Preparing your school homepage…';
+      overlay.hidden = false;
+      overlay.classList.remove('is-leaving');
+
+      const platformLogo = 'assets/hpt-brand-logo-v129.png';
+      const preferredLogo = String(school?.logo_url || platformLogo);
+      const logoReady = new Promise(done => {
+        if (!logo) { done(true); return; }
+        let settled = false;
+        const finish = () => { if (settled) return; settled = true; clearTimeout(logoTimeout); done(true); };
+        const logoTimeout = window.setTimeout(finish, 2600);
         logo.hidden = false;
-        logo.onload = () => { logo.hidden = false; };
+        logo.onload = () => {
+          const decoded = typeof logo.decode === 'function' ? logo.decode().catch(() => {}) : Promise.resolve();
+          decoded.finally(finish);
+        };
         logo.onerror = () => {
           if (logo.dataset.platformFallback !== '1') {
             logo.dataset.platformFallback = '1';
             logo.src = platformLogo;
           } else {
             logo.hidden = true;
+            finish();
           }
         };
-        logo.dataset.platformFallback = school?.logo_url ? '0' : '1';
-        logo.src = String(school?.logo_url || platformLogo);
-      }
-      if (progress) progress.style.width = '0%';
-      if (percent) percent.textContent = '0';
-      if (state) state.textContent = 'ACCESS VERIFIED';
-      overlay.hidden = false;
-      overlay.classList.remove('is-leaving');
-      const duration = reducedMotion ? 500 : 1550;
+        logo.dataset.platformFallback = preferredLogo === platformLogo ? '1' : '0';
+        logo.src = preferredLogo;
+        if (logo.complete && logo.naturalWidth > 0) finish();
+      });
+
+      const duration = reducedMotion ? 450 : 1650;
       const begin = performance.now();
       const animate = now => {
-        const value = Math.min(100, Math.round(((now - begin) / duration) * 100));
+        const value = Math.min(92, Math.round(((now - begin) / duration) * 92));
         if (progress) progress.style.width = `${value}%`;
         if (percent) percent.textContent = String(value);
-        if (value < 100) welcomeFrame = requestAnimationFrame(animate);
+        if (value < 92) welcomeFrame = requestAnimationFrame(animate);
       };
       welcomeFrame = requestAnimationFrame(animate);
-      window.setTimeout(() => {
-        overlay.classList.add('is-leaving');
+
+      const minimumDisplay = new Promise(done => window.setTimeout(done, duration));
+      const boundedHomepageReady = Promise.race([
+        Promise.resolve(homepageReady).catch(error => { console.warn('School homepage preload completed with a warning:', error); }),
+        new Promise(done => window.setTimeout(done, 5200))
+      ]);
+      Promise.all([minimumDisplay, boundedHomepageReady, logoReady]).then(() => {
+        if (progress) progress.style.width = '100%';
+        if (percent) percent.textContent = '100';
+        if (loadingText) loadingText.textContent = 'Your school portal is ready';
+        if (welcomeFrame) cancelAnimationFrame(welcomeFrame);
         window.setTimeout(() => {
-          overlay.hidden = true;
-          overlay.classList.remove('is-leaving');
-          if (welcomeFrame) cancelAnimationFrame(welcomeFrame);
-          resolve();
-        }, reducedMotion ? 0 : 380);
-      }, duration + 100);
+          overlay.classList.add('is-leaving');
+          window.setTimeout(() => {
+            overlay.hidden = true;
+            overlay.classList.remove('is-leaving');
+            if (welcomeFrame) cancelAnimationFrame(welcomeFrame);
+            resolve();
+          }, reducedMotion ? 0 : 380);
+        }, reducedMotion ? 100 : 180);
+      });
     });
   }
 

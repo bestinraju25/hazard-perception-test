@@ -803,3 +803,42 @@ body.school-selected .topScorersCard{border-radius:20px !important}
 @media(prefers-reduced-motion:reduce){
   #hptIntroRoot .hpt-podium-card,#hptIntroRoot .hpt-podium-loading i{animation:none!important}
 }
+
+
+/* V141 — stronger school identity and a fully prepared hand-off from loader to portal. */
+#hptSchoolWelcome .hpt-welcome-logo{
+  width:clamp(108px,12vw,132px)!important;
+  height:clamp(108px,12vw,132px)!important;
+  max-width:42vw!important;
+  padding:7px!important;
+  border-radius:18px!important;
+  object-fit:contain!important;
+  background:rgba(255,255,255,.10)!important;
+  border:1px solid rgba(255,255,255,.34)!important;
+  box-shadow:0 12px 32px rgba(0,0,0,.25)!important;
+}
+body.home-active .topbar .logo{
+  width:132px!important;
+  height:78px!important;
+  flex:0 0 132px!important;
+  object-fit:contain!important;
+}
+@media(max-height:760px) and (min-width:901px){
+  body.home-active .topbar .logo{width:124px!important;height:70px!important;flex-basis:124px!important}
+}
+@media(max-width:900px){
+  body.home-active .topbar .logo{width:132px!important;height:84px!important;flex-basis:84px!important}
+}
+@media(max-width:700px){
+  body.home-active .topbar .logo{width:138px!important;height:78px!important;flex-basis:78px!important}
+  body.home-active .mobileSchoolBrand img{
+    width:clamp(148px,39vw,166px)!important;
+    height:clamp(92px,24vw,108px)!important;
+    max-width:166px!important;
+    object-fit:contain!important;
+  }
+}
+@media(max-width:380px){
+  body.home-active .topbar .logo{width:132px!important;height:74px!important;flex-basis:74px!important}
+  body.home-active .mobileSchoolBrand img{width:146px!important;height:92px!important}
+}
