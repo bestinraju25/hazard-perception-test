@@ -241,7 +241,8 @@
     const amount = '5000.00';
     const transactionNote = `Hazard Perception Test School Registration - ${registration.school_name || 'Driving School'}`;
     const upiParams = new URLSearchParams({ pa: upiId, pn: payeeName, am: amount, cu: 'INR', tn: transactionNote });
-    const gpayIntent = `intent://pay?${upiParams.toString()}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+    const encodedUpiParams = upiParams.toString().replace(/\+/g, '%20');
+    const gpayIntent = `intent://pay?${encodedUpiParams}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
     openModal(`
       <div class="hptRegEyebrow">REGISTRATION PAYMENT</div>
       <h2 id="hptRegistrationTitle">Pay ₹5,000</h2>
@@ -250,13 +251,14 @@
       <div class="hptPaymentStep"><span class="hptPaymentStepNumber">1</span><div><strong>CONTINUE TO GPAY</strong><small>Google Pay will open with the recipient, UPI ID and ₹5,000 amount pre-filled.</small></div></div>
       <div class="hptGpayPayee"><span>PAY TO</span><strong>${esc(payeeName)}</strong><small>${esc(upiId)}</small></div>
       <div class="hptFixedPaymentAmount">PAYMENT AMOUNT<strong>₹5,000.00</strong><span>Pre-filled in Google Pay</span></div>
-      <div class="hptGpayLimitHint"><strong>IMPORTANT — PAYMENT METHOD</strong><span>In Google Pay, choose your regular linked bank account for the ₹5,000 payment. Do not choose UPI Lite, which has a ₹1,000 per-transaction limit. If Google Pay still asks for a smaller amount, your bank or new-account UPI limit may apply.</span></div>
+      <div class="hptGpayLimitHint"><strong>IMPORTANT — PAYMENT METHOD</strong><span>In Google Pay, choose your regular linked bank account for the ₹5,000 payment. Do not choose UPI Lite, which has a ₹1,000 per-transaction limit. If your bank declines ₹5,000 or asks for a smaller amount, the limit is set by your bank/account—not this website. Try another eligible linked bank account or contact your bank. Do not tap PAYMENT COMPLETED unless the payment succeeds.</span></div>
       <button id="hptContinueGpay" class="hptRegPrimary hptGpayButton" type="button"><span class="hptGpayMark">G</span><span class="hptGpayLabel">CONTINUE TO GPAY</span><span class="hptGpayArrow">↗</span></button>
 
       <div class="hptPaymentStep hptPaymentStepSecond"><span class="hptPaymentStepNumber">2</span><div><strong>PAYMENT COMPLETED</strong><small>After completing the payment in Google Pay, return to this page and tap the large button below.</small></div></div>
       <div id="hptRegistrationError" class="hptRegError" role="alert" hidden></div>
       <button id="hptPaymentCompleted" class="hptPaymentCompletedButton" type="button" disabled><span class="hptPaymentCompletedIcon">✓</span><span class="hptPaymentCompletedLabel">PAYMENT COMPLETED</span><span class="hptPaymentCompletedArrow">→</span></button>
       <p class="hptPaymentButtonHint" id="hptPaymentButtonHint">This button becomes active after you tap CONTINUE TO GPAY. Return here after paying.</p>
+      <a id="hptUnablePaymentWhatsApp" class="hptUnablePaymentWhatsApp" href="https://wa.me/918943763734?text=Hello%20Bestin%20Raju%2C%20I%20am%20unable%20to%20complete%20the%20%E2%82%B95000%20school%20registration%20payment.%20I%20will%20attach%20the%20payment%20error%20screenshot%20here.%20Please%20help%20me." target="_blank" rel="noopener noreferrer"><span class="hptWhatsAppIcon" aria-hidden="true">✆</span><span><strong>UNABLE TO MAKE PAYMENT?</strong><small>Click here to enquire on WhatsApp: 8943764734</small><small class="hptWhatsAppAttachHint">Please attach your GPay / UPI payment error screenshot in WhatsApp.</small></span><span class="hptWhatsAppArrow" aria-hidden="true">↗</span></a>
       <p class="hptPaymentReminder">Your access code will be displayed after you tap PAYMENT COMPLETED. Your school will remain pending until the administrator manually verifies the payment and approves it.</p>`);
 
     const completedButton = $('hptPaymentCompleted');
