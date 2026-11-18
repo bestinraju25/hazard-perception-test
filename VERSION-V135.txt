@@ -1,0 +1,2 @@
+HPT V135 - Google Pay payment flow
+Built on V134. Registration payment UI now opens Google Pay with INR 5,000 prefilled to bestinraju25-2@oksbi (Bestin Raju). Customer completion still calls the existing confirmation RPC; admin manual payment verification and approval remain mandatory.

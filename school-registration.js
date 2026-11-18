@@ -236,16 +236,28 @@
   }
 
   function paymentScreen(registration) {
+    const payeeName = 'Bestin Raju';
+    const upiId = 'bestinraju25-2@oksbi';
+    const amount = '5000.00';
+    const transactionNote = `Hazard Perception Test School Registration - ${registration.school_name || 'Driving School'}`;
+    const upiParams = new URLSearchParams({ pa: upiId, pn: payeeName, am: amount, cu: 'INR', tn: transactionNote });
+    const gpayIntent = `intent://pay?${upiParams.toString()}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
     openModal(`
       <div class="hptRegEyebrow">REGISTRATION PAYMENT</div>
       <h2 id="hptRegistrationTitle">Pay ₹5,000</h2>
-      <p class="hptRegIntro">Scan the QR code using Google Pay, PhonePe, Paytm or any UPI app.</p>
-      <img class="hptPaymentQr" src="assets/gpay-payment-qr.png" alt="UPI QR code with ₹5,000 prefilled for payment to bestinraju25-2@oksbi">
-      <div class="hptUpiId">UPI ID: <strong>bestinraju25-2@oksbi</strong></div>
-      <div class="hptFixedPaymentAmount">PAYMENT AMOUNT: <strong>₹5,000.00</strong> <span>Pre-filled in the QR code</span></div>
-      <p class="hptPaymentReminder">After completing the payment, press the button below. Your registration will remain pending until the administrator checks the payment and enables the school.</p>
+      <p class="hptRegIntro">Continue to Google Pay. The recipient and ₹5,000 amount will be pre-filled for you.</p>
+      <div class="hptGpayPayee"><span>PAY TO</span><strong>${esc(payeeName)}</strong><small>${esc(upiId)}</small></div>
+      <div class="hptFixedPaymentAmount">PAYMENT AMOUNT: <strong>₹5,000.00</strong> <span>Pre-filled in Google Pay</span></div>
+      <button id="hptContinueGpay" class="hptRegPrimary hptGpayButton" type="button"><span class="hptGpayMark">G</span> CONTINUE TO GPAY <span>↗</span></button>
+      <p class="hptPaymentReminder">Complete the payment in Google Pay. Then return to this page and tap PAYMENT COMPLETED. Your access code will be shown, but the school remains pending until the administrator manually verifies the payment and approves it.</p>
       <div id="hptRegistrationError" class="hptRegError" role="alert" hidden></div>
-      <button id="hptPaymentCompleted" class="hptRegPrimary" type="button">PAYMENT COMPLETED <span>✓</span></button>`);
+      <button id="hptPaymentCompleted" class="hptRegSecondary" type="button">PAYMENT COMPLETED <span>✓</span></button>`);
+
+    $('hptContinueGpay').addEventListener('click', () => {
+      // Android opens the Google Pay app with payee, amount and note prefilled.
+      // On devices without GPay, the UPI handler may offer another installed UPI app.
+      window.location.href = gpayIntent;
+    });
 
     $('hptPaymentCompleted').addEventListener('click', async () => {
       const completedButton = $('hptPaymentCompleted');
