@@ -7,8 +7,8 @@
   const $=id=>document.getElementById(id);
   const el=$('schoolsPanel');
   if(!el)return;
-  let schools=[],previewUrl=null,refreshing=false;
-  const DEFAULT_DISABLED_MESSAGE='This driving school’s access is temporarily disabled. Please contact your school administrator for assistance.';
+  let schools=[],previewUrl=null,refreshing=false,schoolView='pending';
+  const DEFAULT_DISABLED_MESSAGE='This driving school’s access is temporarily disabled. For any queries, please contact Bestin Raju on 8943764734.';
   const DEFAULT_LOGO='assets/hpt-brand-logo-v129.png';
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function msg(text,kind='good'){$('schoolFormMsg').textContent=text;$('schoolFormMsg').className='message '+(kind==='bad'?'schoolMsgError':'schoolMsgGood')}
@@ -28,8 +28,18 @@
     $('schoolLogoFile').value='';clearPreview();setPreview(DEFAULT_LOGO,'Default HPT platform logo (optional school logo)');msg('Add the school details. A custom school logo is optional; the HPT logo is used if none is uploaded.');
   }
   function render(){
-    $('schoolCount').textContent=String(schools.length);
-    $('schoolList').innerHTML=schools.map(s=>`<article class="schoolItem">
+    const pendingSchools=schools.filter(s=>s.registration_status==='pending_approval');
+    const visibleSchools=schoolView==='pending'?pendingSchools:schools;
+    $('schoolWaitingCount').textContent=String(pendingSchools.length);
+    $('schoolAllCount').textContent=String(schools.length);
+    $('schoolCount').textContent=String(visibleSchools.length);
+    $('schoolWaitingTab').classList.toggle('active',schoolView==='pending');
+    $('schoolAllTab').classList.toggle('active',schoolView==='all');
+    $('schoolWaitingTab').setAttribute('aria-selected',schoolView==='pending'?'true':'false');
+    $('schoolAllTab').setAttribute('aria-selected',schoolView==='all'?'true':'false');
+    $('schoolRegistryTitle').textContent=schoolView==='pending'?'Waiting for Approval':'All Registered Schools';
+    $('schoolRegistryDescription').textContent=schoolView==='pending'?'New registrations appear here. Verify payment before selecting APPROVE & ENABLE.':'All approved, pending and disabled driving schools.';
+    $('schoolList').innerHTML=visibleSchools.map(s=>`<article class="schoolItem">
       <div class="schoolItemLogo"><img src="${esc(s.logo_url||DEFAULT_LOGO)}" alt="${esc(s.school_name||'Driving school')} logo" onerror="this.src='assets/hpt-brand-logo-v129.png'"></div>
       <div class="schoolItemInfo"><h4>${esc(s.school_name)} <span class="schoolStatus ${s.active?'on':'off'}">● ${s.active?'ACTIVE':'DISABLED'}</span></h4>
       <p>${esc(s.state||'Kerala')} · ${esc(s.location||'Location not set')} · ${esc(s.contact_number||'No contact')}</p>
@@ -39,7 +49,7 @@
       <p>ACCESS CODE <span class="schoolCodeChip">${esc(s.access_code)}</span></p>
       ${!s.active?`<div class="schoolDisabledMessagePreview"><b>MESSAGE SHOWN TO USERS</b><span>${esc(s.disabled_message||DEFAULT_DISABLED_MESSAGE)}</span></div>`:''}</div>
       <div class="schoolItemActions"><button type="button" class="small" data-school-results="${esc(s.id)}">VIEW STUDENTS</button><button type="button" class="small" data-school-edit="${esc(s.id)}">EDIT</button><button type="button" class="small ${s.active?'danger-outline':''}" data-school-toggle="${esc(s.id)}">${s.active?'DISABLE':(s.registration_status==='pending_approval'?'APPROVE & ENABLE':'ENABLE')}</button><button type="button" class="small danger-outline delete-school-btn" data-school-delete="${esc(s.id)}">DELETE SCHOOL</button></div>
-    </article>`).join('')||'<div class="empty">No schools registered yet. Add the first school using the form.</div>';
+    </article>`).join('')||(schoolView==='pending'?'<div class="empty schoolPendingEmpty"><strong>All caught up!</strong><span>There are no new schools waiting for approval right now.</span></div>':'<div class="empty">No schools registered yet. Add the first school using the form.</div>');
     document.querySelectorAll('[data-school-edit]').forEach(b=>b.onclick=()=>editSchool(b.dataset.schoolEdit));
     document.querySelectorAll('[data-school-results]').forEach(b=>b.onclick=()=>window.dispatchEvent(new CustomEvent('hpt:filter-school',{detail:{schoolId:b.dataset.schoolResults}})));
     document.querySelectorAll('[data-school-toggle]').forEach(b=>b.onclick=()=>toggleSchool(b.dataset.schoolToggle));
@@ -159,10 +169,15 @@ Approving will enable the access code.`
       window.dispatchEvent(new CustomEvent('hpt:school-deleted',{detail:{schoolId:school.id}}));
     }catch(error){adminNotice(error.message||'Could not delete school. Run migration 21 first.',true)}
   }
+  $('schoolWaitingTab').onclick=()=>{schoolView='pending';render()};
+  $('schoolAllTab').onclick=()=>{schoolView='all';render()};
   $('schoolForm').addEventListener('submit',save);
   $('cancelSchoolEdit').onclick=resetForm;
   $('refreshSchools').onclick=refresh;
   $('schoolLogoFile').onchange=()=>{const f=$('schoolLogoFile').files?.[0];clearPreview();if(!f){const id=$('schoolEditId').value;const s=schools.find(x=>x.id===id);setPreview(s?.logo_url||DEFAULT_LOGO,s?.logo_url?'Current school logo':'Default HPT platform logo');return}previewUrl=URL.createObjectURL(f);setPreview(previewUrl,f.name)};
   window.HPTSchoolManager={refresh};
   (async()=>{if(await isAdmin())await refresh()})();
+  // Keep the approval queue/count current while the provider is viewing Driving Schools.
+  window.setInterval(()=>{if(!document.hidden&&!el.hidden)refresh()},30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!el.hidden)refresh()});
 })();

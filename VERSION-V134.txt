@@ -1,0 +1,2 @@
+HPT V134 — Waiting for Approval queue, per-device provider-admin Web Push alerts, and provider contact details in the default disabled-school message.
+Based on V133. No exam scoring, R2 video storage, existing school approval checks, or candidate records were changed.

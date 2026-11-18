@@ -217,6 +217,10 @@
       if (!result?.school_id || !/^\d{4}$/.test(String(result.access_code || ''))) {
         throw new Error('Registration could not be completed. Please try again.');
       }
+      // Fire-and-forget: a notification failure must never interrupt a successful registration.
+      getSupabase().functions.invoke('hpt-registration-notify', { body: { school_id: result.school_id } })
+        .then(({ error: notifyError }) => { if (notifyError) console.warn('HPT admin push notification was not sent:', notifyError); })
+        .catch(notifyError => console.warn('HPT admin push notification was not sent:', notifyError));
       paymentScreen(result);
     } catch (error) {
       if (uploadedLogoPath) {

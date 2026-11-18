@@ -1448,3 +1448,20 @@ body.video-editor-open{overflow:hidden}
 .schoolDisabledMessagePreview{display:grid;gap:5px;margin-top:9px;padding:9px 10px;border:1px solid rgba(255,196,0,.22);border-radius:9px;background:rgba(255,196,0,.055)}
 .schoolDisabledMessagePreview b{font-size:8px;letter-spacing:.12em;color:#d9ad3e}
 .schoolDisabledMessagePreview span{font-size:11px;line-height:1.4;color:#c9d5dc;white-space:pre-wrap;overflow-wrap:anywhere}
+
+
+/* V134 — focused approval queue and mobile push controls */
+.schoolManagerHeadActions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;max-width:430px}
+.schoolManagerHeadActions .btn{white-space:nowrap}
+.hptAdminPushStatus{flex-basis:100%;text-align:right;color:#91a8b7;font-size:10px;line-height:1.4}
+.hptAdminPushStatus.isOn{color:#75e6a4}
+.hptAdminPushStatus.isError{color:#ff9aa6}
+.schoolRegistryTabs{display:flex;gap:8px;margin:0 0 13px;border-bottom:1px solid #294455;padding-bottom:10px}
+.schoolRegistryTab{display:flex;align-items:center;gap:8px;justify-content:center;min-height:40px;padding:8px 12px;border:1px solid #314c5e;border-radius:9px;background:#0a1a27;color:#a7bbc8;font-size:10px;font-weight:950;letter-spacing:.045em;cursor:pointer}
+.schoolRegistryTab b{display:grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:20px;background:#213748;color:#dce8ef;font-size:10px}
+.schoolRegistryTab.active{border-color:#d9aa2e;background:linear-gradient(135deg,#4b3912,#1d241f);color:#ffdc78;box-shadow:0 0 0 2px #ffc40010}
+.schoolRegistryTab.active b{background:#f0bd36;color:#1e1a0d}
+.schoolPendingEmpty{display:grid;gap:5px;text-align:center;padding:28px 16px!important;color:#a8bac5}
+.schoolPendingEmpty strong{color:#82e5a6;font-size:14px}
+.schoolPendingEmpty span{font-size:11px}
+@media(max-width:700px){.schoolManagerHeadActions{width:100%;max-width:none;justify-content:stretch}.schoolManagerHeadActions .btn{flex:1;font-size:10px;padding:10px 9px}.hptAdminPushStatus{text-align:left}.schoolRegistryTabs{display:grid;grid-template-columns:1fr 1fr}.schoolRegistryTab{padding:8px 6px;font-size:9px;letter-spacing:0}}
