@@ -1,0 +1,12 @@
+HPT V137 — Payment action button clarity and UPI limit guidance
+
+Changes:
+- Replaced the low-contrast secondary PAYMENT COMPLETED control with a large, high-contrast button that clearly looks actionable.
+- Kept it disabled until the user has tapped CONTINUE TO GPAY; the disabled state remains visibly button-shaped and explains how to unlock it.
+- After returning from GPay, the button changes to a bright green active state.
+- Added clear guidance to select the regular linked bank account, not UPI Lite, for the ₹5,000 payment.
+- Added a note that a bank or new-account UPI limit can still prevent a ₹5,000 transfer.
+- Bumped the CSS and JavaScript query versions to v=137 to avoid stale cached files.
+- Preserved the existing manual admin payment verification and four-digit access-code submission flow.
+
+No database migration or Supabase Edge Function change is required.

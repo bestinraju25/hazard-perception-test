@@ -250,23 +250,29 @@
       <div class="hptPaymentStep"><span class="hptPaymentStepNumber">1</span><div><strong>CONTINUE TO GPAY</strong><small>Google Pay will open with the recipient, UPI ID and ₹5,000 amount pre-filled.</small></div></div>
       <div class="hptGpayPayee"><span>PAY TO</span><strong>${esc(payeeName)}</strong><small>${esc(upiId)}</small></div>
       <div class="hptFixedPaymentAmount">PAYMENT AMOUNT<strong>₹5,000.00</strong><span>Pre-filled in Google Pay</span></div>
+      <div class="hptGpayLimitHint"><strong>IMPORTANT — PAYMENT METHOD</strong><span>In Google Pay, choose your regular linked bank account for the ₹5,000 payment. Do not choose UPI Lite, which has a ₹1,000 per-transaction limit. If Google Pay still asks for a smaller amount, your bank or new-account UPI limit may apply.</span></div>
       <button id="hptContinueGpay" class="hptRegPrimary hptGpayButton" type="button"><span class="hptGpayMark">G</span><span class="hptGpayLabel">CONTINUE TO GPAY</span><span class="hptGpayArrow">↗</span></button>
 
-      <div class="hptPaymentStep hptPaymentStepSecond"><span class="hptPaymentStepNumber">2</span><div><strong>PAYMENT COMPLETED</strong><small>After completing the payment in Google Pay, return to this page and tap the button below.</small></div></div>
+      <div class="hptPaymentStep hptPaymentStepSecond"><span class="hptPaymentStepNumber">2</span><div><strong>PAYMENT COMPLETED</strong><small>After completing the payment in Google Pay, return to this page and tap the large button below.</small></div></div>
       <div id="hptRegistrationError" class="hptRegError" role="alert" hidden></div>
-      <button id="hptPaymentCompleted" class="hptRegSecondary" type="button" disabled>PAYMENT COMPLETED <span>✓</span></button>
+      <button id="hptPaymentCompleted" class="hptPaymentCompletedButton" type="button" disabled><span class="hptPaymentCompletedIcon">✓</span><span class="hptPaymentCompletedLabel">PAYMENT COMPLETED</span><span class="hptPaymentCompletedArrow">→</span></button>
+      <p class="hptPaymentButtonHint" id="hptPaymentButtonHint">This button becomes active after you tap CONTINUE TO GPAY. Return here after paying.</p>
       <p class="hptPaymentReminder">Your access code will be displayed after you tap PAYMENT COMPLETED. Your school will remain pending until the administrator manually verifies the payment and approves it.</p>`);
 
     const completedButton = $('hptPaymentCompleted');
     $('hptContinueGpay').addEventListener('click', () => {
       // The button click is the required first step. Payment receipt is still verified manually by the administrator.
       completedButton.disabled = false;
+      completedButton.classList.add('is-ready');
+      const buttonHint = $('hptPaymentButtonHint');
+      if (buttonHint) buttonHint.textContent = 'Once your payment is successful, return to this page and tap PAYMENT COMPLETED to display your access code.';
       window.location.href = gpayIntent;
     });
 
     completedButton.addEventListener('click', async () => {
       completedButton.disabled = true;
-      completedButton.textContent = 'SUBMITTING CONFIRMATION…';
+      completedButton.classList.add('is-submitting');
+      completedButton.innerHTML = '<span class="hptPaymentCompletedIcon">…</span><span class="hptPaymentCompletedLabel">SUBMITTING CONFIRMATION</span>';
       try {
         const { data, error } = await getSupabase().rpc('confirm_hpt_school_payment', {
           p_school_id: registration.school_id
@@ -278,7 +284,9 @@
         console.error('HPT payment confirmation failed:', error);
         showError(error?.message || 'Could not submit payment confirmation. Please try again.');
         completedButton.disabled = false;
-        completedButton.innerHTML = 'PAYMENT COMPLETED <span>✓</span>';
+        completedButton.classList.remove('is-submitting');
+        completedButton.classList.add('is-ready');
+        completedButton.innerHTML = '<span class="hptPaymentCompletedIcon">✓</span><span class="hptPaymentCompletedLabel">PAYMENT COMPLETED</span><span class="hptPaymentCompletedArrow">→</span>';
         return;
       }
       openModal(`

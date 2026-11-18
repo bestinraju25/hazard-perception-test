@@ -90,3 +90,20 @@
 .hptGpayButton .hptGpayLabel{margin-left:0;flex:1;text-align:center}
 .hptGpayButton .hptGpayArrow{margin-left:0}
 .hptRegSecondary:disabled{opacity:.48;cursor:not-allowed}
+
+
+/* V137 — make PAYMENT COMPLETED unmistakably interactive, including before it unlocks. */
+.hptGpayLimitHint{display:grid;gap:6px;margin:12px 0 8px;padding:12px 14px;border:1px solid rgba(246,196,93,.38);border-left:4px solid #f1bd4c;border-radius:11px;background:rgba(125,83,12,.16);color:#f8e7bd;text-align:left}
+.hptGpayLimitHint strong{font-size:10px;font-weight:950;letter-spacing:.09em;color:#ffd77f}
+.hptGpayLimitHint span{font-size:11px;line-height:1.55;color:#e4d6b8}
+.hptPaymentCompletedButton{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:66px;margin:15px 0 0;padding:15px 18px;border:2px solid #45d59a;border-radius:14px;background:linear-gradient(105deg,#159a68,#08764f);color:#fff;font-size:14px;font-weight:950;letter-spacing:.055em;box-shadow:0 6px 0 #04553a,0 14px 28px rgba(0,0,0,.25);cursor:pointer;transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+.hptPaymentCompletedButton .hptPaymentCompletedIcon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border:2px solid rgba(255,255,255,.85);border-radius:50%;font-size:18px;font-weight:950;line-height:1}
+.hptPaymentCompletedButton .hptPaymentCompletedLabel{flex:1;text-align:center}
+.hptPaymentCompletedButton .hptPaymentCompletedArrow{font-size:24px;line-height:1}
+.hptPaymentCompletedButton:disabled{opacity:1;cursor:not-allowed;border-color:#9bb5c5;background:linear-gradient(105deg,#496475,#324b5b);color:#fff;box-shadow:0 6px 0 #213643,0 12px 24px rgba(0,0,0,.2);filter:none}
+.hptPaymentCompletedButton.is-ready{border-color:#8af0bf;background:linear-gradient(105deg,#17b977,#078450);box-shadow:0 6px 0 #045638,0 16px 30px rgba(7,142,89,.3)}
+.hptPaymentCompletedButton:not(:disabled):hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 7px 0 #045638,0 18px 32px rgba(7,142,89,.34)}
+.hptPaymentCompletedButton:active:not(:disabled){transform:translateY(3px);box-shadow:0 3px 0 #045638,0 8px 16px rgba(7,142,89,.24)}
+.hptPaymentCompletedButton.is-submitting{cursor:wait;filter:saturate(.7)}
+.hptPaymentButtonHint{margin:12px 2px 0;color:#b7c9d3;text-align:center;font-size:11px;line-height:1.5}
+@media(max-width:420px){.hptPaymentCompletedButton{min-height:64px;padding:14px 12px;font-size:12px;gap:9px}.hptPaymentCompletedButton .hptPaymentCompletedLabel{letter-spacing:.025em}.hptGpayLimitHint span{font-size:10.5px}}
