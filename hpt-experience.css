@@ -938,3 +938,26 @@ body.home-active .topbar .logo{
 @keyframes hpt-v145-title-in{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
 @keyframes hpt-v145-swoosh-in{from{opacity:0;transform:translateX(-20px) rotate(-2.7deg) skewX(-18deg)}to{opacity:1;transform:translateX(0) rotate(-2.7deg) skewX(-18deg)}}
 @media(prefers-reduced-motion:reduce){#hptSchoolWelcome *{animation:none!important;transition:none!important}}
+
+
+/* V147 — use each school's logo image exactly as uploaded; remove the extra white badge/frame. */
+#hptSchoolWelcome .hpt-welcome-logo-frame{
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+#hptSchoolWelcome .hpt-welcome-logo,
+#hptSchoolWelcome .hpt-welcome-logo[hidden]{
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  object-fit:contain!important;
+}
+@media(max-width:760px){
+  #hptSchoolWelcome .hpt-welcome-logo-frame{border:0!important;background:transparent!important;box-shadow:none!important}
+  #hptSchoolWelcome .hpt-welcome-logo{padding:0!important;border-radius:0!important;background:transparent!important}
+}

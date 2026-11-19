@@ -1,0 +1,5 @@
+HPT V147 — SCHOOL LOGO WITHOUT EXTRA WHITE BACKING
+
+The school welcome splash no longer adds a white circular frame, white background, border, shadow, image padding, or circular clipping around school logos. The selected school logo image is displayed as uploaded, preserving its own artwork and transparency.
+
+The V146 minimum 6.5-second welcome duration and all existing V146 features are retained.
