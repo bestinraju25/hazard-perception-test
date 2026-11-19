@@ -111,37 +111,66 @@
     finishTimer = window.setTimeout(finishIntro, reducedMotion ? 1400 : 6200);
   }
 
+  function waitForImage(src, timeout = 3200) {
+    return new Promise(resolve => {
+      const image = new Image();
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(true);
+      };
+      const timer = window.setTimeout(finish, timeout);
+      image.onload = () => {
+        const decoded = typeof image.decode === 'function' ? image.decode().catch(() => {}) : Promise.resolve();
+        decoded.finally(finish);
+      };
+      image.onerror = finish;
+      image.src = src;
+      if (image.complete && image.naturalWidth > 0) finish();
+    });
+  }
+
   function showSchoolWelcome(school, homepageReady = Promise.resolve(true)) {
     return new Promise(resolve => {
       const overlay = $('hptSchoolWelcome');
       if (!overlay) { resolve(); return; }
-      const title = $('hptWelcomeSchoolName');
-      const place = $('hptWelcomeSchoolLocation');
-      const logo = $('hptWelcomeSchoolLogo');
-      const progress = $('hptWelcomeProgressFill');
-      const percent = $('hptWelcomePercent');
-      const state = $('hptWelcomeState');
-      const loadingText = $('hptWelcomeLoadingText');
-      if (title) title.textContent = String(school?.school_name || 'Your Driving School');
-      if (place) place.textContent = String(school?.location || school?.state || '');
-      if (progress) progress.style.width = '0%';
-      if (percent) percent.textContent = '0';
-      if (state) state.textContent = 'ACCESS VERIFIED';
-      if (loadingText) loadingText.textContent = 'Preparing your school homepage…';
-      overlay.hidden = false;
-      overlay.classList.remove('is-leaving');
 
+      const title = $('hptWelcomeSchoolName');
+      const logo = $('hptWelcomeSchoolLogo');
+      const logoFrame = overlay.querySelector('.hpt-welcome-logo-frame');
+      const schoolName = String(school?.school_name || 'Your Driving School').trim() || 'Your Driving School';
       const platformLogo = 'assets/hpt-brand-logo-v129.png';
       const preferredLogo = String(school?.logo_url || platformLogo);
+
+      if (title) {
+        title.textContent = schoolName;
+        title.setAttribute('aria-label', schoolName);
+      }
+
+      // Reveal the splash immediately; its background and the school portal are
+      // both prepared underneath/behind it, so the old access page never flashes.
+      overlay.hidden = false;
+      overlay.classList.remove('is-leaving');
+      logoFrame?.classList.remove('is-logo-ready');
+      if (logoFrame) logoFrame.hidden = false;
+      overlay.setAttribute('aria-label', `Welcome to ${schoolName}`);
+
       const logoReady = new Promise(done => {
         if (!logo) { done(true); return; }
         let settled = false;
-        const finish = () => { if (settled) return; settled = true; clearTimeout(logoTimeout); done(true); };
-        const logoTimeout = window.setTimeout(finish, 2600);
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(logoTimeout);
+          done(true);
+        };
+        const logoTimeout = window.setTimeout(finish, 3500);
         logo.hidden = false;
         logo.onload = () => {
           const decoded = typeof logo.decode === 'function' ? logo.decode().catch(() => {}) : Promise.resolve();
-          decoded.finally(finish);
+          decoded.finally(() => { logoFrame?.classList.add('is-logo-ready'); finish(); });
         };
         logo.onerror = () => {
           if (logo.dataset.platformFallback !== '1') {
@@ -149,43 +178,57 @@
             logo.src = platformLogo;
           } else {
             logo.hidden = true;
+            if (logoFrame) logoFrame.hidden = true;
             finish();
           }
         };
         logo.dataset.platformFallback = preferredLogo === platformLogo ? '1' : '0';
         logo.src = preferredLogo;
-        if (logo.complete && logo.naturalWidth > 0) finish();
+        if (logo.complete && logo.naturalWidth > 0) {
+          logoFrame?.classList.add('is-logo-ready');
+          finish();
+        }
       });
 
-      const duration = reducedMotion ? 450 : 1650;
-      const begin = performance.now();
-      const animate = now => {
-        const value = Math.min(92, Math.round(((now - begin) / duration) * 92));
-        if (progress) progress.style.width = `${value}%`;
-        if (percent) percent.textContent = String(value);
-        if (value < 92) welcomeFrame = requestAnimationFrame(animate);
-      };
-      welcomeFrame = requestAnimationFrame(animate);
-
-      const minimumDisplay = new Promise(done => window.setTimeout(done, duration));
+      // Preload both responsive versions of the exact website background and
+      // the Malayalam font face before taking the welcome splash away.
+      const backgroundReady = Promise.all([
+        waitForImage('assets/hpt-bg-desktop-v143.webp'),
+        waitForImage('assets/hpt-bg-mobile-v143.webp')
+      ]);
+      const fontReady = (async () => {
+        try {
+          if (document.fonts?.load) {
+            await document.fonts.load('700 48px Inter', schoolName);
+            await document.fonts.ready;
+          }
+        } catch (error) {
+          console.warn('School-name font preload skipped:', error);
+        }
+      })();
+      const minimumDisplay = new Promise(done => window.setTimeout(done, reducedMotion ? 900 : 1850));
       const boundedHomepageReady = Promise.race([
-        Promise.resolve(homepageReady).catch(error => { console.warn('School homepage preload completed with a warning:', error); }),
+        Promise.resolve(homepageReady).catch(error => {
+          console.warn('School homepage preload completed with a warning:', error);
+        }),
         new Promise(done => window.setTimeout(done, 5200))
       ]);
-      Promise.all([minimumDisplay, boundedHomepageReady, logoReady]).then(() => {
-        if (progress) progress.style.width = '100%';
-        if (percent) percent.textContent = '100';
-        if (loadingText) loadingText.textContent = 'Your school portal is ready';
-        if (welcomeFrame) cancelAnimationFrame(welcomeFrame);
+
+      Promise.all([minimumDisplay, boundedHomepageReady, logoReady, backgroundReady, fontReady]).then(() => {
+        overlay.classList.add('is-leaving');
         window.setTimeout(() => {
-          overlay.classList.add('is-leaving');
-          window.setTimeout(() => {
-            overlay.hidden = true;
-            overlay.classList.remove('is-leaving');
-            if (welcomeFrame) cancelAnimationFrame(welcomeFrame);
-            resolve();
-          }, reducedMotion ? 0 : 380);
-        }, reducedMotion ? 100 : 180);
+          overlay.hidden = true;
+          overlay.classList.remove('is-leaving');
+          resolve();
+        }, reducedMotion ? 0 : 480);
+      }).catch(error => {
+        console.warn('School welcome splash closing with a fallback:', error);
+        overlay.classList.add('is-leaving');
+        window.setTimeout(() => {
+          overlay.hidden = true;
+          overlay.classList.remove('is-leaving');
+          resolve();
+        }, reducedMotion ? 0 : 480);
       });
     });
   }

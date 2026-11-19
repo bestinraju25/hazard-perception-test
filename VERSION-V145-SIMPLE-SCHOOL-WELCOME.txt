@@ -1,0 +1,3 @@
+HPT V145 — SIMPLE SCHOOL WELCOME SPLASH
+
+Replaces the multi-card school portal initialisation dashboard with the requested scenic welcome screen: school logo, red-and-gold WELCOME TO banner, dynamic school name, and a yellow swoosh only. Uses the exact V143 desktop/mobile website background assets. Keeps the V144 bundled Noto Sans Malayalam glyph support and V143/V144 school homepage preloading flow.

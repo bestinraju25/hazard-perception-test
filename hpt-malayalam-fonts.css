@@ -1,0 +1,17 @@
+/* HPT global Malayalam typography — V142.
+   The font is bundled locally so Windows desktops do not depend on installed fonts.
+   Unicode-range faces override only Malayalam glyphs; Latin text keeps each page's existing typography. */
+@font-face{font-family:Arial;src:url("fonts/NotoSansMalayalam-Regular.ttf") format("truetype");font-style:normal;font-weight:400;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:Arial;src:url("fonts/NotoSansMalayalam-Bold.ttf") format("truetype");font-style:normal;font-weight:700;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:Helvetica;src:url("fonts/NotoSansMalayalam-Regular.ttf") format("truetype");font-style:normal;font-weight:400;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:Helvetica;src:url("fonts/NotoSansMalayalam-Bold.ttf") format("truetype");font-style:normal;font-weight:700;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:Inter;src:url("fonts/NotoSansMalayalam-Regular.ttf") format("truetype");font-style:normal;font-weight:400;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:Inter;src:url("fonts/NotoSansMalayalam-Bold.ttf") format("truetype");font-style:normal;font-weight:700;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:system-ui;src:url("fonts/NotoSansMalayalam-Regular.ttf") format("truetype");font-style:normal;font-weight:400;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:system-ui;src:url("fonts/NotoSansMalayalam-Bold.ttf") format("truetype");font-style:normal;font-weight:700;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:"Segoe UI";src:url("fonts/NotoSansMalayalam-Regular.ttf") format("truetype");font-style:normal;font-weight:400;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:"Segoe UI";src:url("fonts/NotoSansMalayalam-Bold.ttf") format("truetype");font-style:normal;font-weight:700;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:Roboto;src:url("fonts/NotoSansMalayalam-Regular.ttf") format("truetype");font-style:normal;font-weight:400;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:Roboto;src:url("fonts/NotoSansMalayalam-Bold.ttf") format("truetype");font-style:normal;font-weight:700;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:ui-sans-serif;src:url("fonts/NotoSansMalayalam-Regular.ttf") format("truetype");font-style:normal;font-weight:400;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}
+@font-face{font-family:ui-sans-serif;src:url("fonts/NotoSansMalayalam-Bold.ttf") format("truetype");font-style:normal;font-weight:700;unicode-range:U+0D00-0D7F,U+200C-200D;font-display:swap}

@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="style.css?v=143">
 <link rel="stylesheet" href="school-registration.css?v=143">
 <link rel="stylesheet" href="mobile-safe-area.css?v=113">
-<link rel="stylesheet" href="hpt-experience.css?v=143">
+<link rel="stylesheet" href="hpt-experience.css?v=145">
 
 <script src="hpt-config.js?v=126"></script>
 <script src="hpt-maintenance-guard.js?v=128"></script>
@@ -87,6 +87,10 @@
 <style>
 .hpt-seo-guide-callout{max-width:980px;margin:24px auto 0;padding:18px 20px;border:1px solid rgba(102,211,232,.24);border-radius:14px;background:rgba(14,40,58,.55)}.hpt-seo-guide-callout strong{color:#e8faff}.hpt-seo-guide-callout p{margin:8px 0;color:#b9c9d8}.hpt-seo-guide-callout a{color:#79ddec;font-weight:800;text-decoration:underline;text-underline-offset:3px}
 </style>
+
+<link rel="preload" href="fonts/NotoSansMalayalam-Regular.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="fonts/NotoSansMalayalam-Bold.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="hpt-malayalam-fonts.css?v=145">
 </head><body>
 <div id="hptIntroRoot" role="dialog" aria-modal="true" aria-label="Hazard Perception Test introduction">
   <section class="hpt-scene hpt-scene-loading is-active" data-hpt-scene="loading" aria-hidden="false">
@@ -195,8 +199,17 @@
     <button id="hptSchoolDisabledClose" type="button" class="hpt-school-disabled-button">OK, I UNDERSTAND</button>
   </section>
 </div>
-<div id="hptSchoolWelcome" hidden aria-live="polite" aria-label="School access verified">
-  <div class="hpt-welcome-card"><div class="hpt-welcome-state" id="hptWelcomeState">ACCESS VERIFIED</div><img class="hpt-welcome-logo" id="hptWelcomeSchoolLogo" alt="Driving school logo" hidden><div class="hpt-welcome-brand">WELCOME TO YOUR SCHOOL PORTAL</div><div class="hpt-welcome-title" id="hptWelcomeSchoolName">Your Driving School</div><div class="hpt-welcome-location" id="hptWelcomeSchoolLocation"></div><div class="hpt-welcome-loading" id="hptWelcomeLoadingText">Preparing your school homepage…</div><div class="hpt-progress-track"><div class="hpt-progress-fill" id="hptWelcomeProgressFill"></div></div><div class="hpt-welcome-percent"><span id="hptWelcomePercent">0</span><small>%</small></div></div>
+<div id="hptSchoolWelcome" hidden aria-live="polite" aria-label="Welcome to your driving school">
+  <main class="hpt-welcome-scene">
+    <div class="hpt-welcome-logo-frame">
+      <img class="hpt-welcome-logo" id="hptWelcomeSchoolLogo" alt="Driving school logo" hidden>
+    </div>
+    <div class="hpt-welcome-ribbon" aria-label="Welcome to">
+      <span>WELCOME TO</span>
+    </div>
+    <h1 class="hpt-welcome-title" id="hptWelcomeSchoolName">Your Driving School</h1>
+    <span class="hpt-welcome-swoosh" aria-hidden="true"></span>
+  </main>
 </div>
 <div id="app" class="app">
 <header class="topbar">
@@ -390,9 +403,9 @@
 </div>
 <div id="reportImageLightbox" class="report-lightbox" hidden role="dialog" aria-modal="true" aria-label="Hazard evidence image"><button id="reportLightboxClose" class="report-lightbox-close" type="button" aria-label="Close image">×</button><img id="reportLightboxImage" alt="Hazard evidence full size"><div id="reportLightboxCaption"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js?v=143"></script>
+<script src="app.js?v=145"></script>
 <script src="school-registration.js?v=143"></script>
-<script src="hpt-experience.js?v=141"></script><script>
+<script src="hpt-experience.js?v=145"></script><script>
 (()=>{
  let learnerLayer=null,learnerFrame=null,wasFullscreenBeforeLearner=false;
  function sameOriginMessage(event){return location.origin==='null'?event.origin==='null':event.origin===location.origin}
