@@ -1,0 +1,14 @@
+HPT V148 — DRIVING SCHOOL INFORMATION PAGE (INDIA)
+
+New public landing page: hazard-perception-test-for-driving-schools.html
+
+- Creates a dedicated shareable page for motor driving schools across India.
+- Explains hazard perception, developing hazards, video assessment flow and the current platform test configuration.
+- Describes school registration, activation, school access codes, learner entry, branded school portal, leaderboard and results.
+- Clearly distinguishes the independent HPT platform from statutory government/RTO examinations.
+- Notes the difference between the platform's 50-second clip limit and the one-minute Kerala MVD format reported publicly.
+- Includes WhatsApp enquiry and main portal calls to action.
+- Adds internal links from the main homepage and includes the new page in sitemap.xml.
+- No pricing information is included on the new page.
+
+Baseline: HPT-V147-Complete.zip. Existing V147 features are retained.

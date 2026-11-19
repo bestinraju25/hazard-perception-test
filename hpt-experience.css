@@ -961,3 +961,21 @@ body.home-active .topbar .logo{
   #hptSchoolWelcome .hpt-welcome-logo-frame{border:0!important;background:transparent!important;box-shadow:none!important}
   #hptSchoolWelcome .hpt-welcome-logo{padding:0!important;border-radius:0!important;background:transparent!important}
 }
+
+
+/* V149 — adaptive school-logo sizing for the scenic welcome splash.
+   The frame dimensions are calculated from the uploaded image's aspect ratio. */
+#hptSchoolWelcome .hpt-welcome-logo-frame.is-logo-fitted{
+  display:grid!important;place-items:center!important;flex:0 0 auto!important;
+  overflow:visible!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+#hptSchoolWelcome .hpt-welcome-logo-frame.is-logo-fitted .hpt-welcome-logo,
+#hptSchoolWelcome .hpt-welcome-logo-frame.is-logo-fitted .hpt-welcome-logo[hidden]{
+  display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;
+  margin:0!important;padding:0!important;object-fit:contain!important;object-position:center!important;
+  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+@media(max-width:760px){
+  #hptSchoolWelcome .hpt-welcome-logo-frame.is-logo-fitted{max-width:90vw!important;max-height:29vh!important}
+}

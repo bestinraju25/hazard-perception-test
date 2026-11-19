@@ -132,6 +132,30 @@
     });
   }
 
+  // V149: adapt the welcome-logo viewport to each school's actual logo shape.
+  // Wide wordmarks get more width; square crests remain square; portrait logos
+  // retain their natural proportion. The uploaded artwork is never stretched.
+  function fitSchoolWelcomeLogo(image, frame) {
+    if (!image || !frame || !image.naturalWidth || !image.naturalHeight) return;
+    const ratio = image.naturalWidth / image.naturalHeight;
+    if (!Number.isFinite(ratio) || ratio <= 0) return;
+
+    const mobile = window.matchMedia?.('(max-width: 760px)').matches;
+    const viewportWidth = Math.max(320, document.documentElement.clientWidth || window.innerWidth || 0);
+    const viewportHeight = Math.max(480, window.innerHeight || document.documentElement.clientHeight || 0);
+    const maxWidth = mobile ? Math.min(viewportWidth * 0.88, 560) : Math.min(viewportWidth * 0.44, 720);
+    const maxHeight = mobile ? Math.min(viewportHeight * 0.27, 230) : Math.min(viewportHeight * 0.30, 290);
+    const width = Math.max(72, Math.min(maxWidth, maxHeight * ratio));
+    const height = Math.max(48, Math.min(maxHeight, width / ratio));
+
+    frame.style.setProperty('width', `${Math.round(width)}px`, 'important');
+    frame.style.setProperty('height', `${Math.round(height)}px`, 'important');
+    frame.style.setProperty('max-width', '90vw', 'important');
+    frame.style.setProperty('max-height', mobile ? '29vh' : '32vh', 'important');
+    frame.dataset.logoShape = ratio >= 1.55 ? 'wide' : (ratio <= 0.72 ? 'portrait' : 'balanced');
+    frame.classList.add('is-logo-fitted');
+  }
+
   function showSchoolWelcome(school, homepageReady = Promise.resolve(true)) {
     return new Promise(resolve => {
       const overlay = $('hptSchoolWelcome');
@@ -170,7 +194,11 @@
         logo.hidden = false;
         logo.onload = () => {
           const decoded = typeof logo.decode === 'function' ? logo.decode().catch(() => {}) : Promise.resolve();
-          decoded.finally(() => { logoFrame?.classList.add('is-logo-ready'); finish(); });
+          decoded.finally(() => {
+            fitSchoolWelcomeLogo(logo, logoFrame);
+            logoFrame?.classList.add('is-logo-ready');
+            finish();
+          });
         };
         logo.onerror = () => {
           if (logo.dataset.platformFallback !== '1') {
@@ -185,6 +213,7 @@
         logo.dataset.platformFallback = preferredLogo === platformLogo ? '1' : '0';
         logo.src = preferredLogo;
         if (logo.complete && logo.naturalWidth > 0) {
+          fitSchoolWelcomeLogo(logo, logoFrame);
           logoFrame?.classList.add('is-logo-ready');
           finish();
         }

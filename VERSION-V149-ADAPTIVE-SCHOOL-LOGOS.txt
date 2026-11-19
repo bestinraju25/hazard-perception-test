@@ -1,0 +1,7 @@
+HPT V149 — ADAPTIVE SCHOOL LOGO SIZING
+
+Based on HPT V148 Complete.
+
+The school welcome splash now measures each uploaded logo's natural aspect ratio and sizes its transparent display area to match. Wide wordmarks use a wider display area, square logos retain a square display area, and portrait logos retain their natural proportions. The logo artwork is not stretched, cropped, recoloured, or given a background.
+
+The existing V145 welcome composition, V146 minimum 6.5-second display, V147 transparent frame, V143 desktop/mobile road backgrounds, V148 driving-school information page, and existing app features are preserved.
