@@ -1,0 +1,3 @@
+HPT V146 — SCHOOL WELCOME DISPLAY DURATION
+
+The V145 scenic school welcome splash now remains fully visible for at least 6.5 seconds before fading away. The existing logo, school name, desktop/mobile backgrounds, Malayalam font support and homepage-preload sequence are retained.

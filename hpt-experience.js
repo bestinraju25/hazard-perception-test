@@ -206,7 +206,10 @@
           console.warn('School-name font preload skipped:', error);
         }
       })();
-      const minimumDisplay = new Promise(done => window.setTimeout(done, reducedMotion ? 900 : 1850));
+      // V146: keep the branded welcome splash visible for 6.5 seconds minimum.
+      // This timer starts immediately after the overlay is revealed; homepage,
+      // logo, background and font preparation still run in parallel.
+      const minimumDisplay = new Promise(done => window.setTimeout(done, 6500));
       const boundedHomepageReady = Promise.race([
         Promise.resolve(homepageReady).catch(error => {
           console.warn('School homepage preload completed with a warning:', error);
